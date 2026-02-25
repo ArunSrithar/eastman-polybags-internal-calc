@@ -1,0 +1,85 @@
+@import "./theme.css";
+
+/* ─── Dark Mode Overrides ─────────────────────────────────────────────────── */
+@layer base {
+  .dark {
+    --color-background: #000000;
+    --color-background-2: #1c1c1e;
+    --color-background-3: #2c2c2e;
+
+    --color-grouped-background: #000000;
+    --color-grouped-background-2: #1c1c1e;
+    --color-grouped-background-3: #2c2c2e;
+
+    --color-fill: rgba(120, 120, 128, 0.36);
+    --color-fill-2: rgba(120, 120, 128, 0.32);
+    --color-fill-3: rgba(118, 118, 128, 0.24);
+    --color-fill-4: rgba(118, 118, 128, 0.18);
+
+    --color-label: rgb(255, 255, 255);
+    --color-label-2: rgba(235, 235, 245, 0.6);
+    --color-label-3: rgba(235, 235, 245, 0.3);
+    --color-label-4: rgba(235, 235, 245, 0.16);
+    --color-placeholder: rgba(235, 235, 245, 0.3);
+    --color-hyperlink: #0984ff;
+
+    --color-separator: rgba(84, 84, 88, 0.65);
+    --color-separator-opaque: #38383a;
+
+    --color-tint: #0091ff;
+  }
+
+  html,
+  body {
+    @apply bg-grouped-background text-label;
+    min-height: 100dvh;
+  }
+}
+
+/* ─── Reusable Component Classes ─────────────────────────────────────────── */
+@layer components {
+  /* Cards */
+  .card {
+    @apply bg-grouped-background-2 rounded-2xl overflow-hidden;
+  }
+
+  .card-section {
+    @apply px-4 py-3;
+  }
+
+  /* Form */
+  .field-label {
+    @apply text-sm font-medium text-label-2;
+  }
+
+  .input-base {
+    @apply w-full bg-fill-3 rounded-xl px-3 py-2.5 text-sm text-label
+           outline-none focus:ring-2 focus:ring-tint/50 transition-all;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply bg-tint text-white font-semibold rounded-xl px-5 py-2.5
+           active:opacity-70 transition-opacity cursor-pointer;
+  }
+
+  .btn-secondary {
+    @apply bg-fill-2 text-label font-medium rounded-xl px-5 py-2.5
+           active:opacity-70 transition-opacity cursor-pointer;
+  }
+
+  .btn-ghost {
+    @apply text-tint font-medium px-3 py-2
+           active:opacity-70 transition-opacity cursor-pointer;
+  }
+
+  .btn-icon {
+    @apply size-9 flex items-center justify-center rounded-full bg-fill-3
+           text-label-2 active:opacity-70 transition-opacity cursor-pointer;
+  }
+
+  /* Divider */
+  .divider {
+    @apply border-t border-separator;
+  }
+}

@@ -1,11 +1,5 @@
-import "./App.css";
+import AppShell from "./components/layout/AppShell";
 
-function App() {
-  return (
-    <>
-      <p>Hello World!</p>
-    </>
-  );
+export default function App() {
+  return <AppShell />;
 }
-
-export default App;
