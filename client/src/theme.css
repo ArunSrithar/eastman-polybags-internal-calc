@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  /* Background Colors */
+  --color-background: #ffffff;
+  --color-background-dark: #000000;
+  --color-background-2: #f2f2f7;
+  --color-background-2-dark: #1c1c1e;
+  --color-background-3: #ffffff;
+  --color-background-3-dark: #2c2c2e;
+
+  /* Grouped Background Colors */
+  --color-grouped-background: #f2f2f7;
+  --color-grouped-background-dark: #000000;
+  --color-grouped-background-2: #ffffff;
+  --color-grouped-background-2-dark: #1c1c1e;
+  --color-grouped-background-3: #f2f2f7;
+  --color-grouped-background-3-dark: #2c2c2e;
+
+  /* Grouped Background Colors */
+  --color-fill: rgba(120, 120, 128, 0.2);
+  --color-fill-dark: rgba(120, 120, 128, 0.36);
+  --color-fill-2: rgba(120, 120, 128, 0.16);
+  --color-fill-2-dark: rgba(120, 120, 128, 0.32);
+  --color-fill-3: rgba(118, 118, 128, 0.12);
+  --color-fill-3-dark: rgba(118, 118, 128, 0.24);
+  --color-fill-4: rgba(116, 116, 128, 0.08);
+  --color-fill-4-dark: rgba(118, 118, 128, 0.18);
+
+  /* Text Colors */
+  --color-label: rgb(0, 0, 0);
+  --color-label-dark: rgb(255, 255, 255);
+  --color-label-2: rgba(60, 60, 67, 0.6);
+  --color-label-2-dark: rgba(235, 235, 245, 0.6);
+  --color-label-3: rgba(60, 60, 67, 0.3);
+  --color-label-3-dark: rgba(235, 235, 245, 0.3);
+  --color-label-4: rgba(60, 60, 67, 0.18);
+  --color-label-4-dark: rgba(235, 235, 245, 0.16);
+  --color-placeholder: rgba(60, 60, 67, 0.3);
+  --color-placeholder-dark: rgba(235, 235, 245, 0.3);
+  --color-hyperlink: #007aff;
+  --color-hyperlink-dark: #0984ff;
+
+  /* Seperator Colors */
+  --color-seperator: rgba(84, 84, 88, 0.5);
+  --color-seperator-opaque: #38383a;
+
+  /* Tint Colors */
+  --color-tint: #0a84ff;
+  --color-tint-dark: #0091ff;
+}
