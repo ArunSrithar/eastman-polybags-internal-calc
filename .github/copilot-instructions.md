@@ -1,0 +1,491 @@
+# Eastman Polybags — Internal Quote Calculator
+
+An internal calculator for a small enterprise that helps generate quotes for customers based on daily fluctuating rates.
+
+---
+
+## Overview
+
+- **Stack:** MERN (MongoDB, Express, React, Node.js)
+- **Styling:** Tailwind CSS (v4) with iOS-inspired design tokens (`theme.css`)
+- **Responsive:** Tailwind CSS utility classes
+- **Dark / Light mode:** Tailwind class-based dark mode (`dark:` variant) toggled manually via the user menu; preference persisted in `localStorage`
+- **3 Calculators** accessible via a capsule segmented tab control inside the header
+
+---
+
+## Skills Reference
+
+The following skills are available in `.agents/skills/`. Load the relevant one before starting the described task:
+
+| Skill                          | When to use                                                                                              |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `vercel-react-best-practices`  | Writing or refactoring React components — performance patterns, avoiding waterfalls, bundle size         |
+| `vercel-composition-patterns`  | Designing component APIs — compound components, avoiding boolean prop proliferation, lifting state       |
+| `web-design-guidelines`        | UI/UX review — accessibility, spacing, contrast, interaction patterns                                    |
+| `wcag-audit-patterns`          | Accessibility audit — WCAG 2.2 compliance, `aria-*` attributes, keyboard navigation                      |
+| `nodejs-express-server`        | Building the Express server (`server/`) — routing, middleware, request handling                          |
+| `nodejs-backend-patterns`      | Backend architecture — REST API design, middleware chains, error handling, auth                          |
+| `architecture-patterns`        | Structuring backend layers — Clean Architecture, use cases, controllers vs. services                     |
+| `mongodb`                      | MongoDB/Mongoose schemas, queries, aggregation pipelines — Phase 3 DB persistence                        |
+| `skill-creator`                | Creating or improving agent skills — writing SKILL.md files, optimizing descriptions, running evals      |
+| `frontend-design`              | Building distinctive, production-grade UI — components, pages, dashboards, creative web design           |
+| `tailwind-design-system`       | Extending `theme.css` tokens, building component variants, standardizing UI patterns with Tailwind v4    |
+| `tailwindcss-advanced-layouts` | Complex multi-column CSS Grid / Flexbox layouts — calculator grids, sidebar layouts, responsive patterns |
+
+> **Not applicable to this project:** `react-native-architecture`, `vercel-react-native-skills` — this is a web app, not a native app.
+
+### Mandatory skill loading
+
+- **Before writing or refactoring any React component**, load `vercel-react-best-practices` SKILL.md and `vercel-composition-patterns` SKILL.md.
+- **Before building or designing any new UI, component layout, or calculator from scratch**, load `frontend-design` SKILL.md.
+- **Before building any backend route or server logic**, load `nodejs-express-server` SKILL.md and `nodejs-backend-patterns` SKILL.md.
+- **Before designing MongoDB schemas**, load `mongodb` SKILL.md.
+- **Before any UI/UX review**, load `web-design-guidelines` SKILL.md.
+- **Before extending `theme.css`, adding design tokens, or building new component variants**, load `tailwind-design-system` SKILL.md.
+- **Before building complex multi-column grid or advanced flex layouts**, load `tailwindcss-advanced-layouts` SKILL.md.
+- **When adding, modifying, or evaluating any skill in `.agents/skills/`**, load `skill-creator` SKILL.md.
+
+---
+
+## Stack & Tooling
+
+- React 18 functional components, `.jsx` extension everywhere — no class components
+- Tailwind CSS v4 via `@tailwindcss/vite` plugin
+- Vite build tool; no Next.js
+- No external state management library (no Zustand, Redux, MobX) — use `useState`, `useContext`, `useRef`
+- No React Router — tab routing is handled by `activeIndex` state in `AppShell.jsx`
+
+---
+
+## Calculators
+
+### 1. Gravure Rate Calculator
+
+See [GravureRateCalculator.md](../client/src/components/calculators/GravureRateCalculator/GravureRateCalculator.md) for full formula, field reference, charge rates, and data flow.
+
+### 2. Flexo Rate Calculator
+
+See [FlexoRateCalculator.md](../client/src/components/calculators/FlexoRateCalculator/FlexoRateCalculator.md) for full formula, field reference, charge rates, and data flow.
+
+### 3. Job Cost Calculator
+
+<!-- Explanation to be added -->
+
+---
+
+## Features
+
+- **Global Rate Settings panel** — daily base rates entered once via a bottom sheet; applies to all calculators as defaults _(pending)_
+- **Per-calculator rate override** — each calculator form has an override toggle to use custom rates for that specific quote _(pending)_
+- **Quote output — 3 formats:**
+  - Inline result card shown below the form _(pending)_
+  - Full breakdown in a slide-up bottom sheet modal _(pending)_
+  - Print-optimised layout triggered by "Print Quote" (`@media print`) _(pending)_
+
+---
+
+## Architecture & Module Structure
+
+Legend: ✅ Built | 🔲 Pending
+
+```
+client/src/
+├── context/
+│   ├── ThemeContext.jsx         ✅ isDark + toggleTheme(), applies .dark to <html>, seeds from OS, persists to localStorage
+│   └── RateContext.jsx          🔲 Global daily rates + per-calculator overrides
+│
+├── components/
+│   ├── ui/                      (minimal — built as needed)
+│   │   ├── IOSToggle.jsx        ✅ iOS-style boolean toggle (on + onToggle)
+│   │   ├── CheckBox.jsx         ✅ Read-only selection indicator
+│   │   ├── CreatableCombobox.jsx ✅ Portal dropdown with localStorage-persisted options
+│   │   └── Icons.jsx            ✅ CloseIcon, TrashIcon, ChevronDownIcon
+│   │
+│   ├── layout/                  ✅ All built
+│   │   ├── Header/
+│   │   │   ├── AppHeader.jsx    ✅ Island-style floating glass bar (logo | capsule tabs | user menu)
+│   │   │   ├── AppLogo.jsx      ✅ Company name + subtitle
+│   │   │   └── UserMenu/
+│   │   │       ├── UserMenu.jsx         ✅ Open/close state + outside-click dismiss
+│   │   │       ├── UserAvatar.jsx       ✅ Circle icon button, tints when open
+│   │   │       ├── UserMenuDropdown.jsx ✅ Floating card: user info, theme toggle, logout
+│   │   │       └── ThemeToggleRow.jsx   ✅ Label + animated iOS pill toggle (reads/writes ThemeContext)
+│   │   ├── SegmentedControl/
+│   │   │   ├── SegmentedControl.jsx     ✅ Capsule island container (inline-flex, sizes to content)
+│   │   │   └── SegmentedTab.jsx         ✅ Capsule pill tab, active = bg-tint text-white
+│   │   └── AppShell.jsx                 ✅ Wires header tabs to active calculator, manages activeIndex state
+│   │
+│   ├── overlays/                🔲 All pending
+│   │
+│   ├── RateSettings/            🔲 All pending
+│   │
+│   ├── quote/                   🔲 All pending
+│   │
+│   └── calculators/
+│       ├── GravureRateCalculator/
+│       │   ├── index.jsx                ✅ Container: state, ResizeObserver, save/delete
+│       │   ├── GravureForm.jsx          ✅ Controlled form with material rows + toggles
+│       │   ├── GravureResult.jsx        ✅ Collapsible breakdown card
+│       │   ├── GravureQuotesSidebar.jsx ✅ Saved quotes list (col 3)
+│       │   └── GravureQuoteModal.jsx    ✅ Invoice detail modal
+│       ├── FlexoRateCalculator/
+│       │   ├── index.jsx                ✅ Container: state, ResizeObserver, save/delete
+│       │   ├── FlexoRateCalcForm.jsx    ✅ Form: material price, sizes, toggles, wastage
+│       │   ├── FlexoRateCalcQuotesSidebar.jsx ✅ Saved quotes list (col 3)
+│       │   ├── FlexoRateCalcQuoteModal.jsx   ✅ Invoice detail modal
+│       │   └── FlexoRateCalcResult.jsx       🔲 Collapsible breakdown card
+│       └── JobCostCalculator/
+│           └── index.jsx                ✅ Placeholder shell
+│
+├── constants/
+│   ├── gravureRates.js          ✅ Printing/lam/slitting rates, pouch lookup, sample quotes
+│   └── flexoRateCalc.js         ✅ Toggle rates, roll/cutting size lookups, sample quotes
+│
+├── utils/
+│   ├── format.js                ✅ fmt(), formatDate()
+│   ├── quoteStorage.js          ✅ getQuotes(), saveQuote(), deleteQuote()
+│   └── calculators/
+│       ├── gravureRate.js       ✅ calculateGravureRate() pure function
+│       ├── flexoRateCalc.js     ✅ calculateFlexoRate() pure function
+│       ├── jobCostCalc.js       🔲
+│
+├── App.jsx                      ✅ Renders AppShell
+├── main.jsx                     ✅ Entry: ThemeProvider > App
+├── theme.css                    ✅ Tailwind @theme iOS color tokens + @custom-variant dark
+└── index.css                    ✅ .dark overrides, @layer base (html/body defaults), @layer components (.card, .btn-primary, .input-base, etc.)
+
+server/                          🔲 All pending (node_modules installed, no source files yet)
+├── index.js
+├── routes/
+├── controllers/
+├── models/
+└── package.json
+```
+
+---
+
+## Color & Theming — CRITICAL
+
+All colors **must** use the semantic iOS-inspired tokens defined in `theme.css` and overridden for dark mode in `index.css`. Never use raw Tailwind palette colors (blue-500, gray-200, etc.) or hardcoded hex values.
+
+### Semantic Token Reference
+
+| Token                                                                           | Use for                                   |
+| ------------------------------------------------------------------------------- | ----------------------------------------- |
+| `bg-background` / `bg-background-2` / `bg-background-3`                         | page / surface / elevated surface         |
+| `bg-grouped-background` / `bg-grouped-background-2` / `bg-grouped-background-3` | grouped list backgrounds                  |
+| `text-label`                                                                    | primary body text                         |
+| `text-label-2`                                                                  | secondary / supporting text               |
+| `text-label-3`                                                                  | placeholder / tertiary text               |
+| `text-label-4`                                                                  | disabled text                             |
+| `bg-fill` / `bg-fill-2` / `bg-fill-3` / `bg-fill-4`                             | semi-transparent fills, input backgrounds |
+| `bg-tint` / `text-tint`                                                         | primary accent (iOS blue)                 |
+| `border-separator`                                                              | dividers, input borders                   |
+| `border-separator-opaque`                                                       | fully-opaque dividers                     |
+| `text-placeholder`                                                              | input placeholder color                   |
+| `text-hyperlink`                                                                | links                                     |
+
+### Dark Mode
+
+Dark mode is handled entirely by the token system — tokens auto-switch when `.dark` is on `<html>`. **Do not** add `dark:` variants for any color that already uses a semantic token. Only use `dark:` for glassmorphism / raw-alpha values that must differ:
+
+```jsx
+// ✅ CORRECT — token handles dark automatically
+<div className="bg-grouped-background-2 text-label" />
+
+// ✅ CORRECT — only use dark: for manually-specified alpha values
+<header className="bg-white/40 dark:bg-white/8 border-white/50 dark:border-white/10" />
+
+// ❌ WRONG — never use raw palette colors
+<div className="bg-white text-gray-900 dark:bg-zinc-900 dark:text-white" />
+```
+
+Dark mode is toggled by `ThemeContext` (`useTheme()` hook), which adds/removes `.dark` on `<html>` and persists to `localStorage`. Tailwind v4 implementation: `@custom-variant dark (&:where(.dark, .dark *))` in `theme.css`; all `--color-*` tokens in `@theme {}`; dark overrides in `.dark {}` in `index.css`.
+
+---
+
+## Component Layer Classes
+
+Prefer `@layer components` classes from `index.css` over repeating utility strings:
+
+| Class            | Description                                           |
+| ---------------- | ----------------------------------------------------- |
+| `.card`          | `bg-grouped-background-2 rounded-2xl overflow-hidden` |
+| `.card-section`  | `px-4 py-3` padding inside a card                     |
+| `.divider`       | `border-t border-separator` horizontal rule           |
+| `.field-label`   | `text-sm font-medium text-label-2`                    |
+| `.input-base`    | full-width rounded input with focus ring              |
+| `.btn-primary`   | filled tint button                                    |
+| `.btn-secondary` | filled fill-2 button                                  |
+| `.btn-ghost`     | text-only tint button                                 |
+| `.btn-icon`      | 36px circular icon button                             |
+
+```jsx
+// ✅ Preferred
+<div className="card">
+  <div className="card-section">
+    <label className="field-label">Material</label>
+    <input className="input-base" />
+  </div>
+  <div className="divider mx-4" />
+  <div className="card-section">...</div>
+</div>
+
+// ❌ Avoid re-declaring what the class already does
+<div className="bg-grouped-background-2 rounded-2xl overflow-hidden px-4 py-3">
+```
+
+---
+
+## Header Design Notes
+
+The header is an **island-style floating glass bar** — detached from screen edges with margin, fully rounded (`rounded-2xl`), and always-on frosted glass:
+
+- Outer wrapper: `fixed top-0 inset-x-0 z-50 px-4 pt-3` creates the floating gap
+- Inner `<header>`: `h-[76px] rounded-2xl bg-white/40 dark:bg-white/8 backdrop-blur-2xl backdrop-saturate-200 border border-white/50 dark:border-white/10 shadow-lg`
+- Three-column flex layout: `flex-1` logo | `flex-none` island tabs | `flex-1 justify-end` user menu
+- Segmented control: `inline-flex rounded-full` container with `rounded-full` capsule tabs; active tab = `bg-tint text-white`
+- User menu: avatar button → dropdown card with user name/role, iOS pill dark mode toggle, logout
+
+---
+
+## File & Folder Conventions
+
+### Adding a New Calculator
+
+Every calculator lives in its own folder under `components/calculators/`:
+
+```
+components/calculators/{Name}/
+  index.jsx                ← container: state, refs, quote list, save/delete handlers
+  {Name}Form.jsx           ← controlled form; calls onProceed(form) in event handlers
+  {Name}Result.jsx         ← collapsible breakdown card
+  {Name}QuotesSidebar.jsx  ← saved quotes list (col 3)
+  {Name}QuoteModal.jsx     ← invoice detail modal (React portal)
+```
+
+Calculation logic goes in `utils/calculators/{camelName}.js` as a **pure function** — no side effects, no DOM, no React imports.
+
+Rate constants go in `constants/{camelName}.js`.
+
+### Naming
+
+- Components: `PascalCase.jsx`
+- Utilities / constants: `camelCase.js`
+- localStorage keys: kebab-case strings (`"quotes-gravure"`, `"gravure-material-values"`)
+
+---
+
+## Calculator Container Pattern (`index.jsx`)
+
+Follow the pattern established in `GravureRateCalculator/index.jsx` and `FlexoRateCalculator/index.jsx`:
+
+```jsx
+const CALC_KEY = "my-calc";
+
+function getInitialQuotes() {
+  const stored = getQuotes(CALC_KEY);
+  const allSamples = stored.length > 0 && stored.every((q) => q.id.startsWith("sample-"));
+  if (stored.length === 0 || allSamples) {
+    localStorage.setItem(`quotes-${CALC_KEY}`, JSON.stringify(SAMPLE_QUOTES));
+    return SAMPLE_QUOTES;
+  }
+  return stored;
+}
+
+export default function MyCalculator() {
+  const [result, setResult] = useState(null);
+  const [quotes, setQuotes] = useState(() => getInitialQuotes());
+  const [saveError, setSaveError] = useState(null);
+  const [formHeight, setFormHeight] = useState(null);
+  const formRef = useRef(null);
+
+  useEffect(() => {
+    if (!formRef.current) return;
+    const ro = new ResizeObserver(([entry]) => setFormHeight(entry.contentRect.height));
+    ro.observe(formRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  function handleFormChange(form) {
+    setSaveError(null);
+    setResult(calculateMyRate(form));
+  }
+
+  function handleSave(form) {
+    const name = form.quoteName.trim();
+    if (!name) { setSaveError("Enter a customer name before saving."); return; }
+    const dup = quotes.some((q) => q.quoteName.trim().toLowerCase() === name.toLowerCase());
+    if (dup) { setSaveError(`A quote named "${name}" already exists. Use a different name.`); return; }
+    const calc = calculateMyRate(form);
+    if (!calc) { setSaveError("Fill in required fields before saving."); return; }
+    setSaveError(null);
+    setQuotes(saveQuote(CALC_KEY, { quoteName: name, /* summary fields */, form: { ...form, quoteName: name } }));
+  }
+
+  function handleDelete(id) {
+    setQuotes(deleteQuote(CALC_KEY, id));
+  }
+}
+```
+
+---
+
+## Quote Storage
+
+Use `utils/quoteStorage.js` helpers — never write to `localStorage` directly for quote data:
+
+```js
+import { getQuotes, saveQuote, deleteQuote } from "../../../utils/quoteStorage";
+
+const CALC_KEY = "my-calc"; // unique per calculator, kebab-case
+```
+
+For persisting individual form field values between sessions (material prices, etc.), use a dedicated helper object inside the Form component — see `GravureForm.jsx` for the pattern.
+
+---
+
+## Save Validation Rules
+
+Every `handleSave` must validate in this order:
+
+1. **Empty name** → `setSaveError("Enter a customer name before saving.")`
+2. **Duplicate name** (case-insensitive) → ``setSaveError(`A quote named "${name}" already exists. Use a different name.`)``
+3. **No calculable result** → `setSaveError("Fill in required fields before saving.")`
+
+`handleFormChange` must call `setSaveError(null)` to auto-clear the error on any form change.
+
+---
+
+## Number & Currency Formatting
+
+Always use the helpers from `utils/format.js`:
+
+```js
+import { fmt, formatDate } from "../../../utils/format";
+
+fmt(12345.6); // → "12,345.60"  (en-IN locale, 2 dp)
+formatDate(isoString); // → "26 Feb 2026, 09:15 am"
+```
+
+- Currency symbol: `₹` — never `Rs.`, `INR`, or `Rs`
+- Locale: `en-IN` for all number/date formatting
+
+---
+
+## UI Primitives
+
+Use existing primitives from `components/ui/` — do not re-implement them:
+
+| Component           | Use for                                                 |
+| ------------------- | ------------------------------------------------------- |
+| `IOSToggle`         | Boolean toggle switches (`on` + `onToggle` props)       |
+| `CheckBox`          | Selection indicator (read-only display; `checked` prop) |
+| `CreatableCombobox` | Inputs with preset options + free-text entry            |
+| `Icons.jsx`         | SVG icons (`CloseIcon`, `TrashIcon`, `ChevronDownIcon`) |
+
+---
+
+## Layout Rules
+
+- Header height offset: `pt-22` on the main content wrapper (matches `h-[76px]` header + `pt-3` gap)
+- Calculator max width: `max-w-6xl mx-auto` with 3-column grid
+- Three-column grid: `lg:grid lg:grid-cols-3` — form+result span `lg:col-span-2`, sidebar `lg:col-span-1 lg:sticky lg:top-25`
+
+---
+
+## What to Avoid
+
+- ❌ No `console.log` left in production code
+- ❌ No inline `style={{}}` — use Tailwind utilities (exception: dynamic `maxHeight` driven by `ResizeObserver`)
+- ❌ No external UI libraries (shadcn, Radix, MUI, etc.) — build from the existing primitives
+- ❌ No hardcoded `#hex` or `rgb()` values in JSX className strings
+- ❌ No direct `document.querySelector` / DOM manipulation — use refs
+- ❌ No saving with `quoteName: "Untitled"` — always validate and require a name
+
+---
+
+## React Patterns (from `vercel-react-best-practices` + `vercel-composition-patterns`)
+
+These rules **must be followed** in all React code in this project.
+
+### `rendering-conditional-render` — Always use ternary, never `&&`, for JSX conditionals
+
+`&&` can accidentally render `0` or other falsy primitives. Always use an explicit ternary with `null`.
+
+```jsx
+// ✅ Correct
+{
+  hasError ? <p className="text-red-500">{error}</p> : null;
+}
+{
+  count > 0 ? <Badge>{count}</Badge> : null;
+}
+
+// ❌ Wrong — && renders "0" when count is 0
+{
+  count && <Badge>{count}</Badge>;
+}
+```
+
+### `rerender-move-effect-to-event` — Call parent callbacks in event handlers, not `useEffect`
+
+```jsx
+// ✅ Correct — one render cycle
+function setField(key, val) {
+  const next = { ...form, [key]: val };
+  setForm(next);
+  onProceed?.(next); // notify parent in same event handler
+}
+
+// ❌ Wrong — two render cycles
+useEffect(() => {
+  onProceed?.(form);
+}, [form]);
+```
+
+### `rerender-lazy-state-init` — Use factory function for expensive `useState` init
+
+```jsx
+// ✅ Correct — makeInitialForm() runs only once
+const [form, setForm] = useState(() => makeInitialForm());
+
+// ❌ Wrong — runs makeInitialForm() on every render
+const [form, setForm] = useState(makeInitialForm());
+```
+
+### `architecture-avoid-boolean-props` — No boolean flags to change component behaviour
+
+Use explicit variant components instead of `isEditing`, `isReadOnly`, `isBold` props.
+
+_Exception: simple file-scoped leaf components like `IOSToggle` (`on` prop) or `InvoiceRow` (`bold`/`muted`) are acceptable._
+
+---
+
+## Next Session — Where to Continue
+
+**2 calculators complete. Immediate next steps:**
+
+1. **Job Cost Calculator** — share field names, formula, and lookup tables; then build: form → calc logic → result → sidebar → modal
+2. `FlexoRateCalcResult.jsx` — collapsible breakdown card for Flexo Rate Calculator (matches `GravureResult.jsx` pattern)
+
+**Before starting each new calculator:**
+
+- Share the field names, formula, and any lookup tables
+- Load `vercel-react-best-practices` SKILL.md and `vercel-composition-patterns` SKILL.md
+- Follow the Calculator Container Pattern and Save Validation Rules above
+
+---
+
+## Development Phases
+
+| Phase | Scope                                                                             | Status            |
+| ----- | --------------------------------------------------------------------------------- | ----------------- |
+| 1a    | App shell, header island, segmented control, dark mode, ThemeContext              | ✅ Done           |
+| 1b    | UI primitives (IOSToggle, CheckBox, CreatableCombobox, Icons), quote storage util | ✅ Done (minimal) |
+| 1c    | Gravure Rate Calculator — form, result, sidebar, modal, validation                | ✅ Done           |
+| 1c    | Flexo Rate Calculator — form, sidebar, modal, validation                          | ✅ Done           |
+| 1c    | Job Cost Calculator                                                               | 🔲 Next           |
+| 2     | Authentication (simple)                                                           | 🔲 Pending        |
+| 3     | DB persistence — save & retrieve quotes                                           | 🔲 Pending        |

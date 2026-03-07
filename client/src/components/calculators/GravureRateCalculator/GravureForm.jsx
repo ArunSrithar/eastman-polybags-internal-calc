@@ -161,7 +161,7 @@ function LaminationRow({ label, checked, onClick }) {
 }
 
 /* ─── GravureForm ────────────────────────────────────────────────────────── */
-export default function GravureForm({ onProceed, onSave, result }) {
+export default function GravureForm({ onProceed, onSave, result, saveError }) {
   const [form, setForm] = useState(() => makeInitialForm());
 
   function setField(key, val) {
@@ -210,8 +210,16 @@ export default function GravureForm({ onProceed, onSave, result }) {
                 value={form.quoteName}
                 onChange={(e) => setField("quoteName", e.target.value)}
                 placeholder="e.g. Customer A"
-                className="input-base"
+                className={`input-base ${
+                  saveError &&
+                  (saveError.includes("name") || saveError.includes("named"))
+                    ? "ring-1 ring-red-500 border-red-500"
+                    : ""
+                }`}
               />
+              {saveError && (
+                <p className="text-xs text-red-500 mt-1.5">{saveError}</p>
+              )}
             </div>
           </div>
 

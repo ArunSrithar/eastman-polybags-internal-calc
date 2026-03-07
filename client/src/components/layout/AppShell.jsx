@@ -1,22 +1,19 @@
 import { useState } from "react";
 import AppHeader from "./Header/AppHeader";
 import GravureRateCalculator from "../calculators/GravureRateCalculator";
-import RateCalculator from "../calculators/RateCalculator";
-import Calculator3 from "../calculators/Calculator3";
-import CostingCalculator from "../calculators/CostingCalculator";
+import FlexoRateCalculator from "../calculators/FlexoRateCalculator";
+import JobCostCalculator from "../calculators/JobCostCalculator";
 
 const TABS = [
   { id: "gravure", label: "Gravure" },
-  { id: "rate", label: "Rate Calc" },
-  { id: "calc3", label: "Calc 3" },
-  { id: "costing", label: "Costing" },
+  { id: "flexo", label: "Flexo Calc" },
+  { id: "job-cost", label: "Job Cost" },
 ];
 
 const CALCULATORS = [
   GravureRateCalculator,
-  RateCalculator,
-  Calculator3,
-  CostingCalculator,
+  FlexoRateCalculator,
+  JobCostCalculator,
 ];
 
 export default function AppShell() {
@@ -33,7 +30,7 @@ export default function AppShell() {
       />
 
       {/* ── Scrollable content — offset by h-14 header only */}
-      <main className="pt-[88px] px-4 pb-8">
+      <main className="pt-22 px-4 pb-8">
         <ActiveCalculator />
       </main>
     </div>

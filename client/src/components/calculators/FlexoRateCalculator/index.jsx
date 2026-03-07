@@ -1,16 +1,14 @@
 import { useState, useRef, useEffect } from "react";
-import GravureForm from "./GravureForm";
-import GravureResult from "./GravureResult";
-import GravureQuotesSidebar from "./GravureQuotesSidebar";
-import { calculateGravureRate } from "../../../utils/calculators/gravureRate";
+import FlexoRateCalcForm from "./FlexoRateCalcForm";
+import FlexoRateCalcQuotesSidebar from "./FlexoRateCalcQuotesSidebar";
+import { calculateFlexoRate } from "../../../utils/calculators/flexoRateCalc";
 import { getQuotes, saveQuote, deleteQuote } from "../../../utils/quoteStorage";
-import { SAMPLE_QUOTES } from "../../../constants/gravureRates";
+import { SAMPLE_QUOTES } from "../../../constants/flexoRateCalc";
 
-const CALC_KEY = "gravure";
+const CALC_KEY = "flexo-rate-calc";
 
 function getInitialQuotes() {
   const stored = getQuotes(CALC_KEY);
-  // If stored quotes are all sample entries (no real user data), re-seed with full sample list
   const allSamples =
     stored.length > 0 && stored.every((q) => q.id.startsWith("sample-"));
   if (stored.length === 0 || allSamples) {
@@ -20,17 +18,14 @@ function getInitialQuotes() {
   return stored;
 }
 
-export default function GravureRateCalculator() {
+export default function FlexoRateCalculator() {
   const [result, setResult] = useState(null);
   const [quotes, setQuotes] = useState(() => getInitialQuotes());
   const [formHeight, setFormHeight] = useState(null);
-  const [collapsedResultHeight, setCollapsedResultHeight] = useState(null);
   const [saveError, setSaveError] = useState(null);
   const formRef = useRef(null);
-  const resultCardRef = useRef(null);
-  const resultHeightLocked = useRef(false);
 
-  // Observe form height
+  // Observe form height to drive sidebar maxHeight
   useEffect(() => {
     if (!formRef.current) return;
     const ro = new ResizeObserver(([entry]) => {
@@ -40,28 +35,9 @@ export default function GravureRateCalculator() {
     return () => ro.disconnect();
   }, []);
 
-  // Capture result card collapsed height (first measurement = collapsed state)
-  useEffect(() => {
-    if (!result) {
-      resultHeightLocked.current = false;
-      setCollapsedResultHeight(null);
-      return;
-    }
-    const el = resultCardRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(([entry]) => {
-      if (!resultHeightLocked.current) {
-        setCollapsedResultHeight(entry.contentRect.height);
-        resultHeightLocked.current = true;
-      }
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [result]);
-
   function handleFormChange(form) {
     setSaveError(null);
-    setResult(calculateGravureRate(form));
+    setResult(calculateFlexoRate(form));
   }
 
   function handleSave(form) {
@@ -79,19 +55,17 @@ export default function GravureRateCalculator() {
       );
       return;
     }
-    const calc = calculateGravureRate(form);
+    const calc = calculateFlexoRate(form);
     if (!calc) {
-      setSaveError(
-        "Fill in at least one material with price and qty before saving.",
-      );
+      setSaveError("Enter a material price before saving.");
       return;
     }
     setSaveError(null);
     const updated = saveQuote(CALC_KEY, {
       quoteName: name,
-      pouchSize: form.pouchSize,
-      pricePerKg: calc.pricePerKg,
-      savedBy: "Arun", // TODO: replace with logged-in user name
+      coverSize: form.coverSize,
+      totalRate: calc.totalRate,
+      savedBy: "Arun",
       form: { ...form, quoteName: name },
     });
     setQuotes(updated);
@@ -103,40 +77,33 @@ export default function GravureRateCalculator() {
 
   return (
     <div className="mt-2 max-w-6xl mx-auto">
-      {/* ── Title — above both columns ────────────────────────────────── */}
+      {/* Title */}
       <div className="mb-4 px-1">
         <p className="text-lg font-semibold text-label">
-          Gravure Rate Calculator
+          Flexo Rate Calculator
         </p>
         <p className="text-xs text-label-3 mt-0.5">
-          Fill in the fields — price per kg updates automatically.
+          Fill in the fields — total rate updates automatically.
         </p>
       </div>
 
       <div className="flex flex-col lg:grid lg:grid-cols-3 items-start gap-4">
         {/* ── Calculator (left / main — 2 cols) ────────────────────────── */}
-        <div className="lg:col-span-2 min-w-0">
-          <div ref={formRef}>
-            <GravureForm
-              onProceed={handleFormChange}
-              onSave={handleSave}
-              result={result}
-              saveError={saveError}
-            />
-          </div>
-          <GravureResult result={result} cardRef={resultCardRef} />
+        <div className="lg:col-span-2 min-w-0" ref={formRef}>
+          <FlexoRateCalcForm
+            onProceed={handleFormChange}
+            onSave={handleSave}
+            result={result}
+            saveError={saveError}
+          />
         </div>
 
         {/* ── Saved Quotes sidebar (right — 1 col) ──────────────────────── */}
         <div className="lg:col-span-1 lg:sticky lg:top-25 self-start">
-          <GravureQuotesSidebar
+          <FlexoRateCalcQuotesSidebar
             quotes={quotes}
             onDelete={handleDelete}
-            maxHeight={
-              formHeight != null && collapsedResultHeight != null
-                ? formHeight + 16 + collapsedResultHeight // 16 = mt-4 gap
-                : formHeight
-            }
+            maxHeight={formHeight}
           />
         </div>
       </div>
