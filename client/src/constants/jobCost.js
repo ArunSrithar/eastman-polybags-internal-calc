@@ -1,0 +1,89 @@
+/**
+ * Constants for Job Cost Calculator.
+ * Default prices are placeholders — update with real rates when available.
+ * All monetary values are in ₹.
+ */
+
+// ── Line item definitions ─────────────────────────────────────────────────
+export const LINE_ITEMS = [
+  { key: "polyster", label: "Polyster", hasQty: true, defaultPrice: 200 },
+  {
+    key: "silverPolyster",
+    label: "Silver Polyster",
+    hasQty: true,
+    defaultPrice: 250,
+  },
+  {
+    key: "boppSilver",
+    label: "B.O.P.P / Silver",
+    hasQty: true,
+    defaultPrice: 180,
+  },
+  {
+    key: "ldnLdop",
+    label: "L.D.N. / L.D.op.",
+    hasQty: true,
+    defaultPrice: 160,
+  },
+  {
+    key: "printingCharges",
+    label: "Printing Charges",
+    hasQty: true,
+    defaultPrice: 30,
+  },
+  {
+    key: "laminationCharges",
+    label: "Lamination Charges",
+    hasQty: true,
+    defaultPrice: 15,
+  },
+  {
+    key: "slittingCharges",
+    label: "Slitting Charges",
+    hasQty: true,
+    defaultPrice: 8,
+  },
+  {
+    key: "pouchMakingCharges",
+    label: "Pouch Making Charges",
+    hasQty: true,
+    defaultPrice: 20,
+  },
+  {
+    key: "transportCharge",
+    label: "Transport Charge",
+    hasQty: false,
+    defaultPrice: 500,
+  },
+  { key: "wastages", label: "Wastages", hasQty: false, defaultPrice: 300 },
+];
+
+// ── CreatableCombobox seed options ────────────────────────────────────────
+export const DROPDOWN_SEEDS = {
+  jobWorkCompanies: ["Company A", "Company B", "Company C"],
+  transports: ["Transport Co 1", "Transport Co 2", "Transport Co 3"],
+  microns: ["12", "15", "20", "25", "30", "40", "50"],
+  colours: ["1 Colour", "2 Colour", "3 Colour", "4 Colour", "Multicolour"],
+};
+
+// ── Sample quotes (seed data — replace with DB fetch when backend is ready) ──
+export const SAMPLE_QUOTES = [
+  {
+    id: "sample-1",
+    savedAt: "2026-02-24T10:00:00.000Z",
+    quoteName: "Rajesh Traders — Feb",
+    costOfJob: 218.5,
+    totalAmount: 13110,
+    dispatchWeight: 60,
+    form: null,
+  },
+  {
+    id: "sample-2",
+    savedAt: "2026-02-20T14:00:00.000Z",
+    quoteName: "Metro Snacks Batch",
+    costOfJob: 199.75,
+    totalAmount: 9987.5,
+    dispatchWeight: 50,
+    form: null,
+  },
+];

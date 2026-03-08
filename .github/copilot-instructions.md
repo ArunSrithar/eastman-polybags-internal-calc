@@ -70,7 +70,7 @@ See [FlexoRateCalculator.md](../client/src/components/calculators/FlexoRateCalcu
 
 ### 3. Job Cost Calculator
 
-<!-- Explanation to be added -->
+See [JobCostCalculator.md](../client/src/components/calculators/JobCostCalculator/JobCostCalculator.md) for full formula, field reference, line item definitions, and data flow.
 
 ---
 
@@ -136,11 +136,16 @@ client/src/
 │       │   ├── FlexoRateCalcQuoteModal.jsx   ✅ Invoice detail modal
 │       │   └── FlexoRateCalcResult.jsx       🔲 Collapsible breakdown card
 │       └── JobCostCalculator/
-│           └── index.jsx                ✅ Placeholder shell
+│           ├── index.jsx                ✅ Container: state, ResizeObserver, save/delete
+│           ├── JobCostForm.jsx          ✅ 2-col metadata + 10 toggleable line items + weights; inline field validation with scroll-to-error
+│           ├── JobCostResult.jsx        ✅ Collapsible breakdown card
+│           ├── JobCostQuotesSidebar.jsx ✅ Saved quotes list (col 3)
+│           └── JobCostQuoteModal.jsx    ✅ Invoice detail modal (2-col job details)
 │
 ├── constants/
 │   ├── gravureRates.js          ✅ Printing/lam/slitting rates, pouch lookup, sample quotes
-│   └── flexoRateCalc.js         ✅ Toggle rates, roll/cutting size lookups, sample quotes
+│   ├── flexoRateCalc.js         ✅ Toggle rates, roll/cutting size lookups, sample quotes
+│   └── jobCost.js               ✅ Line item definitions, default prices, dropdown seeds, sample quotes
 │
 ├── utils/
 │   ├── format.js                ✅ fmt(), formatDate()
@@ -148,7 +153,7 @@ client/src/
 │   └── calculators/
 │       ├── gravureRate.js       ✅ calculateGravureRate() pure function
 │       ├── flexoRateCalc.js     ✅ calculateFlexoRate() pure function
-│       ├── jobCostCalc.js       🔲
+│       └── jobCost.js           ✅ calculateJobCost() pure function
 │
 ├── App.jsx                      ✅ Renders AppShell
 ├── main.jsx                     ✅ Entry: ThemeProvider > App
@@ -465,16 +470,11 @@ _Exception: simple file-scoped leaf components like `IOSToggle` (`on` prop) or `
 
 ## Next Session — Where to Continue
 
-**2 calculators complete. Immediate next steps:**
+**All 3 calculators complete.**
 
-1. **Job Cost Calculator** — share field names, formula, and lookup tables; then build: form → calc logic → result → sidebar → modal
-2. `FlexoRateCalcResult.jsx` — collapsible breakdown card for Flexo Rate Calculator (matches `GravureResult.jsx` pattern)
-
-**Before starting each new calculator:**
-
-- Share the field names, formula, and any lookup tables
-- Load `vercel-react-best-practices` SKILL.md and `vercel-composition-patterns` SKILL.md
-- Follow the Calculator Container Pattern and Save Validation Rules above
+1. `FlexoRateCalcResult.jsx` — collapsible breakdown card for Flexo Rate Calculator (matches `GravureResult.jsx` pattern) — only pending calculator file
+2. **Phase 2** — Authentication (simple)
+3. **Phase 3** — DB persistence (MongoDB) — save & retrieve quotes from backend
 
 ---
 
@@ -486,6 +486,6 @@ _Exception: simple file-scoped leaf components like `IOSToggle` (`on` prop) or `
 | 1b    | UI primitives (IOSToggle, CheckBox, CreatableCombobox, Icons), quote storage util | ✅ Done (minimal) |
 | 1c    | Gravure Rate Calculator — form, result, sidebar, modal, validation                | ✅ Done           |
 | 1c    | Flexo Rate Calculator — form, sidebar, modal, validation                          | ✅ Done           |
-| 1c    | Job Cost Calculator                                                               | 🔲 Next           |
+| 1c    | Job Cost Calculator — form, result, sidebar, modal, inline validation             | ✅ Done           |
 | 2     | Authentication (simple)                                                           | 🔲 Pending        |
 | 3     | DB persistence — save & retrieve quotes                                           | 🔲 Pending        |
