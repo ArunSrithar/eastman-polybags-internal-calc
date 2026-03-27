@@ -1,5 +1,19 @@
 # Eastman Polybags — Internal Quote Calculator
 
+> ## ⛔ STOP — READ BEFORE WRITING ANY CODE
+>
+> **Do not write, edit, or refactor any code until you have explicitly loaded every applicable SKILL.md listed in the "Mandatory skill loading" section below.**
+>
+> Required steps before starting any implementation task:
+>
+> 1. Identify which skills apply to the task (React component? UI? Backend? Layout?).
+> 2. Call `read_file` on each applicable SKILL.md — confirm them in your reply.
+> 3. Only then begin writing code.
+>
+> Skipping this step is a violation of project rules. When in doubt, load the skill.
+
+---
+
 An internal calculator for a small enterprise that helps generate quotes for customers based on daily fluctuating rates.
 
 ---
@@ -37,14 +51,19 @@ The following skills are available in `.agents/skills/`. Load the relevant one b
 
 ### Mandatory skill loading
 
-- **Before writing or refactoring any React component**, load `vercel-react-best-practices` SKILL.md and `vercel-composition-patterns` SKILL.md.
-- **Before building or designing any new UI, component layout, or calculator from scratch**, load `frontend-design` SKILL.md.
-- **Before building any backend route or server logic**, load `nodejs-express-server` SKILL.md and `nodejs-backend-patterns` SKILL.md.
-- **Before designing MongoDB schemas**, load `mongodb` SKILL.md.
-- **Before any UI/UX review**, load `web-design-guidelines` SKILL.md.
-- **Before extending `theme.css`, adding design tokens, or building new component variants**, load `tailwind-design-system` SKILL.md.
-- **Before building complex multi-column grid or advanced flex layouts**, load `tailwindcss-advanced-layouts` SKILL.md.
-- **When adding, modifying, or evaluating any skill in `.agents/skills/`**, load `skill-creator` SKILL.md.
+> **STOP — declare your skills before writing code.**
+> Before starting any task, state which skills apply and confirm you have read each SKILL.md. Do not proceed until this is done.
+
+| Task type                                                                   | Skills to load                                               |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Writing or refactoring **any** React component                              | `vercel-react-best-practices`, `vercel-composition-patterns` |
+| Building or designing **any** new UI, component, or calculator from scratch | `frontend-design` + the two React skills above               |
+| Building any backend route or server logic                                  | `nodejs-express-server`, `nodejs-backend-patterns`           |
+| Designing MongoDB schemas                                                   | `mongodb`                                                    |
+| UI/UX review or audit                                                       | `web-design-guidelines`                                      |
+| Extending `theme.css`, design tokens, or new component variants             | `tailwind-design-system`                                     |
+| Complex multi-column grid / advanced flex layouts                           | `tailwindcss-advanced-layouts`                               |
+| Adding, modifying, or evaluating any skill in `.agents/skills/`             | `skill-creator`                                              |
 
 ---
 
@@ -134,7 +153,7 @@ client/src/
 │       │   ├── FlexoRateCalcForm.jsx    ✅ Form: material price, sizes, toggles, wastage
 │       │   ├── FlexoRateCalcQuotesSidebar.jsx ✅ Saved quotes list (col 3)
 │       │   ├── FlexoRateCalcQuoteModal.jsx   ✅ Invoice detail modal
-│       │   └── FlexoRateCalcResult.jsx       🔲 Collapsible breakdown card
+│       │   └── FlexoRateCalcResult.jsx       ✅ Collapsible breakdown card
 │       └── JobCostCalculator/
 │           ├── index.jsx                ✅ Container: state, ResizeObserver, save/delete
 │           ├── JobCostForm.jsx          ✅ 2-col metadata + 10 toggleable line items + weights; inline field validation with scroll-to-error
@@ -395,7 +414,7 @@ Use existing primitives from `components/ui/` — do not re-implement them:
 ## Layout Rules
 
 - Header height offset: `pt-22` on the main content wrapper (matches `h-[76px]` header + `pt-3` gap)
-- Calculator max width: `max-w-6xl mx-auto` with 3-column grid
+- Page padding: `px-3 pb-4` on `<main>` in `AppShell.jsx` — full-width layout, no centering constraint
 - Three-column grid: `lg:grid lg:grid-cols-3` — form+result span `lg:col-span-2`, sidebar `lg:col-span-1 lg:sticky lg:top-25`
 
 ---
@@ -470,22 +489,29 @@ _Exception: simple file-scoped leaf components like `IOSToggle` (`on` prop) or `
 
 ## Next Session — Where to Continue
 
-**All 3 calculators complete.**
+> **⚠️ ACTIVE: UI Redesign in progress.**
+> Full sprint plan with 33 chunks across 8 sprints: [`UI_REDESIGN_SPRINTS.md`](UI_REDESIGN_SPRINTS.md)
+> Read that file before starting any UI work.
 
-1. `FlexoRateCalcResult.jsx` — collapsible breakdown card for Flexo Rate Calculator (matches `GravureResult.jsx` pattern) — only pending calculator file
-2. **Phase 2** — Authentication (simple)
-3. **Phase 3** — DB persistence (MongoDB) — save & retrieve quotes from backend
+**All 3 calculators are complete and working.** The current focus is a full UI redesign — new 3-zone layout (header + main + sidebar), unified quotes sidebar, price history feature, form section grouping, result card redesign, and enhanced modals.
+
+**Key rule**: Delete-then-recreate workflow. Read old file for context → delete it → create new implementation with the same filename. Git tracks history — `git checkout -- <file>` restores any old version.
+
+Design references are stored in `UI References/` folder at project root.
 
 ---
 
 ## Development Phases
 
-| Phase | Scope                                                                             | Status            |
-| ----- | --------------------------------------------------------------------------------- | ----------------- |
-| 1a    | App shell, header island, segmented control, dark mode, ThemeContext              | ✅ Done           |
-| 1b    | UI primitives (IOSToggle, CheckBox, CreatableCombobox, Icons), quote storage util | ✅ Done (minimal) |
-| 1c    | Gravure Rate Calculator — form, result, sidebar, modal, validation                | ✅ Done           |
-| 1c    | Flexo Rate Calculator — form, sidebar, modal, validation                          | ✅ Done           |
-| 1c    | Job Cost Calculator — form, result, sidebar, modal, inline validation             | ✅ Done           |
-| 2     | Authentication (simple)                                                           | 🔲 Pending        |
-| 3     | DB persistence — save & retrieve quotes                                           | 🔲 Pending        |
+| Phase  | Scope                                                                             | Status            |
+| ------ | --------------------------------------------------------------------------------- | ----------------- |
+| 1a     | App shell, header island, segmented control, dark mode, ThemeContext              | ✅ Done           |
+| 1b     | UI primitives (IOSToggle, CheckBox, CreatableCombobox, Icons), quote storage util | ✅ Done (minimal) |
+| 1c     | Gravure Rate Calculator — form, result, sidebar, modal, validation                | ✅ Done           |
+| 1c     | Flexo Rate Calculator — form, result, sidebar, modal, validation                  | ✅ Done           |
+| 1c     | Job Cost Calculator — form, result, sidebar, modal, inline validation             | ✅ Done           |
+| 1d     | Full-width layout expansion — removed max-w-6xl, reduced page padding             | ✅ Done           |
+| **UI** | **UI Redesign — 8 sprints, 35 chunks (see `UI_REDESIGN_SPRINTS.md`)**             | **🔄 Active**     |
+| 2      | DB persistence — Express server, MongoDB, save & retrieve quotes                  | 🔲 Pending        |
+| 3      | Rate Settings — global rates + per-calculator overrides                           | 🔲 Pending        |
+| 4      | Authentication (nice-to-have)                                                     | 🔲 Pending        |
