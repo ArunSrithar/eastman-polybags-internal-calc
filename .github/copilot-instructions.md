@@ -23,8 +23,8 @@ An internal calculator for a small enterprise that helps generate quotes for cus
 - **Stack:** MERN (MongoDB, Express, React, Node.js)
 - **Styling:** Tailwind CSS (v4) with iOS-inspired design tokens (`theme.css`)
 - **Responsive:** Tailwind CSS utility classes
-- **Dark / Light mode:** Tailwind class-based dark mode (`dark:` variant) toggled manually via the user menu; preference persisted in `localStorage`
-- **3 Calculators** accessible via a capsule segmented tab control inside the header
+- **Dark / Light mode:** Tailwind class-based dark mode (`dark:` variant) toggled manually via sidebar footer; preference persisted in `localStorage`
+- **3 Calculators** accessible via expandable left sidebar navigation (Dashboard, Gravure, Flexo, Job Cost)
 
 ---
 
@@ -73,7 +73,7 @@ The following skills are available in `.agents/skills/`. Load the relevant one b
 - Tailwind CSS v4 via `@tailwindcss/vite` plugin
 - Vite build tool; no Next.js
 - No external state management library (no Zustand, Redux, MobX) — use `useState`, `useContext`, `useRef`
-- No React Router — tab routing is handled by `activeIndex` state in `AppShell.jsx`
+- No React Router — navigation is handled by `activeView` string state in `AppShell.jsx`, driven by sidebar menu clicks
 
 ---
 
@@ -106,7 +106,7 @@ See [JobCostCalculator.md](../client/src/components/calculators/JobCostCalculato
 
 ## Architecture & Module Structure
 
-Legend: ✅ Built | 🔲 Pending
+Legend: ✅ Built | � Rebuilding | 🔲 Pending
 
 ```
 client/src/
@@ -114,70 +114,56 @@ client/src/
 │   ├── ThemeContext.jsx         ✅ isDark + toggleTheme(), applies .dark to <html>, seeds from OS, persists to localStorage
 │   └── RateContext.jsx          🔲 Global daily rates + per-calculator overrides
 │
+├── hooks/
+│   └── useQuoteCounts.js        ✅ Reads quote counts for all calcs from localStorage, listens to storage events
+│
 ├── components/
-│   ├── ui/                      (minimal — built as needed)
+│   ├── ui/
 │   │   ├── IOSToggle.jsx        ✅ iOS-style boolean toggle (on + onToggle)
-│   │   ├── CheckBox.jsx         ✅ Read-only selection indicator
-│   │   ├── CreatableCombobox.jsx ✅ Portal dropdown with localStorage-persisted options
-│   │   └── Icons.jsx            ✅ CloseIcon, TrashIcon, ChevronDownIcon
+│   │   ├── Badge.jsx            ✅ Reusable count pill (min-w-5 h-5 rounded-full)
+│   │   ├── GlassSeparator.jsx   ✅ Inset glass separator line with role="separator"
+│   │   ├── SectionLabel.jsx     ✅ Uppercase tracking label for sidebar sections
+│   │   └── Icons.jsx            ✅ 14 icons: Close, Trash, ChevronDown, Dashboard, Gravure, Flexo, JobCost, Sun, Moon, Calculator, Quotes, History, User, Logout
 │   │
-│   ├── layout/                  ✅ All built
-│   │   ├── Header/
-│   │   │   ├── AppHeader.jsx    ✅ Island-style floating glass bar (logo | capsule tabs | user menu)
-│   │   │   ├── AppLogo.jsx      ✅ Company name + subtitle
-│   │   │   └── UserMenu/
-│   │   │       ├── UserMenu.jsx         ✅ Open/close state + outside-click dismiss
-│   │   │       ├── UserAvatar.jsx       ✅ Circle icon button, tints when open
-│   │   │       ├── UserMenuDropdown.jsx ✅ Floating card: user info, theme toggle, logout
-│   │   │       └── ThemeToggleRow.jsx   ✅ Label + animated iOS pill toggle (reads/writes ThemeContext)
-│   │   ├── SegmentedControl/
-│   │   │   ├── SegmentedControl.jsx     ✅ Capsule island container (inline-flex, sizes to content)
-│   │   │   └── SegmentedTab.jsx         ✅ Capsule pill tab, active = bg-tint text-white
-│   │   └── AppShell.jsx                 ✅ Wires header tabs to active calculator, manages activeIndex state
+│   ├── layout/
+│   │   ├── Sidebar/
+│   │   │   ├── Sidebar.jsx          ✅ Glass island container (fixed left, frosted glass, rounded-2xl)
+│   │   │   ├── SidebarHeader.jsx    ✅ App branding + glass separator
+│   │   │   ├── SidebarNav.jsx       ✅ Navigation list using NAV_ITEMS config
+│   │   │   ├── SidebarFooter.jsx    ✅ Theme toggle + account row
+│   │   │   ├── NavItem.jsx          ✅ Expandable top-level nav item (active = bg-tint/10 text-tint)
+│   │   │   └── SubNavItem.jsx       ✅ Sub-menu item with icon + badge
+│   │   ├── PlaceholderView.jsx          ✅ Centered placeholder for unbuilt views
+│   │   └── AppShell.jsx                 ✅ Sidebar + main workspace, manages activeView state
 │   │
 │   ├── overlays/                🔲 All pending
 │   │
 │   ├── RateSettings/            🔲 All pending
 │   │
-│   ├── quote/                   🔲 All pending
-│   │
-│   └── calculators/
-│       ├── GravureRateCalculator/
-│       │   ├── index.jsx                ✅ Container: state, ResizeObserver, save/delete
-│       │   ├── GravureForm.jsx          ✅ Controlled form with material rows + toggles
-│       │   ├── GravureResult.jsx        ✅ Collapsible breakdown card
-│       │   ├── GravureQuotesSidebar.jsx ✅ Saved quotes list (col 3)
-│       │   └── GravureQuoteModal.jsx    ✅ Invoice detail modal
-│       ├── FlexoRateCalculator/
-│       │   ├── index.jsx                ✅ Container: state, ResizeObserver, save/delete
-│       │   ├── FlexoRateCalcForm.jsx    ✅ Form: material price, sizes, toggles, wastage
-│       │   ├── FlexoRateCalcQuotesSidebar.jsx ✅ Saved quotes list (col 3)
-│       │   ├── FlexoRateCalcQuoteModal.jsx   ✅ Invoice detail modal
-│       │   └── FlexoRateCalcResult.jsx       ✅ Collapsible breakdown card
-│       └── JobCostCalculator/
-│           ├── index.jsx                ✅ Container: state, ResizeObserver, save/delete
-│           ├── JobCostForm.jsx          ✅ 2-col metadata + 10 toggleable line items + weights; inline field validation with scroll-to-error
-│           ├── JobCostResult.jsx        ✅ Collapsible breakdown card
-│           ├── JobCostQuotesSidebar.jsx ✅ Saved quotes list (col 3)
-│           └── JobCostQuoteModal.jsx    ✅ Invoice detail modal (2-col job details)
+│   └── calculators/             🔄 All deleted — pending rebuild (original code in git checkpoint ebecfc5)
+│       ├── GravureRateCalculator/   🔲 index, Form, Result, QuoteModal
+│       ├── FlexoRateCalculator/     🔲 index, Form, Result, QuoteModal
+│       └── JobCostCalculator/       🔲 index, Form, Result, QuoteModal
 │
 ├── constants/
-│   ├── gravureRates.js          ✅ Printing/lam/slitting rates, pouch lookup, sample quotes
-│   ├── flexoRateCalc.js         ✅ Toggle rates, roll/cutting size lookups, sample quotes
-│   └── jobCost.js               ✅ Line item definitions, default prices, dropdown seeds, sample quotes
+│   ├── navigation.js        ✅ NAV_ITEMS array, QUOTE_STORAGE_KEYS, VIEW_META
+│   ├── layout.js            ✅ SIDEBAR_WIDTH, SIDEBAR_GAP, MAIN_MARGIN_LEFT, APP_NAME, APP_SUBTITLE
+│   ├── gravureRates.js      ✅ Printing/lam/slitting rates, pouch lookup, sample quotes
+│   ├── flexoRateCalc.js     ✅ Toggle rates, roll/cutting size lookups, sample quotes
+│   └── jobCost.js           ✅ Line item definitions, default prices, dropdown seeds, sample quotes
 │
 ├── utils/
-│   ├── format.js                ✅ fmt(), formatDate()
-│   ├── quoteStorage.js          ✅ getQuotes(), saveQuote(), deleteQuote()
+│   ├── format.js            ✅ fmt(), formatDate()
+│   ├── quoteStorage.js      ✅ getQuotes(), saveQuote(), deleteQuote()
 │   └── calculators/
-│       ├── gravureRate.js       ✅ calculateGravureRate() pure function
-│       ├── flexoRateCalc.js     ✅ calculateFlexoRate() pure function
-│       └── jobCost.js           ✅ calculateJobCost() pure function
+│       ├── gravureRate.js   ✅ calculateGravureRate() pure function
+│       ├── flexoRateCalc.js ✅ calculateFlexoRate() pure function
+│       └── jobCost.js       ✅ calculateJobCost() pure function
 │
-├── App.jsx                      ✅ Renders AppShell
-├── main.jsx                     ✅ Entry: ThemeProvider > App
-├── theme.css                    ✅ Tailwind @theme iOS color tokens + @custom-variant dark
-└── index.css                    ✅ .dark overrides, @layer base (html/body defaults), @layer components (.card, .btn-primary, .input-base, etc.)
+├── App.jsx                  ✅ Renders AppShell
+├── main.jsx                 ✅ Entry: ThemeProvider > App
+├── theme.css                ✅ Tailwind @theme iOS color tokens + @custom-variant dark
+└── index.css                ✅ .dark overrides, @layer base, @layer components, grid background pattern on body
 
 server/                          🔲 All pending (node_modules installed, no source files yet)
 ├── index.js
@@ -262,15 +248,18 @@ Prefer `@layer components` classes from `index.css` over repeating utility strin
 
 ---
 
-## Header Design Notes
+## Sidebar Design Notes
 
-The header is an **island-style floating glass bar** — detached from screen edges with margin, fully rounded (`rounded-2xl`), and always-on frosted glass:
+The header island has been **removed entirely** and replaced by a **left navigation sidebar** — a frosted glass island fixed to the left edge:
 
-- Outer wrapper: `fixed top-0 inset-x-0 z-50 px-4 pt-3` creates the floating gap
-- Inner `<header>`: `h-[76px] rounded-2xl bg-white/40 dark:bg-white/8 backdrop-blur-2xl backdrop-saturate-200 border border-white/50 dark:border-white/10 shadow-lg`
-- Three-column flex layout: `flex-1` logo | `flex-none` island tabs | `flex-1 justify-end` user menu
-- Segmented control: `inline-flex rounded-full` container with `rounded-full` capsule tabs; active tab = `bg-tint text-white`
-- User menu: avatar button → dropdown card with user name/role, iOS pill dark mode toggle, logout
+- Outer positioning: `fixed top-3 bottom-3 left-3 z-40 w-64` for floating island effect
+- Glass material: `bg-background/60 dark:bg-background-2/60 backdrop-blur-2xl backdrop-saturate-200 border border-separator/30 dark:border-white/10 rounded-2xl shadow-lg`
+- Internal layout: `flex flex-col h-full` → SidebarHeader + SidebarNav (flex-1 overflow-y-auto) + SidebarFooter
+- Navigation: expandable menus with `ChevronDown` rotation, all expanded by default
+- Active state: parent = `bg-tint/10 text-tint`, sub-item = `text-tint font-medium` (no background)
+- Footer: dark mode IOSToggle + account row (blue user icon, "Admin", red logout button)
+- Grid background: CSS grid pattern on `body` using `--color-separator` for lines, `5em` gap
+- Navigation state: `activeView` string in AppShell (e.g., `"gravure"`, `"gravure-quotes"`, `"dashboard"`)
 
 ---
 
@@ -285,9 +274,10 @@ components/calculators/{Name}/
   index.jsx                ← container: state, refs, quote list, save/delete handlers
   {Name}Form.jsx           ← controlled form; calls onProceed(form) in event handlers
   {Name}Result.jsx         ← collapsible breakdown card
-  {Name}QuotesSidebar.jsx  ← saved quotes list (col 3)
   {Name}QuoteModal.jsx     ← invoice detail modal (React portal)
 ```
+
+> **Note**: Per-calculator `*QuotesSidebar.jsx` files have been removed. Saved quotes are now accessed via sidebar sub-menu navigation, rendering a quotes list view in the main workspace.
 
 Calculation logic goes in `utils/calculators/{camelName}.js` as a **pure function** — no side effects, no DOM, no React imports.
 
@@ -402,27 +392,31 @@ formatDate(isoString); // → "26 Feb 2026, 09:15 am"
 
 Use existing primitives from `components/ui/` — do not re-implement them:
 
-| Component           | Use for                                                 |
-| ------------------- | ------------------------------------------------------- |
-| `IOSToggle`         | Boolean toggle switches (`on` + `onToggle` props)       |
-| `CheckBox`          | Selection indicator (read-only display; `checked` prop) |
-| `CreatableCombobox` | Inputs with preset options + free-text entry            |
-| `Icons.jsx`         | SVG icons (`CloseIcon`, `TrashIcon`, `ChevronDownIcon`) |
+| Component        | Use for                                                      |
+| ---------------- | ------------------------------------------------------------ |
+| `IOSToggle`      | Boolean toggle switches (`on` + `onToggle` props)            |
+| `Badge`          | Count pill display (sidebar quote counts, notification dots) |
+| `GlassSeparator` | Glass-style inset separator line (`role="separator"`)        |
+| `SectionLabel`   | Uppercase tracking label for sidebar/form sections           |
+| `Icons.jsx`      | 14 SVG icons (nav, actions, theme, account)                  |
 
 ---
 
 ## Layout Rules
 
-- Header height offset: `pt-22` on the main content wrapper (matches `h-[76px]` header + `pt-3` gap)
-- Page padding: `px-3 pb-4` on `<main>` in `AppShell.jsx` — full-width layout, no centering constraint
-- Three-column grid: `lg:grid lg:grid-cols-3` — form+result span `lg:col-span-2`, sidebar `lg:col-span-1 lg:sticky lg:top-25`
+- Sidebar: `fixed top-3 bottom-3 left-3 w-64` glass island (see Sidebar Design Notes)
+- Main content offset: `margin-left: calc(16rem + 0.75rem * 2)` (sidebar width + gaps) via `MAIN_MARGIN_LEFT` from `constants/layout.js`
+- Page padding: `p-6` on `<main>` in `AppShell.jsx`
+- Grid background: CSS grid pattern on `body` visible behind main content
+- No header offset — the header island has been removed
+- Calculator forms render full-width in the main workspace area
 
 ---
 
 ## What to Avoid
 
 - ❌ No `console.log` left in production code
-- ❌ No inline `style={{}}` — use Tailwind utilities (exception: dynamic `maxHeight` driven by `ResizeObserver`)
+- ❌ No inline `style={{}}` — use Tailwind utilities (exception: dynamic `maxHeight` driven by `ResizeObserver`, `marginLeft` from layout constants)
 - ❌ No external UI libraries (shadcn, Radix, MUI, etc.) — build from the existing primitives
 - ❌ No hardcoded `#hex` or `rgb()` values in JSX className strings
 - ❌ No direct `document.querySelector` / DOM manipulation — use refs
@@ -490,12 +484,14 @@ _Exception: simple file-scoped leaf components like `IOSToggle` (`on` prop) or `
 ## Next Session — Where to Continue
 
 > **⚠️ ACTIVE: UI Redesign in progress.**
-> Full sprint plan with 33 chunks across 8 sprints: [`UI_REDESIGN_SPRINTS.md`](UI_REDESIGN_SPRINTS.md)
+> Sprint plan: [`UI_REDESIGN_SPRINTS.md`](UI_REDESIGN_SPRINTS.md)
 > Read that file before starting any UI work.
 
-**All 3 calculators are complete and working.** The current focus is a full UI redesign — new 3-zone layout (header + main + sidebar), unified quotes sidebar, price history feature, form section grouping, result card redesign, and enhanced modals.
+**Sprint 1 (sidebar + layout shell) is complete.** The old header, segmented control, and per-calculator sidebars have been removed. A left navigation sidebar (glass island) with expandable menus is in place. Calculator components are deleted and pending rebuild.
 
-**Key rule**: Delete-then-recreate workflow. Read old file for context → delete it → create new implementation with the same filename. Git tracks history — `git checkout -- <file>` restores any old version.
+**Next: Sprint 2** — Rebuild all 3 calculator components (form + result) in the new main workspace area. Build saved quotes views accessible from sidebar sub-menus. User will provide a main workspace design reference before starting.
+
+**Git checkpoint**: `ebecfc5` — pre-UI-redesign state with all 3 calculators working. Use `git checkout ebecfc5 -- client/src/components/` to reference old component code.
 
 Design references are stored in `UI References/` folder at project root.
 
@@ -503,15 +499,17 @@ Design references are stored in `UI References/` folder at project root.
 
 ## Development Phases
 
-| Phase  | Scope                                                                             | Status            |
-| ------ | --------------------------------------------------------------------------------- | ----------------- |
-| 1a     | App shell, header island, segmented control, dark mode, ThemeContext              | ✅ Done           |
-| 1b     | UI primitives (IOSToggle, CheckBox, CreatableCombobox, Icons), quote storage util | ✅ Done (minimal) |
-| 1c     | Gravure Rate Calculator — form, result, sidebar, modal, validation                | ✅ Done           |
-| 1c     | Flexo Rate Calculator — form, result, sidebar, modal, validation                  | ✅ Done           |
-| 1c     | Job Cost Calculator — form, result, sidebar, modal, inline validation             | ✅ Done           |
-| 1d     | Full-width layout expansion — removed max-w-6xl, reduced page padding             | ✅ Done           |
-| **UI** | **UI Redesign — 8 sprints, 35 chunks (see `UI_REDESIGN_SPRINTS.md`)**             | **🔄 Active**     |
-| 2      | DB persistence — Express server, MongoDB, save & retrieve quotes                  | 🔲 Pending        |
-| 3      | Rate Settings — global rates + per-calculator overrides                           | 🔲 Pending        |
-| 4      | Authentication (nice-to-have)                                                     | 🔲 Pending        |
+| Phase     | Scope                                                                             | Status                             |
+| --------- | --------------------------------------------------------------------------------- | ---------------------------------- |
+| 1a        | App shell, header island, segmented control, dark mode, ThemeContext              | ✅ Done (removed in UI redesign)   |
+| 1b        | UI primitives (IOSToggle, CheckBox, CreatableCombobox, Icons), quote storage util | ✅ Done                            |
+| 1c        | Gravure Rate Calculator — form, result, sidebar, modal, validation                | ✅ Done (deleted, pending rebuild) |
+| 1c        | Flexo Rate Calculator — form, result, sidebar, modal, validation                  | ✅ Done (deleted, pending rebuild) |
+| 1c        | Job Cost Calculator — form, result, sidebar, modal, inline validation             | ✅ Done (deleted, pending rebuild) |
+| 1d        | Full-width layout expansion — removed max-w-6xl, reduced page padding             | ✅ Done                            |
+| **UI-1**  | **UI Redesign Sprint 1 — Left sidebar + layout shell + grid bg**                  | **✅ Complete**                    |
+| **UI-2**  | **UI Redesign Sprint 2 — Calculator rebuild + saved quotes views**                | **🔲 Next**                        |
+| **UI-3+** | **UI Redesign Sprints 3–8 (see `UI_REDESIGN_SPRINTS.md`)**                        | **🔲 Pending**                     |
+| 2         | DB persistence — Express server, MongoDB, save & retrieve quotes                  | 🔲 Pending                         |
+| 3         | Rate Settings — global rates + per-calculator overrides                           | 🔲 Pending                         |
+| 4         | Authentication (nice-to-have)                                                     | 🔲 Pending                         |

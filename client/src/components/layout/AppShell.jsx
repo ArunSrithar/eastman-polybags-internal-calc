@@ -1,37 +1,35 @@
 import { useState } from "react";
-import AppHeader from "./Header/AppHeader";
-import GravureRateCalculator from "../calculators/GravureRateCalculator";
-import FlexoRateCalculator from "../calculators/FlexoRateCalculator";
-import JobCostCalculator from "../calculators/JobCostCalculator";
+import Sidebar from "./Sidebar/Sidebar";
+import PlaceholderView from "./PlaceholderView";
+import { MAIN_MARGIN_LEFT } from "../../constants/layout";
 
-const TABS = [
-  { id: "gravure", label: "Gravure" },
-  { id: "flexo", label: "Flexo Calc" },
-  { id: "job-cost", label: "Job Cost" },
-];
-
-const CALCULATORS = [
-  GravureRateCalculator,
-  FlexoRateCalculator,
-  JobCostCalculator,
-];
+// Calculator views will be wired here once rebuilt.
+const CALCULATOR_VIEWS = {
+  gravure: null,
+  flexo: null,
+  "job-cost": null,
+};
 
 export default function AppShell() {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const ActiveCalculator = CALCULATORS[activeIndex];
+  const [activeView, setActiveView] = useState("dashboard");
+
+  function renderMainContent() {
+    const CalcComponent = CALCULATOR_VIEWS[activeView];
+    if (CalcComponent) {
+      return <CalcComponent />;
+    }
+    return <PlaceholderView viewId={activeView} />;
+  }
 
   return (
-    <div className="min-h-dvh bg-grouped-background">
-      {/* ── Single fixed header: logo | island tabs | user menu */}
-      <AppHeader
-        tabs={TABS}
-        activeIndex={activeIndex}
-        onChange={setActiveIndex}
-      />
+    <div className="min-h-dvh">
+      <Sidebar activeView={activeView} onNavigate={setActiveView} />
 
-      {/* ── Scrollable content — offset by h-14 header only */}
-      <main className="pt-22 px-4 pb-8">
-        <ActiveCalculator />
+      <main
+        className="min-h-dvh px-6 py-6"
+        style={{ marginLeft: MAIN_MARGIN_LEFT }}
+      >
+        {renderMainContent()}
       </main>
     </div>
   );

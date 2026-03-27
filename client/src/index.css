@@ -31,9 +31,31 @@
 
   html,
   body {
-    @apply bg-grouped-background text-label;
     min-height: 100dvh;
   }
+}
+
+/* ─── Grid Background Pattern ─────────────────────────────────────────────── */
+body {
+  background: var(--color-grouped-background);
+  --grid-gap: 5em;
+  --grid-line: 1px;
+  --grid-color: var(--color-separator);
+
+  background-image:
+    linear-gradient(
+      -90deg,
+      transparent calc(var(--grid-gap) - var(--grid-line)),
+      var(--grid-color) calc(var(--grid-gap) - var(--grid-line) + 1px),
+      var(--grid-color) var(--grid-gap)
+    ),
+    linear-gradient(
+      0deg,
+      transparent calc(var(--grid-gap) - var(--grid-line)),
+      var(--grid-color) calc(var(--grid-gap) - var(--grid-line) + 1px),
+      var(--grid-color) var(--grid-gap)
+    );
+  background-size: var(--grid-gap) var(--grid-gap);
 }
 
 /* ─── Reusable Component Classes ─────────────────────────────────────────── */

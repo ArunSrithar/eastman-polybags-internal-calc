@@ -1,7 +1,7 @@
 # UI Redesign — Sprint Plan
 
-> **Status**: Planning complete. Ready for Sprint 1.
-> **Approach**: Delete-then-recreate. Since the project uses git, read the old file for context, delete it, then create the new implementation with the **same filename**. No V2 suffixes needed — git history preserves the old code.
+> **Status**: Sprint 1 complete. Ready for Sprint 2.
+> **Approach**: Clean-slate rebuild. Old `components/` folder was deleted entirely (git checkpoint `ebecfc5` preserves it). New modular architecture built from scratch with proper separation of concerns.
 >
 > **Main workspace design**: After the sidebar (Sprints 1–3) is finalized, the user will provide a custom layout skeleton for the main work area. Sprints 4–6 (forms, results, modals) will follow that design.
 
@@ -11,7 +11,7 @@
 
 Eastman Polybags Internal Quote Calculator — an internal tool for staff to generate quotes for customers based on daily fluctuating rates. Three calculators (Gravure, Flexo, Job Cost) with saved quotes and live calculation results.
 
-**Goal of redesign**: Transform from the current calculator-owns-sidebar layout into a clean 3-zone architecture — floating header, spacious main workspace, and a unified smart sidebar with tabbed Quotes/Price History sections. Simple, modern, neat.
+**Goal of redesign**: Transform from the current calculator-owns-sidebar layout into a left sidebar navigation architecture — glass island sidebar with expandable calculator menus, grid background pattern, and a spacious main workspace for calculator forms and results.
 
 ---
 
@@ -28,151 +28,196 @@ All images stored in `UI References/` folder at project root.
 
 ---
 
-## Target Layout: 3-Zone Architecture
+## Target Layout: Left Sidebar + Main Workspace
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│   ░░░░░  Floating Glass Header Island (existing)  ░░░░  │
-│       [Logo]  [ Gravure | Flexo | Job Cost ]  [👤]      │
-├────────────────────────────────────┬────────────────────┤
-│                                    │                    │
-│  MAIN WORKSPACE (~70% on lg+)      │  SIDEBAR (~30%)    │
-│                                    │                    │
-│  Calculator Title + Subtitle       │ [Quotes | History] │
-│  ─────────────────────────         │  ────────────────  │
-│                                    │                    │
-│  ┌─ Form Card ─────────────────┐   │  🔍 Search...      │
-│  │  ● Rate Fields              │   │                    │
-│  │  ● Materials / Line Items   │   │  ● Quote 1   ₹214 │
-│  │  ● Charges & Options        │   │  ● Quote 2   ₹189 │
-│  │                             │   │  ● Quote 3   ₹231 │
-│  │  [Customer] [Save] [Reset]  │   │  ...               │
-│  └─────────────────────────────┘   │                    │
-│                                    │                    │
-│  ┌─ Live Result ───────────────┐   │                    │
-│  │  ₹214.75/kg   View details ▸│   │                    │
-│  └─────────────────────────────┘   │                    │
-│                                    │                    │
-└────────────────────────────────────┴────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ ┌──────────┐                                                │
+│ │ Eastman   │                                                │
+│ │ Colour    │    MAIN WORKSPACE                              │
+│ │ Printers  │                                                │
+│ │───────────│    Calculator form + live result                │
+│ │ Dashboard │    (renders based on sidebar selection)         │
+│ │ ▾ Gravure │                                                │
+│ │   Calc    │    ┌─ Form Card ─────────────────────────┐     │
+│ │   Quotes 3│    │  Fields, toggles, materials...      │     │
+│ │   History │    │  [Customer] [Save] [Reset]           │     │
+│ │ ▾ Flexo   │    └─────────────────────────────────────┘     │
+│ │   Calc    │                                                │
+│ │   Quotes 2│    ┌─ Live Result ───────────────────────┐     │
+│ │   History │    │  ₹214.75/kg   View details ▸        │     │
+│ │ ▾ Job Cost│    └─────────────────────────────────────┘     │
+│ │   Calc    │                                                │
+│ │   Quotes 5│                                                │
+│ │   History │                                                │
+│ │───────────│                                                │
+│ │ SETTINGS  │                                                │
+│ │ 🌙 Dark   │                                                │
+│ │ 👤 Admin ⏻│                                                │
+│ └──────────┘                                                │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-**Responsive behavior:**
+Grid background pattern visible on the main workspace area.
+Sidebar is a frosted glass island (rounded, detached from edges).
 
-- **Desktop (lg+)**: Side-by-side, sidebar pinned right
-- **Tablet (md)**: Sidebar collapses to narrow panel or overlay
-- **Mobile (sm)**: Sidebar becomes a bottom sheet or separate tab view
+- **Desktop (lg+)**: Sidebar pinned left as glass island, main workspace fills remainder
+- **Tablet / Mobile**: Responsive behavior TBD — sidebar may collapse to hamburger overlay
 
 ---
 
-## Approach: Delete-Then-Recreate (Git Tracks History)
+## Approach: Clean-Slate Rebuild
 
-> **⚠️ WORKFLOW**: Before reworking any component, **read the old file** to gather context, then **delete it** and create a fresh implementation with the **same filename**. Git preserves the old version — `git checkout -- <file>` restores it instantly if needed.
+> **⚠️ WHAT HAPPENED**: Instead of delete-then-recreate per file, the entire `components/` folder was deleted and rebuilt from scratch. Git checkpoint `ebecfc5` preserves all original code.
 >
-> No V2 suffixes. No parallel files. Clean filenames from the start.
+> **Rollback**: `git checkout ebecfc5 -- client/src/components/` restores the entire old components tree.
 
-| Keep as-is (never delete)                                                | Delete & Recreate (same filename, new implementation)                           | Brand New Files                                                 |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `theme.css` — all color tokens                                           | `AppShell.jsx` — rewrite as 2-column layout shell                               | `components/layout/Sidebar/Sidebar.jsx` — unified sidebar       |
-| `index.css` — component layer classes (`.card`, `.btn-*`, `.input-base`) | `GravureForm.jsx` — rewrite with section grouping                               | `components/layout/Sidebar/QuotesList.jsx` — quotes list        |
-| `ThemeContext.jsx` — dark mode toggle                                    | `FlexoRateCalcForm.jsx` — rewrite with section grouping                         | `components/layout/Sidebar/PriceHistoryList.jsx` — history tab  |
-| `utils/calculators/*.js` — pure calculation functions                    | `JobCostForm.jsx` — rewrite with section grouping                               | `components/layout/CalculatorTitleBar.jsx` — title + subtitle   |
-| `utils/quoteStorage.js` — localStorage quote helpers                     | `GravureResult.jsx` — rewrite with always-visible headline                      | `components/ui/SectionHeader.jsx` — colored dot section headers |
-| `utils/format.js` — fmt(), formatDate()                                  | `FlexoRateCalcResult.jsx` — rewrite with always-visible headline                | `components/ui/FormActionBar.jsx` — save/reset footer           |
-| `constants/*.js` — rates, lookups, sample quotes                         | `JobCostResult.jsx` — rewrite with always-visible headline                      | `components/ui/ResultHeadline.jsx` — headline card              |
-| `components/ui/*` — IOSToggle, CreatableCombobox, Icons, CheckBox        | `GravureQuoteModal.jsx` — rewrite with dual-pane layout                         | `components/ui/DualPaneModal.jsx` — reusable modal wrapper      |
-| `Header/` — floating glass bar, segmented control, user menu             | `FlexoRateCalcQuoteModal.jsx` — rewrite with dual-pane layout                   | `utils/priceHistory.js` — rate change logging utility           |
-| `SegmentedControl/` — capsule tab components                             | `JobCostQuoteModal.jsx` — rewrite with dual-pane layout                         |                                                                 |
-| All calculation logic and validation rules                               | Each calculator `index.jsx` — rewrite without sidebar, new layout               |                                                                 |
-|                                                                          | Old `*QuotesSidebar.jsx` — **delete permanently** (replaced by unified sidebar) |                                                                 |
+| Kept as-is (never deleted)                                    | Deleted & rebuilt from scratch                         | Brand new files (Sprint 1)                                     |
+| ------------------------------------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------- |
+| `theme.css` — all color tokens                                | `AppShell.jsx` — rewritten as sidebar + main workspace | `Sidebar/Sidebar.jsx` — glass island container                 |
+| `index.css` — component layer classes + grid bg pattern added | `ui/Icons.jsx` — expanded with nav icons               | `Sidebar/SidebarHeader.jsx` — branding + separator             |
+| `ThemeContext.jsx` — dark mode toggle                         | `ui/IOSToggle.jsx` — preserved logic, same file        | `Sidebar/SidebarNav.jsx` — navigation list using NavItem       |
+| `utils/calculators/*.js` — pure calculation functions         |                                                        | `Sidebar/SidebarFooter.jsx` — theme toggle + account row       |
+| `utils/quoteStorage.js` — localStorage quote helpers          |                                                        | `Sidebar/NavItem.jsx` — expandable top-level nav item          |
+| `utils/format.js` — fmt(), formatDate()                       |                                                        | `Sidebar/SubNavItem.jsx` — sub-menu item with badge            |
+| `constants/gravureRates.js`, `flexoRateCalc.js`, `jobCost.js` |                                                        | `layout/PlaceholderView.jsx` — placeholder for unbuilt views   |
+|                                                               |                                                        | `ui/Badge.jsx` — reusable count pill                           |
+|                                                               |                                                        | `ui/GlassSeparator.jsx` — inset separator line                 |
+|                                                               |                                                        | `ui/SectionLabel.jsx` — uppercase sidebar section label        |
+|                                                               |                                                        | `constants/navigation.js` — NAV_ITEMS, VIEW_META, QUOTE_KEYS   |
+|                                                               |                                                        | `constants/layout.js` — SIDEBAR_WIDTH, APP_NAME, margins       |
+|                                                               |                                                        | `hooks/useQuoteCounts.js` — quote count hook from localStorage |
 
-**Rollback**: `git checkout -- <file>` on any recreated file restores the old implementation instantly. `git stash` saves all in-progress work.
+**Deleted permanently** (replaced by sidebar navigation):
+
+- `Header/` folder (AppHeader, AppLogo, DarkModeToggle, UserMenu/)
+- `SegmentedControl/` folder
+- All `*QuotesSidebar.jsx` files
+- All calculator `index.jsx`, form, result, and modal files (to be rebuilt in later sprints)
 
 ---
 
 ## Sprint Breakdown
 
-### Sprint 1 — Foundation: Layout Shell + Sidebar Skeleton
+### Sprint 1 — Foundation: Layout Shell + Left Navigation Sidebar ✅ COMPLETE
 
-> **Goal**: Replace the current full-width single-zone with the 3-zone layout. Sidebar exists but shows placeholder content. All 3 calculators still render and work.
+> **Goal**: ~~Replace the current full-width single-zone with a 3-zone layout~~ → **Pivoted**: Remove header entirely and replace with a left navigation sidebar. Sidebar provides all navigation, theme toggle, and account controls.
+>
+> **What was actually built**:
+>
+> - Left-fixed glass island sidebar (frosted glass, rounded-2xl, detached from edges)
+> - Expandable nav menus: Dashboard, Gravure, Flexo, Job Cost — each with sub-menus (Calculator, Saved Quotes, Price History)
+> - Badge counts on saved quotes sub-items (live from localStorage)
+> - Footer: dark mode toggle (IOSToggle) + account row (user icon, "Admin", logout button)
+> - Grid background pattern on body (CSS grid using `--color-separator`)
+> - AppShell: sidebar + main workspace with `margin-left` offset
+> - PlaceholderView for all unbuilt views
+> - All menus expanded by default
+> - Navigation driven by `activeView` string state (not React Router)
 
-**Chunk 1.1 — Rewrite AppShell layout** `[AppShell]`
+**Chunk 1.1 — AppShell rewrite** ✅
 
-- Read existing `AppShell.jsx` for context, then delete and recreate it
-- 2-column CSS Grid: main (col-1) + sidebar (col-2) on `lg+`
-- Main area: `pt-22 px-4 pb-8` (keep header offset)
-- Sidebar: sticky, right-aligned, `lg:w-80` or percentage-based
-- Import and render current calculator components in main area
-- Sidebar renders the new `Sidebar` component
+- Deleted entire `components/` folder, rebuilt from scratch
+- AppShell manages `activeView` state, renders sidebar + main area
+- Main area uses `margin-left: calc(16rem + 0.75rem * 2)` from `constants/layout.js`
+- Calculator views mapped in `CALCULATOR_VIEWS` object (all null — pending rebuild)
+- Non-calculator views render `PlaceholderView`
 
-**Chunk 1.2 — Sidebar container component** `[Sidebar]`
+**Chunk 1.2 — Sidebar glass island** ✅
 
-- Create `components/layout/Sidebar/Sidebar.jsx`
-- Card container with segmented control at top: "Quotes" | "History"
-- `activeTab` state toggles between two panels
-- Quotes panel: placeholder "Coming in Sprint 2"
-- History panel: placeholder "Coming in Sprint 3"
-- Sticky positioning: `lg:sticky lg:top-25`
+- `Sidebar.jsx`: fixed left, frosted glass (`bg-background/60 dark:bg-background-2/60 backdrop-blur-2xl backdrop-saturate-200`)
+- `rounded-2xl`, `top-3 bottom-3 left-3` for floating island effect
+- Composed of: SidebarHeader → SidebarNav → SidebarFooter
 
-**Chunk 1.3 — Calculator title + subtitle bar** `[TitleBar]`
+**Chunk 1.3 — Sidebar navigation** ✅
 
-- Create `components/layout/CalculatorTitleBar.jsx`
-- Props: `title`, `subtitle`
-- Render above the calculator form in the main area
-- Bold `text-2xl font-bold text-label` title + `text-sm text-label-2` subtitle
-- Each calculator gets its own title/subtitle string (define in constants or inline)
+- `SidebarNav.jsx` reads `NAV_ITEMS` from `constants/navigation.js`
+- `NavItem.jsx`: top-level items with expand/collapse, active = `bg-tint/10 text-tint`
+- `SubNavItem.jsx`: sub-items with icon + badge, active = `text-tint font-medium` (no bg)
+- `useQuoteCounts` hook reads quote counts from localStorage, listens to `storage` events
 
-**Chunk 1.4 — Responsive: mobile sidebar behavior** `[Responsive]`
+**Chunk 1.4 — Sidebar footer** ✅
 
-- On `< lg`: sidebar hidden, show a floating button or tab to access it
-- Or: sidebar moves below the main content as a collapsible section
-- Decide approach and implement basic responsive toggle
+- Dark mode toggle: SunIcon/MoonIcon + "Dark Mode" label + IOSToggle (wired to ThemeContext)
+- Account row: blue user icon circle + "Admin" + red logout circle button
+- GlassSeparator between nav and settings section
 
-**Verification**: All 3 calculators render in the new 2-column layout. Sidebar shows with tab toggle. Title bar appears above each calculator. Dark mode works. Mobile is usable.
+**Chunk 1.5 — Shared UI components extracted** ✅
+
+- `Badge.jsx`: reusable count pill (`min-w-5 h-5 rounded-full bg-fill-2`)
+- `GlassSeparator.jsx`: `border-t border-black/10 dark:border-white/10` with `role="separator"`
+- `SectionLabel.jsx`: uppercase tracking label for sidebar sections
+- `Icons.jsx`: expanded with 14 icons (Dashboard, Gravure, Flexo, JobCost, Sun, Moon, Calculator, Quotes, History, User, Logout, Close, Trash, ChevronDown)
+
+**Chunk 1.6 — Constants & hooks extracted** ✅
+
+- `constants/navigation.js`: NAV_ITEMS, QUOTE_STORAGE_KEYS, VIEW_META
+- `constants/layout.js`: SIDEBAR_WIDTH, SIDEBAR_GAP, MAIN_MARGIN_LEFT, APP_NAME, APP_SUBTITLE
+- `hooks/useQuoteCounts.js`: custom hook for badge counts
+
+**Chunk 1.7 — Grid background pattern** ✅
+
+- Added to `index.css` body rule (outside @layer to avoid specificity issues)
+- Uses `--grid-color: var(--color-separator)`, `--grid-gap: 5em`, `--grid-line: 1px`
+- Visible in both light and dark modes
+
+**Chunk 1.8 — Responsive** 🔲 DEFERRED
+
+- Mobile sidebar behavior not yet implemented — deferred to later sprint
+
+**Verification**: ✅ Build passes (`npx vite build` — 47 modules, 408ms, 0 errors). Sidebar renders with glass effect, all menus expand, badges show counts, dark mode works, placeholders show for all views. Calculators are placeholders (pending rebuild).
 
 ---
 
-### Sprint 2 — Unified Quotes Sidebar
+### Sprint 2 — Calculator Rebuild + Saved Quotes Views
 
-> **Goal**: Move saved quotes from per-calculator sidebars into the unified sidebar. All quote operations (view, save, delete) work through the new sidebar.
+> **Goal**: Rebuild all 3 calculator components in the new layout (form + result in main workspace). Build the "Saved Quotes" views accessible from sidebar sub-menus. Quote operations (view, save, delete) work through the new architecture.
+>
+> **Architecture note**: Quotes are no longer in a unified right sidebar. Each calculator has a "Saved Quotes" sub-menu in the left nav that renders a quotes list view in the main workspace area.
 
-**Chunk 2.1 — Lift quotes state to AppShell** `[State Lift]`
+**Chunk 2.1 — Rebuild calculator containers** `[Containers]` 🔲
 
-- In the rewritten `AppShell.jsx`, manage quotes state for all 3 calculators (keyed by `CALC_KEY`)
-- Use `getQuotes()` from `quoteStorage.js` for each calculator on init
-- Pass down `quotes`, `onSave`, `onDelete`, `saveError` as props to calculator containers
-- Sidebar receives all quotes for display
+- Rebuild each calculator `index.jsx` (Gravure, Flexo, Job Cost)
+- New layout: form + result in main workspace (full width of main area)
+- Receives `activeView` context to know which view is active
+- No per-calculator sidebar — quotes accessed via nav sub-menu
+- Wire into `AppShell.jsx` CALCULATOR_VIEWS
 
-**Chunk 2.2 — Unified quotes list in sidebar** `[QuotesList]`
+**Chunk 2.2 — Rebuild Gravure form + result** `[GravureRebuild]` 🔲
 
-- Create `components/layout/Sidebar/QuotesList.jsx`
-- Receives all quotes from all 3 calculators (merged + sorted by date)
-- Each quote item shows:
-  - Colored dot indicator (🔵 Gravure, 🟣 Flexo, 🟢 Job Cost)
-  - Quote name (bold, left)
-  - Headline price (bold, right) — ₹/kg or ₹ total
-  - Metadata line: calculator type + key spec + date
-- Click opens quote detail modal
+- Rebuild `GravureForm.jsx` and `GravureResult.jsx` using old code as reference (from git)
+- Same field logic, same `onProceed` pattern, same calculation
+- Form may get section grouping (Sprint 4) but basic rebuild first
 
-**Chunk 2.3 — Search + filter in quotes list** `[QuotesSearch]`
+**Chunk 2.3 — Rebuild Flexo form + result** `[FlexoRebuild]` 🔲
 
-- Search input at top of quotes panel — filters by quote name
-- Optional: filter pills by calculator type (show all / gravure only / flexo only / job cost only)
-- Empty state: "No quotes saved yet. Fill the form and save your first quote."
+- Rebuild `FlexoRateCalcForm.jsx` and `FlexoRateCalcResult.jsx`
 
-**Chunk 2.4 — Quote count badge on tab** `[Badge]`
+**Chunk 2.4 — Rebuild Job Cost form + result** `[JobCostRebuild]` 🔲
 
-- Segmented tab label shows count: "Quotes (12)"
-- Badge updates reactively as quotes are saved/deleted
+- Rebuild `JobCostForm.jsx` and `JobCostResult.jsx`
 
-**Chunk 2.5 — Rewrite calculator containers** `[NewContainers]`
+**Chunk 2.5 — Saved Quotes view component** `[QuotesView]` 🔲
 
-- Read each calculator `index.jsx` for context, then delete and recreate
-- New `index.jsx` renders form + result in a single column (no 3-col grid)
-- Receives `quotes`, `onSave`, `onDelete`, `saveError` props from `AppShell`
-- No longer imports or renders `*QuotesSidebar` — sidebar is now unified
-- Delete the old `*QuotesSidebar.jsx` files permanently (replaced by unified sidebar in Chunk 2.2)
+- Create a shared quotes list view component
+- Renders in main workspace when user clicks "Saved Quotes" sub-menu
+- Shows all quotes for that calculator (from localStorage)
+- Each quote item: name, headline price, date, click to open modal
+- Search/filter by quote name
+- Delete action on each quote
 
-**Verification**: Saving a quote from any calculator shows it in the unified sidebar. Clicking a sidebar quote opens the correct modal. Search filters work. Delete works. Old sidebar files still exist but are unused.
+**Chunk 2.6 — Rebuild quote detail modals** `[Modals]` 🔲
+
+- Rebuild `GravureQuoteModal.jsx`, `FlexoRateCalcQuoteModal.jsx`, `JobCostQuoteModal.jsx`
+- Open from the quotes list view
+- Same portal + backdrop + escape pattern
+
+**Chunk 2.7 — Wire sidebar badge counts** `[Badges]` ✅ (already done in Sprint 1)
+
+- `useQuoteCounts` hook already reads from localStorage
+- Badges already display on "Saved Quotes" sub-items
+
+**Verification**: All 3 calculators render forms and results in the main workspace. Clicking "Saved Quotes" shows a list. Clicking a quote opens the modal. Save/delete work. Badges update.
 
 ---
 
@@ -352,11 +397,11 @@ All images stored in `UI References/` folder at project root.
 
 ---
 
-### Sprint 7 — New Design Tokens & Component Classes
+### Sprint 7 — New Design Tokens & Component Classes (Partially Complete)
 
 > **Goal**: Add new CSS tokens and component classes needed by the redesign. This sprint can run in parallel with any sprint that needs the tokens.
 
-**Chunk 7.1 — Calculator color tokens** `[CalcColors]`
+**Chunk 7.1 — Calculator color tokens** `[CalcColors]` 🔲
 
 - Add to `theme.css` / `index.css`:
   - `--color-calc-gravure`: blue accent for Gravure dots/badges
@@ -364,40 +409,40 @@ All images stored in `UI References/` folder at project root.
   - `--color-calc-jobcost`: emerald accent for Job Cost
 - Dark mode overrides if needed
 
-**Chunk 7.2 — Section component classes** `[SectionClasses]`
+**Chunk 7.2 — Section component classes** `[SectionClasses]` 🔲
 
 - Add to `index.css` `@layer components`:
   - `.section-header` — flex row with dot + label + count + subtotal
   - `.section-dot` — `size-2 rounded-full` base class
   - `.section-group` — container with left border accent or subtle indent
 
-**Chunk 7.3 — Price change indicator classes** `[ChangeClasses]`
+**Chunk 7.3 — Price change indicator classes** `[ChangeClasses]` 🔲
 
 - `.price-up` — red text + ↑ indicator (cost increase = bad)
 - `.price-down` — green text + ↓ indicator (cost decrease = good)
 - `.price-neutral` — muted text for no change
 
-**Chunk 7.4 — Sidebar component classes** `[SidebarClasses]`
+**Chunk 7.4 — Sidebar component classes** `[SidebarClasses]` ✅
 
-- `.sidebar-card` — sidebar container styling
-- `.quote-item` — hover state, padding, truncation
-- `.quote-dot` — calculator-colored indicator
+- Glass island sidebar styling done inline via Tailwind utilities
+- Grid background pattern added to `index.css` body rule
+- Glass separator component (`GlassSeparator.jsx`) created
+- Badge component created
+- SectionLabel component created
 
 **Verification**: New tokens available in both light and dark mode. Classes render correctly. No regressions in existing components.
 
 ---
 
-### Sprint 8 — Documentation & Final Verification
+### Sprint 8 — Documentation & Final Verification (In Progress)
 
-> **Goal**: Update documentation, verify everything works end-to-end. No file deletions needed — old files were already replaced in-place during earlier sprints.
+> **Goal**: Update documentation, verify everything works end-to-end.
 
-**Chunk 8.1 — Update copilot-instructions.md** `[UpdateDocs]`
+**Chunk 8.1 — Update documentation** `[UpdateDocs]` 🔄 IN PROGRESS
 
-- Update Architecture & Module Structure section with new file tree
-- Update Layout Rules section with new 2-column layout
-- Update Development Phases table
-- Add sidebar docs, price history docs
-- Update "Next Session — Where to Continue" section
+- Update `UI_REDESIGN_SPRINTS.md` with completion status ← doing now
+- Update `copilot-instructions.md` with new architecture, file tree, layout rules
+- Update "Next Session" section
 
 **Chunk 8.2 — Full regression test** `[RegressionTest]`
 
@@ -420,44 +465,41 @@ All images stored in `UI References/` folder at project root.
 ## Sprint Dependency Map
 
 ```
-Sprint 7 (tokens/classes) ──────────────────────┐
-   Can start immediately, needed by all others   │
-                                                  ▼
-Sprint 1 (layout shell) ──▸ Sprint 2 (quotes sidebar) ──▸ Sprint 3 (price history)
-                │                                                      │
-                ▼                                                      │
-        Sprint 4 (form sections) ──▸ Sprint 5 (result redesign)       │
-                                            │                          │
-                                            ▼                          │
-                                    Sprint 6 (modal redesign)          │
-                                            │                          │
-                                            ▼                          ▼
-                                    Sprint 8 (cleanup & migration)
+Sprint 1 (sidebar + layout shell) ✅ COMPLETE
+   │
+   ├──▸ Sprint 2 (calculator rebuild + quotes views) ← NEXT
+   │       │
+   │       ├──▸ Sprint 3 (price history)
+   │       │
+   │       ├──▸ Sprint 4 (form section grouping)
+   │       │       │
+   │       │       ▼
+   │       │   Sprint 5 (result redesign)
+   │       │       │
+   │       │       ▼
+   │       └──▸ Sprint 6 (modal redesign)
+   │
+   ├──▸ Sprint 7 (tokens/classes) — partially done
+   │
+   └──▸ Sprint 8 (docs & verify) — in progress (docs being updated)
 ```
 
-**Parallel tracks:**
-
-- Sprint 7 can start Day 1 alongside Sprint 1
-- Sprint 4 can start after Sprint 1 (forms don't depend on sidebar)
-- Sprint 3 can start after Sprint 2 (history tab needs sidebar)
-- Sprint 6 depends on Sprint 4 (uses same section grouping)
-- Sprint 8 is always last
+**Recommended next sprint**: Sprint 2 — rebuild calculators in the new layout. User will provide main workspace design reference before starting.
 
 ---
 
 ## Estimated Chunk Sizes
 
-| Sprint                  | Chunks                         | Estimated Effort per Chunk |
-| ----------------------- | ------------------------------ | -------------------------- |
-| **1 — Layout Shell**    | 4 chunks                       | Small–Medium               |
-| **2 — Unified Quotes**  | 5 chunks                       | Medium                     |
-| **3 — Price History**   | 4 chunks                       | Medium                     |
-| **4 — Form Sections**   | 5 chunks                       | Medium                     |
-| **5 — Result Redesign** | 3 chunks                       | Small–Medium               |
-| **6 — Modal Redesign**  | 5 chunks                       | Medium                     |
-| **7 — Design Tokens**   | 4 chunks                       | Small                      |
-| **8 — Docs & Verify**   | 3 chunks                       | Small                      |
-| **Total**               | **33 chunks across 8 sprints** |                            |
+| Sprint                         | Chunks                   | Status         |
+| ------------------------------ | ------------------------ | -------------- |
+| **1 — Layout Shell + Sidebar** | 8 chunks                 | ✅ Complete    |
+| **2 — Calculator Rebuild**     | 7 chunks                 | 🔲 Next        |
+| **3 — Price History**          | 4 chunks                 | 🔲 Pending     |
+| **4 — Form Sections**          | 5 chunks                 | 🔲 Pending     |
+| **5 — Result Redesign**        | 3 chunks                 | 🔲 Pending     |
+| **6 — Modal Redesign**         | 5 chunks                 | 🔲 Pending     |
+| **7 — Design Tokens**          | 4 chunks (1 done)        | 🔄 Partial     |
+| **8 — Docs & Verify**          | 3 chunks (1 in progress) | 🔄 In progress |
 
 ---
 
