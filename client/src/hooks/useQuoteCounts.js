@@ -12,11 +12,15 @@ export function useQuoteCounts() {
   const [counts, setCounts] = useState(() => buildCounts());
 
   useEffect(() => {
-    function handleStorage() {
+    function handleUpdate() {
       setCounts(buildCounts());
     }
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
+    window.addEventListener("storage", handleUpdate);
+    window.addEventListener("quotes-updated", handleUpdate);
+    return () => {
+      window.removeEventListener("storage", handleUpdate);
+      window.removeEventListener("quotes-updated", handleUpdate);
+    };
   }, []);
 
   return counts;

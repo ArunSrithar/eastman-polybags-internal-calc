@@ -1,10 +1,16 @@
-import { SaveIcon, PrintIcon, ResetIcon, DeleteIcon } from "../ui/Icons";
+import {
+  SaveIcon,
+  PrintIcon,
+  ResetIcon,
+  DeleteIcon,
+  ExportIcon,
+} from "../ui/Icons";
 
 /**
  * CalculatorHeader — top bar for calculator and saved-quote views.
  *
  * Left side:  icon (bg-grouped-background-2) + title + subtitle
- * Right side: action buttons (reset, save, print, delete) — rounded-full pill style
+ * Right side: action buttons (reset, save, print, export, delete) — rounded-full pill style
  *
  * Props:
  *   icon        Component   calculator icon (e.g. GravureIcon)
@@ -12,6 +18,7 @@ import { SaveIcon, PrintIcon, ResetIcon, DeleteIcon } from "../ui/Icons";
  *   subtitle    string      short description
  *   onSave      fn|null     save handler — button hidden when null
  *   onPrint     fn|null     print handler — button hidden when null
+ *   onExport    fn|null     export handler — button hidden when null
  *   onReset     fn|null     reset handler — button hidden when null
  *   onDelete    fn|null     delete handler — button hidden when null
  *   saveDisabled boolean    disable the save button (e.g. form incomplete)
@@ -22,6 +29,7 @@ export default function CalculatorHeader({
   subtitle,
   onSave = null,
   onPrint = null,
+  onExport = null,
   onReset = null,
   onDelete = null,
   saveDisabled = false,
@@ -63,6 +71,17 @@ export default function CalculatorHeader({
           >
             <PrintIcon className="size-4" />
             <span>Print</span>
+          </button>
+        ) : null}
+
+        {onExport ? (
+          <button
+            type="button"
+            onClick={onExport}
+            className="btn-secondary btn-pill"
+          >
+            <ExportIcon className="size-4" />
+            <span>Export</span>
           </button>
         ) : null}
 

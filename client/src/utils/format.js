@@ -31,3 +31,30 @@ export function formatDate(iso) {
   });
   return `${date}, ${time}`;
 }
+
+/**
+ * Group a pre-sorted list of objects by month+year from their `savedAt` field.
+ * Returns: [{ label: "March 2026", items: [...] }, ...]
+ */
+export function groupByMonth(items) {
+  const groups = [];
+  let currentLabel = null;
+  let currentItems = [];
+
+  for (const item of items) {
+    const label = new Date(item.savedAt).toLocaleDateString("en-IN", {
+      month: "long",
+      year: "numeric",
+    });
+    if (label !== currentLabel) {
+      if (currentLabel)
+        groups.push({ label: currentLabel, items: currentItems });
+      currentLabel = label;
+      currentItems = [item];
+    } else {
+      currentItems.push(item);
+    }
+  }
+  if (currentLabel) groups.push({ label: currentLabel, items: currentItems });
+  return groups;
+}

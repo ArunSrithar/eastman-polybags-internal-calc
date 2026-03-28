@@ -25,7 +25,7 @@ const COLOR = {
 
 /* ─── Main component ─────────────────────────────────────────────────────── */
 
-export default function GravureResult({ result, form }) {
+export default function GravureResult({ result, form, status, date }) {
   if (!result) return <InvoiceEmpty />;
 
   const {
@@ -68,6 +68,8 @@ export default function GravureResult({ result, form }) {
         title="Eastman Colour Printers"
         subtitle="Gravure Rate Estimate"
         customer={form.quoteName?.trim()}
+        status={status}
+        date={date}
       />
 
       <TableHeader />

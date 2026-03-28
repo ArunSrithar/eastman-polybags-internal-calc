@@ -170,4 +170,56 @@ body {
     @apply text-[10px] font-semibold text-tint bg-tint/10 px-2 py-0.5
            rounded-full uppercase tracking-wider;
   }
+
+  /* Saved quotes list */
+  .quote-list-item {
+    @apply w-full text-left rounded-xl px-3 py-2.5 mb-1 last:mb-0 transition-colors;
+  }
+
+  .quote-list-item-active {
+    @apply bg-tint/10;
+  }
+
+  .month-label {
+    @apply text-[11px] font-semibold uppercase tracking-wider text-label-3;
+  }
+}
+
+/* ─── Print Styles ────────────────────────────────────────────────────────── */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide everything by default */
+  body {
+    background: white !important;
+    background-image: none !important;
+  }
+
+  body > * {
+    visibility: hidden;
+  }
+
+  /* Show only the breakdown panel */
+  [data-print-area] {
+    visibility: visible !important;
+    position: fixed !important;
+    inset: 0 !important;
+    overflow: visible !important;
+    width: 100% !important;
+    height: auto !important;
+    background: #ffffff !important;
+  }
+
+  [data-print-area] * {
+    color: #000 !important;
+  }
+
+  /* Card container */
+  [data-print-area] .card {
+    background: #ffffff !important;
+    backdrop-filter: none !important;
+  }
 }

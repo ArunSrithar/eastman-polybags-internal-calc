@@ -34,3 +34,19 @@ export function deleteQuote(calcKey, id) {
   localStorage.setItem(storageKey(calcKey), JSON.stringify(updated));
   return updated;
 }
+
+/**
+ * Load quotes for a calculator, seeding with sample data on first visit.
+ * Returns existing quotes if any real (non-sample) quote exists,
+ * otherwise writes sampleQuotes to localStorage and returns them.
+ */
+export function getInitialQuotes(calcKey, sampleQuotes) {
+  const stored = getQuotes(calcKey);
+  const allSamples =
+    stored.length > 0 && stored.every((q) => q.id.startsWith("sample-"));
+  if (stored.length === 0 || allSamples) {
+    localStorage.setItem(storageKey(calcKey), JSON.stringify(sampleQuotes));
+    return sampleQuotes;
+  }
+  return stored;
+}

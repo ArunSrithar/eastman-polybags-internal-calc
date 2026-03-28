@@ -37,7 +37,7 @@ export const DEFAULT_POUCH_RATE = 15; // fallback for unknown sizes
 export const SAMPLE_QUOTES = [
   {
     id: "sample-1",
-    savedAt: "2026-02-26T09:15:00.000Z",
+    savedAt: "2026-03-27T09:15:00.000Z",
     savedBy: "Arun",
     quoteName: "Rajesh Traders — 500g",
     pouchSize: "5x7",
@@ -61,7 +61,7 @@ export const SAMPLE_QUOTES = [
   },
   {
     id: "sample-2",
-    savedAt: "2026-02-25T14:30:00.000Z",
+    savedAt: "2026-03-24T14:30:00.000Z",
     savedBy: "Priya",
     quoteName: "Metro Snacks Order",
     pouchSize: "4x6",
@@ -85,7 +85,7 @@ export const SAMPLE_QUOTES = [
   },
   {
     id: "sample-3",
-    savedAt: "2026-02-24T11:00:00.000Z",
+    savedAt: "2026-03-20T11:00:00.000Z",
     savedBy: "Arun",
     quoteName: "Premium Masala Pack",
     pouchSize: "7x10",
@@ -109,7 +109,7 @@ export const SAMPLE_QUOTES = [
   },
   {
     id: "sample-4",
-    savedAt: "2026-02-23T08:45:00.000Z",
+    savedAt: "2026-03-15T08:45:00.000Z",
     savedBy: "Priya",
     quoteName: "Sunflower Seeds 250g",
     pouchSize: "4x6",
@@ -133,7 +133,7 @@ export const SAMPLE_QUOTES = [
   },
   {
     id: "sample-5",
-    savedAt: "2026-02-22T16:00:00.000Z",
+    savedAt: "2026-03-10T16:00:00.000Z",
     savedBy: "Arun",
     quoteName: "Agro Spices Export",
     pouchSize: "6x8",
@@ -157,7 +157,7 @@ export const SAMPLE_QUOTES = [
   },
   {
     id: "sample-6",
-    savedAt: "2026-02-21T10:20:00.000Z",
+    savedAt: "2026-02-26T10:20:00.000Z",
     savedBy: "Ravi",
     quoteName: "Chilli Flakes Retail",
     pouchSize: "5x7",
@@ -181,7 +181,7 @@ export const SAMPLE_QUOTES = [
   },
   {
     id: "sample-7",
-    savedAt: "2026-02-20T13:55:00.000Z",
+    savedAt: "2026-02-21T13:55:00.000Z",
     savedBy: "Arun",
     quoteName: "Nature Fresh Pouch",
     pouchSize: "7x10",
@@ -205,7 +205,7 @@ export const SAMPLE_QUOTES = [
   },
   {
     id: "sample-8",
-    savedAt: "2026-02-19T09:00:00.000Z",
+    savedAt: "2026-02-16T09:00:00.000Z",
     savedBy: "Priya",
     quoteName: "Kerala Spice Mix",
     pouchSize: "4x6",
@@ -229,7 +229,7 @@ export const SAMPLE_QUOTES = [
   },
   {
     id: "sample-9",
-    savedAt: "2026-02-18T15:30:00.000Z",
+    savedAt: "2026-02-10T15:30:00.000Z",
     savedBy: "Ravi",
     quoteName: "Dry Fruit Premium",
     pouchSize: "6x8",
@@ -253,7 +253,7 @@ export const SAMPLE_QUOTES = [
   },
   {
     id: "sample-10",
-    savedAt: "2026-02-17T11:10:00.000Z",
+    savedAt: "2026-02-04T11:10:00.000Z",
     savedBy: "Arun",
     quoteName: "Pickle Pouch 200g",
     pouchSize: "4x6",
@@ -277,7 +277,7 @@ export const SAMPLE_QUOTES = [
   },
   {
     id: "sample-11",
-    savedAt: "2026-02-16T14:00:00.000Z",
+    savedAt: "2026-01-28T14:00:00.000Z",
     savedBy: "Priya",
     quoteName: "Turmeric Powder Pack",
     pouchSize: "5x7",
@@ -301,7 +301,7 @@ export const SAMPLE_QUOTES = [
   },
   {
     id: "sample-12",
-    savedAt: "2026-02-15T09:30:00.000Z",
+    savedAt: "2026-01-22T09:30:00.000Z",
     savedBy: "Arun",
     quoteName: "Rice Brand Export",
     pouchSize: "7x10",
@@ -325,7 +325,7 @@ export const SAMPLE_QUOTES = [
   },
   {
     id: "sample-13",
-    savedAt: "2026-02-14T16:45:00.000Z",
+    savedAt: "2026-01-17T16:45:00.000Z",
     savedBy: "Ravi",
     quoteName: "Coffee Pouch Metallic",
     pouchSize: "6x8",
@@ -349,7 +349,7 @@ export const SAMPLE_QUOTES = [
   },
   {
     id: "sample-14",
-    savedAt: "2026-02-13T10:00:00.000Z",
+    savedAt: "2026-01-11T10:00:00.000Z",
     savedBy: "Priya",
     quoteName: "Atta Pack 1kg",
     pouchSize: "7x10",
@@ -373,7 +373,7 @@ export const SAMPLE_QUOTES = [
   },
   {
     id: "sample-15",
-    savedAt: "2026-02-12T13:15:00.000Z",
+    savedAt: "2026-01-05T13:15:00.000Z",
     savedBy: "Arun",
     quoteName: "Organic Jaggery 500g",
     pouchSize: "5x7",
@@ -397,7 +397,7 @@ export const SAMPLE_QUOTES = [
   },
   {
     id: "sample-16",
-    savedAt: "2026-02-11T08:50:00.000Z",
+    savedAt: "2025-12-28T08:50:00.000Z",
     savedBy: "Ravi",
     quoteName: "Coriander Seeds Bulk",
     pouchSize: "6x8",
@@ -421,7 +421,7 @@ export const SAMPLE_QUOTES = [
   },
   {
     id: "sample-17",
-    savedAt: "2026-02-10T15:20:00.000Z",
+    savedAt: "2025-12-22T15:20:00.000Z",
     savedBy: "Priya",
     quoteName: "Herbal Tea Blend",
     pouchSize: "4x6",
@@ -445,7 +445,7 @@ export const SAMPLE_QUOTES = [
   },
   {
     id: "sample-18",
-    savedAt: "2026-02-09T11:40:00.000Z",
+    savedAt: "2025-12-16T11:40:00.000Z",
     savedBy: "Arun",
     quoteName: "Basmati Rice 2kg",
     pouchSize: "7x10",
@@ -469,7 +469,7 @@ export const SAMPLE_QUOTES = [
   },
   {
     id: "sample-19",
-    savedAt: "2026-02-08T14:25:00.000Z",
+    savedAt: "2025-12-10T14:25:00.000Z",
     savedBy: "Ravi",
     quoteName: "Sesame Seeds Export",
     pouchSize: "5x7",
@@ -493,7 +493,7 @@ export const SAMPLE_QUOTES = [
   },
   {
     id: "sample-20",
-    savedAt: "2026-02-07T09:05:00.000Z",
+    savedAt: "2025-12-03T09:05:00.000Z",
     savedBy: "Priya",
     quoteName: "Cardamom Premium Grade",
     pouchSize: "4x6",

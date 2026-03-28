@@ -9,6 +9,7 @@ import MetaRow from "../ui/MetaRow";
  * @param {string}    subtitle   — estimate type (e.g. "Gravure Rate Estimate")
  * @param {string}    status     — badge label ("Draft" | "Saved")
  * @param {string}    customer   — customer / quote name
+ * @param {string}    [date]     — ISO date string (defaults to now)
  * @param {Object[]}  [meta]     — extra metadata rows [{label, value}]
  */
 export default function InvoiceHeader({
@@ -17,13 +18,14 @@ export default function InvoiceHeader({
   subtitle,
   status = "Draft",
   customer,
+  date,
   meta = [],
 }) {
-  const now = new Date().toISOString();
+  const dateStr = date || new Date().toISOString();
   const allMeta = [
     { label: "Customer", value: customer || "—" },
     ...meta,
-    { label: "Date", value: formatDate(now) },
+    { label: "Date", value: formatDate(dateStr) },
   ];
 
   return (

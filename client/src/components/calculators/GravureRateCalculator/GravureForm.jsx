@@ -16,7 +16,10 @@ const LAMINATION_OPTIONS = [
 ];
 
 /* ─── GravureForm ────────────────────────────────────────────────────────── */
-export default forwardRef(function GravureForm({ onProceed }, ref) {
+export default forwardRef(function GravureForm(
+  { onProceed, saveError = null },
+  ref,
+) {
   const [form, setForm] = useState(() => makeInitialForm());
 
   function resetForm() {
@@ -79,6 +82,7 @@ export default forwardRef(function GravureForm({ onProceed }, ref) {
           placeholder="e.g. Rajesh Traders"
           value={form.quoteName}
           onChange={(v) => setField("quoteName", v)}
+          error={saveError}
         />
       </FormSection>
 

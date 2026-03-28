@@ -123,16 +123,28 @@ client/src/
 │   │   ├── Badge.jsx            ✅ Reusable count pill (min-w-5 h-5 rounded-full)
 │   │   ├── GlassSeparator.jsx   ✅ Inset glass separator line with role="separator"
 │   │   ├── SectionLabel.jsx     ✅ Uppercase tracking label for sidebar sections
-│   │   └── Icons.jsx            ✅ 18+ icons: Close, Trash, ChevronDown, Dashboard, Gravure, Flexo, JobCost, Sun, Moon, Calculator, Quotes, History, User, Logout, Save, Print, Reset, Delete
+│   │   ├── CreatableSelect.jsx  ✅ Dropdown with custom option creation + localStorage persistence
+│   │   ├── MetaRow.jsx          ✅ Labeled metadata field (label + value)
+│   │   ├── Toast.jsx            ✅ macOS-style self-dismissing notification + useToast() hook
+│   │   └── Icons.jsx            ✅ 22 icons: Close, Trash, ChevronDown, Dashboard, Gravure, Flexo, JobCost, Sun, Moon, Calculator, Quotes, History, User, Logout, Save, Pdf, Print, Reset, Delete, Export, Search, PriceSettings
 │   │
 │   ├── form/                        ✅ Reusable compound form components (composition pattern)
 │   │   ├── FormStack.jsx            ✅ Outer wrapper, flex col gap-4
 │   │   ├── FormSection.jsx          ✅ .card wrapper with optional title + auto-dividers
-│   │   ├── TextField.jsx            ✅ Labeled text input (.field-label + .input-base)
+│   │   ├── TextField.jsx            ✅ Labeled text input (.field-label + .input-base), error prop for inline validation
 │   │   ├── NumberField.jsx          ✅ Inline row (.form-row) with label + compact number input
 │   │   ├── ToggleField.jsx          ✅ Inline row with label + IOSToggle
 │   │   ├── RadioField.jsx           ✅ Horizontal radio group with .radio-pill styling
 │   │   └── SelectField.jsx          ✅ Labeled CreatableSelect, supports inline mode with width + unit
+│   │
+│   ├── invoice/                         ✅ Reusable invoice breakdown primitives
+│   │   ├── InvoiceHeader.jsx            ✅ Branding + customer/date metadata + status badge
+│   │   ├── InvoiceFooter.jsx            ✅ Total row + highlighted price-per-kg strip
+│   │   ├── InvoiceEmpty.jsx             ✅ Placeholder for no-result state
+│   │   ├── TableHeader.jsx              ✅ 4-column header (Item, Rate, Qty, Amount)
+│   │   ├── ItemRow.jsx                  ✅ 4-column data row with invoice-grid
+│   │   ├── SectionLabel.jsx             ✅ Colored dot + section name
+│   │   └── SectionSubtotal.jsx          ✅ Bordered pill subtotal row + divider
 │   │
 │   ├── layout/
 │   │   ├── Sidebar/
@@ -152,11 +164,14 @@ client/src/
 │   │
 │   └── calculators/             🔄 Rebuild in progress
 │       ├── GravureRateCalculator/
-│       │   ├── index.jsx            ✅ Container: 2-col grid, CalculatorHeader, formRef, reset/print
-│       │   ├── GravureForm.jsx      ✅ Rebuilt with compound form components, forwardRef + reset()
-│       │   ├── formConfig.js        ✅ MATERIALS config, localStorage helpers, makeInitialForm()
-│       │   ├── MaterialRow.jsx      ✅ Presentational material toggle row
-│       │   └── GravureResult.jsx    🔲 Pending rebuild
+│       │   ├── GravureRateCalculator.jsx ✅ Container: 2-col grid, save/print/reset, toast
+│       │   ├── GravureForm.jsx          ✅ Controlled form, forwardRef + reset(), compound form components
+│       │   ├── GravureResult.jsx        ✅ Invoice-style breakdown card (reused by saved quotes)
+│       │   ├── GravureSavedQuotes.jsx   ✅ Saved quotes list + search + breakdown panel
+│       │   ├── QuoteListItem.jsx        ✅ Presentational quote row (name, price, date)
+│       │   ├── MaterialRow.jsx          ✅ Material toggle + price/micron/qty inputs
+│       │   ├── formConfig.js            ✅ MATERIALS config, localStorage helpers, makeInitialForm()
+│       │   └── GravureRateCalculator.md ✅ Full calculator documentation
 │       ├── FlexoRateCalculator/     🔲 index, Form, Result, QuoteModal
 │       └── JobCostCalculator/       🔲 index, Form, Result, QuoteModal
 │
@@ -168,8 +183,8 @@ client/src/
 │   └── jobCost.js           ✅ Line item definitions, default prices, dropdown seeds, sample quotes
 │
 ├── utils/
-│   ├── format.js            ✅ fmt(), formatDate()
-│   ├── quoteStorage.js      ✅ getQuotes(), saveQuote(), deleteQuote()
+│   ├── format.js            ✅ fmt(), formatDate(), groupByMonth()
+│   ├── quoteStorage.js      ✅ getQuotes(), saveQuote(), deleteQuote(), getInitialQuotes()
 │   └── calculators/
 │       ├── gravureRate.js   ✅ calculateGravureRate() pure function
 │       ├── flexoRateCalc.js ✅ calculateFlexoRate() pure function
@@ -234,30 +249,33 @@ Dark mode is toggled by `ThemeContext` (`useTheme()` hook), which adds/removes `
 
 Prefer `@layer components` classes from `index.css` over repeating utility strings:
 
-| Class                  | Description                                           |
-| ---------------------- | ----------------------------------------------------- |
-| `.card`                | `bg-grouped-background-2 rounded-2xl overflow-hidden` |
-| `.card-section`        | `px-4 py-3` padding inside a card                     |
-| `.divider`             | `border-t border-separator` horizontal rule           |
-| `.field-label`         | `text-sm font-medium text-label-2`                    |
-| `.input-base`          | full-width rounded input with focus ring              |
-| `.form-row`            | inline flex row for label + input pairs               |
-| `.form-row-label`      | label styling inside `.form-row`                      |
-| `.glass-panel`         | frosted glass surface with backdrop blur              |
-| `.section-header`      | flex row section title                                |
-| `.radio-pill`          | horizontal radio option base                          |
-| `.radio-pill-active`   | selected radio pill state                             |
-| `.radio-pill-inactive` | unselected radio pill state                           |
-| `.dropdown-menu`       | fixed portal dropdown container                       |
-| `.dropdown-option`     | dropdown list item button                             |
-| `.btn-primary`         | filled tint button                                    |
-| `.btn-secondary`       | filled fill-2 button                                  |
-| `.btn-ghost`           | text-only tint button                                 |
-| `.btn-icon`            | 36px circular icon button                             |
-| `.btn-pill`            | rounded pill button                                   |
-| `.btn-danger`          | red pill button                                       |
-| `.nav-button`          | sidebar top-level nav item                            |
-| `.sub-nav-button`      | sidebar sub-menu item                                 |
+| Class                     | Description                                           |
+| ------------------------- | ----------------------------------------------------- |
+| `.card`                   | `bg-grouped-background-2 rounded-2xl overflow-hidden` |
+| `.card-section`           | `px-4 py-3` padding inside a card                     |
+| `.divider`                | `border-t border-separator` horizontal rule           |
+| `.field-label`            | `text-sm font-medium text-label-2`                    |
+| `.input-base`             | full-width rounded input with focus ring              |
+| `.form-row`               | inline flex row for label + input pairs               |
+| `.form-row-label`         | label styling inside `.form-row`                      |
+| `.glass-panel`            | frosted glass surface with backdrop blur              |
+| `.section-header`         | flex row section title                                |
+| `.radio-pill`             | horizontal radio option base                          |
+| `.radio-pill-active`      | selected radio pill state                             |
+| `.radio-pill-inactive`    | unselected radio pill state                           |
+| `.dropdown-menu`          | fixed portal dropdown container                       |
+| `.dropdown-option`        | dropdown list item button                             |
+| `.btn-primary`            | filled tint button                                    |
+| `.btn-secondary`          | filled fill-2 button                                  |
+| `.btn-ghost`              | text-only tint button                                 |
+| `.btn-icon`               | 36px circular icon button                             |
+| `.btn-pill`               | rounded pill button                                   |
+| `.btn-danger`             | red pill button                                       |
+| `.nav-button`             | sidebar top-level nav item                            |
+| `.sub-nav-button`         | sidebar sub-menu item                                 |
+| `.quote-list-item`        | saved quote list button base                          |
+| `.quote-list-item-active` | selected quote item state                             |
+| `.month-label`            | month grouping label in quote lists                   |
 
 ```jsx
 // ✅ Preferred
@@ -299,10 +317,13 @@ Every calculator lives in its own folder under `components/calculators/`:
 
 ```
 components/calculators/{Name}/
-  index.jsx                ← container: state, refs, quote list, save/delete handlers
+  {Name}Calculator.jsx     ← container: state, refs, save/print/reset handlers
   {Name}Form.jsx           ← controlled form; calls onProceed(form) in event handlers
-  {Name}Result.jsx         ← collapsible breakdown card
-  {Name}QuoteModal.jsx     ← invoice detail modal (React portal)
+  {Name}Result.jsx         ← invoice-style breakdown card
+  {Name}SavedQuotes.jsx    ← saved quotes list + search + breakdown
+  QuoteListItem.jsx        ← presentational quote row
+  formConfig.js            ← materials config, localStorage helpers, form factories
+  {Name}Calculator.md      ← calculator documentation
 ```
 
 > **Note**: Per-calculator `*QuotesSidebar.jsx` files have been removed. Saved quotes are now accessed via sidebar sub-menu navigation, rendering a quotes list view in the main workspace.
@@ -319,55 +340,66 @@ Rate constants go in `constants/{camelName}.js`.
 
 ---
 
-## Calculator Container Pattern (`index.jsx`)
+## Calculator Container Pattern
 
-Follow the pattern established in `GravureRateCalculator/index.jsx` and `FlexoRateCalculator/index.jsx`:
+Follow the pattern established in `GravureRateCalculator.jsx`:
 
 ```jsx
+import {
+  getInitialQuotes,
+  saveQuote,
+  getQuotes,
+} from "../../../utils/quoteStorage";
+
 const CALC_KEY = "my-calc";
 
-function getInitialQuotes() {
-  const stored = getQuotes(CALC_KEY);
-  const allSamples = stored.length > 0 && stored.every((q) => q.id.startsWith("sample-"));
-  if (stored.length === 0 || allSamples) {
-    localStorage.setItem(`quotes-${CALC_KEY}`, JSON.stringify(SAMPLE_QUOTES));
-    return SAMPLE_QUOTES;
-  }
-  return stored;
-}
-
 export default function MyCalculator() {
-  const [result, setResult] = useState(null);
-  const [quotes, setQuotes] = useState(() => getInitialQuotes());
+  const [form, setForm] = useState(() => makeInitialForm());
+  const [result, setResult] = useState(() =>
+    calculateMyRate(makeInitialForm()),
+  );
   const [saveError, setSaveError] = useState(null);
-  const [formHeight, setFormHeight] = useState(null);
   const formRef = useRef(null);
+  const [toast, showToast] = useToast();
 
-  useEffect(() => {
-    if (!formRef.current) return;
-    const ro = new ResizeObserver(([entry]) => setFormHeight(entry.contentRect.height));
-    ro.observe(formRef.current);
-    return () => ro.disconnect();
-  }, []);
-
-  function handleFormChange(form) {
+  function handleFormChange(formData) {
+    setForm(formData);
+    setResult(calculateMyRate(formData));
     setSaveError(null);
-    setResult(calculateMyRate(form));
   }
 
-  function handleSave(form) {
+  function handleSave() {
     const name = form.quoteName.trim();
-    if (!name) { setSaveError("Enter a customer name before saving."); return; }
-    const dup = quotes.some((q) => q.quoteName.trim().toLowerCase() === name.toLowerCase());
-    if (dup) { setSaveError(`A quote named "${name}" already exists. Use a different name.`); return; }
+    if (!name) {
+      setSaveError("Enter a customer name before saving.");
+      return;
+    }
+    const quotes = getQuotes(CALC_KEY);
+    const dup = quotes.some(
+      (q) => q.quoteName.trim().toLowerCase() === name.toLowerCase(),
+    );
+    if (dup) {
+      setSaveError(
+        `A quote named "${name}" already exists. Use a different name.`,
+      );
+      return;
+    }
     const calc = calculateMyRate(form);
-    if (!calc) { setSaveError("Fill in required fields before saving."); return; }
+    if (!calc) {
+      setSaveError("Fill in required fields before saving.");
+      return;
+    }
     setSaveError(null);
-    setQuotes(saveQuote(CALC_KEY, { quoteName: name, /* summary fields */, form: { ...form, quoteName: name } }));
-  }
-
-  function handleDelete(id) {
-    setQuotes(deleteQuote(CALC_KEY, id));
+    saveQuote(CALC_KEY, {
+      quoteName: name,
+      pricePerKg: calc.pricePerKg,
+      form: { ...form, quoteName: name },
+    });
+    window.dispatchEvent(
+      new CustomEvent("quotes-updated", { detail: CALC_KEY }),
+    );
+    showToast(name, "Saved successfully");
+    formRef.current?.reset();
   }
 }
 ```
@@ -379,7 +411,12 @@ export default function MyCalculator() {
 Use `utils/quoteStorage.js` helpers — never write to `localStorage` directly for quote data:
 
 ```js
-import { getQuotes, saveQuote, deleteQuote } from "../../../utils/quoteStorage";
+import {
+  getQuotes,
+  saveQuote,
+  deleteQuote,
+  getInitialQuotes,
+} from "../../../utils/quoteStorage";
 
 const CALC_KEY = "my-calc"; // unique per calculator, kebab-case
 ```
@@ -420,13 +457,16 @@ formatDate(isoString); // → "26 Feb 2026, 09:15 am"
 
 Use existing primitives from `components/ui/` — do not re-implement them:
 
-| Component        | Use for                                                      |
-| ---------------- | ------------------------------------------------------------ |
-| `IOSToggle`      | Boolean toggle switches (`on` + `onToggle` props)            |
-| `Badge`          | Count pill display (sidebar quote counts, notification dots) |
-| `GlassSeparator` | Glass-style inset separator line (`role="separator"`)        |
-| `SectionLabel`   | Uppercase tracking label for sidebar/form sections           |
-| `Icons.jsx`      | 18+ SVG icons (nav, actions, theme, account)                 |
+| Component         | Use for                                                         |
+| ----------------- | --------------------------------------------------------------- |
+| `IOSToggle`       | Boolean toggle switches (`on` + `onToggle` props)               |
+| `Badge`           | Count pill display (sidebar quote counts, notification dots)    |
+| `GlassSeparator`  | Glass-style inset separator line (`role="separator"`)           |
+| `SectionLabel`    | Uppercase tracking label for sidebar/form sections              |
+| `CreatableSelect` | Dropdown with custom option creation + localStorage persistence |
+| `MetaRow`         | Labeled metadata field (label + value)                          |
+| `Toast`           | macOS-style self-dismissing notification + `useToast()` hook    |
+| `Icons.jsx`       | 22 SVG icons (nav, actions, theme, account, search, export)     |
 
 ---
 
@@ -515,20 +555,30 @@ _Exception: simple file-scoped leaf components like `IOSToggle` (`on` prop) or `
 > Sprint plan: [`UI_REDESIGN_SPRINTS.md`](UI_REDESIGN_SPRINTS.md)
 > Read that file before starting any UI work.
 
-**Sprint 1 (sidebar + layout shell) is complete.** The old header, segmented control, and per-calculator sidebars have been removed. A left navigation sidebar (glass island) with expandable menus is in place.
+**Sprint 1 (sidebar + layout shell) is complete.**
 
-**Sprint 2 is in progress.** Completed so far:
+**Sprint 2 — Gravure calculator is fully complete.** All features built:
 
 - ✅ Compound form component system (7 primitives in `components/form/`)
-- ✅ `CalculatorHeader` component (layout/)
-- ✅ CSS class extraction (15+ reusable `@layer components` classes)
-- ✅ Gravure container rebuilt (`index.jsx` — 2-col grid, formRef, reset/print)
-- ✅ `GravureForm.jsx` rebuilt with compound form components + `forwardRef` + reset
+- ✅ `CalculatorHeader` component with Save/Print/Export/Reset/Delete buttons
+- ✅ CSS class extraction (20+ reusable `@layer components` classes)
+- ✅ `GravureRateCalculator.jsx` — 2-col grid, save with validation + toast, print, reset
+- ✅ `GravureForm.jsx` — compound form components + `forwardRef` + reset
+- ✅ `GravureResult.jsx` — invoice-style breakdown card with status/date props
+- ✅ `GravureSavedQuotes.jsx` — saved quotes list + search + breakdown panel
+- ✅ `QuoteListItem.jsx` — presentational quote row extracted as reusable component
 - ✅ `formConfig.js` + `MaterialRow.jsx` extracted from GravureForm
-- ✅ `CreatableSelect` dropdown positioning bug fixed (bottom-anchoring when opening above)
-- ✅ Icons expanded (Save, Print, Reset, Delete added)
+- ✅ `Toast.jsx` — macOS-style self-dismissing notification + `useToast()` hook
+- ✅ Icons expanded (Save, Print, Reset, Delete, Export, Search, Pdf, PriceSettings)
+- ✅ `CreatableSelect` dropdown positioning bug fixed
+- ✅ Persistent view mounting in AppShell (preserves state across navigation)
+- ✅ Cross-component sync via `CustomEvent("quotes-updated")`
+- ✅ Badge live update via `useQuoteCounts` hook
+- ✅ Print styles with `data-print-area` + `@media print`
+- ✅ Shared utilities: `getInitialQuotes()`, `groupByMonth()` in utils
+- ✅ Full calculator documentation in `GravureRateCalculator.md`
 
-**Next:** GravureResult rebuild, then Flexo and Job Cost calculator rebuilds, then saved quotes views.
+**Next:** Flexo Rate Calculator rebuild, then Job Cost Calculator rebuild.
 
 **Git checkpoint**: `ebecfc5` — pre-UI-redesign state with all 3 calculators working. Use `git checkout ebecfc5 -- client/src/components/` to reference old component code.
 
@@ -542,7 +592,7 @@ Design references are stored in `UI References/` folder at project root.
 | --------- | --------------------------------------------------------------------------------- | ---------------------------------- |
 | 1a        | App shell, header island, segmented control, dark mode, ThemeContext              | ✅ Done (removed in UI redesign)   |
 | 1b        | UI primitives (IOSToggle, CheckBox, CreatableCombobox, Icons), quote storage util | ✅ Done                            |
-| 1c        | Gravure Rate Calculator — form, result, sidebar, modal, validation                | ✅ Done (deleted, pending rebuild) |
+| 1c        | Gravure Rate Calculator — form, result, saved quotes, validation                  | ✅ Done (rebuilt in UI redesign)   |
 | 1c        | Flexo Rate Calculator — form, result, sidebar, modal, validation                  | ✅ Done (deleted, pending rebuild) |
 | 1c        | Job Cost Calculator — form, result, sidebar, modal, inline validation             | ✅ Done (deleted, pending rebuild) |
 | 1d        | Full-width layout expansion — removed max-w-6xl, reduced page padding             | ✅ Done                            |
