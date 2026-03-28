@@ -144,4 +144,30 @@ body {
   .divider {
     @apply border-t border-separator/44 dark:border-separator/44;
   }
+
+  /* Invoice table */
+  .invoice-grid {
+    @apply grid grid-cols-[1fr_auto_auto_auto] gap-x-3;
+  }
+
+  .invoice-col-rate {
+    @apply w-28;
+  }
+
+  .invoice-col-qty {
+    @apply w-24;
+  }
+
+  .invoice-col-amount {
+    @apply w-24;
+  }
+
+  .invoice-meta-label {
+    @apply text-[10px] font-semibold text-label-3 uppercase tracking-wider;
+  }
+
+  .invoice-badge {
+    @apply text-[10px] font-semibold text-tint bg-tint/10 px-2 py-0.5
+           rounded-full uppercase tracking-wider;
+  }
 }

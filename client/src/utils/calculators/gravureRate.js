@@ -63,19 +63,16 @@ export function calculateGravureRate(form) {
     ? (POUCH_RATE_BY_SIZE[form.pouchSize] ?? DEFAULT_POUCH_RATE)
     : 0;
 
-  // ── Charge amounts (rate × total qty) ───────────────────────────────────
-  const printingCost = printingRatePerKg * totalMaterialQty;
-  const laminationCost = laminationRatePerKg * totalMaterialQty;
-  const slittingCost = slittingRatePerKg * totalMaterialQty;
-  const pouchCost = pouchRatePerKg * totalMaterialQty;
+  // ── Per-kg charge sums (NOT multiplied by qty) ──────────────────────────
+  // The formula: (materialCost + chargesPerKg + wastage) / qty = pricePerKg
+  const totalChargesPerKg =
+    printingRatePerKg +
+    laminationRatePerKg +
+    slittingRatePerKg +
+    pouchRatePerKg;
 
   // ── Totals ───────────────────────────────────────────────────────────────
-  const totalCost =
-    totalMaterialCost +
-    printingCost +
-    laminationCost +
-    slittingCost +
-    pouchCost;
+  const totalCost = totalMaterialCost + totalChargesPerKg;
 
   const wastagePercent = parseFloat(form.wastage) || 0;
   const wastageAmount = totalCost * (wastagePercent / 100);
@@ -88,13 +85,10 @@ export function calculateGravureRate(form) {
     totalMaterialQty,
     totalMaterialCost,
     printingRatePerKg,
-    printingCost,
     laminationRatePerKg,
-    laminationCost,
     slittingRatePerKg,
-    slittingCost,
     pouchRatePerKg,
-    pouchCost,
+    totalChargesPerKg,
     totalCost,
     wastagePercent,
     wastageAmount,

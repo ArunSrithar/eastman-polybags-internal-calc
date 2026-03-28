@@ -2,14 +2,20 @@ import { useState, useRef } from "react";
 import CalculatorHeader from "../../layout/CalculatorHeader";
 import { GravureIcon } from "../../ui/Icons";
 import GravureForm from "./GravureForm";
+import GravureResult from "./GravureResult";
+import { makeInitialForm } from "./formConfig";
 import { calculateGravureRate } from "../../../utils/calculators/gravureRate";
 
 export default function GravureRateCalculator() {
-  const [result, setResult] = useState(null);
+  const [form, setForm] = useState(() => makeInitialForm());
+  const [result, setResult] = useState(() =>
+    calculateGravureRate(makeInitialForm()),
+  );
   const formRef = useRef(null);
 
-  function handleFormChange(form) {
-    setResult(calculateGravureRate(form));
+  function handleFormChange(formData) {
+    setForm(formData);
+    setResult(calculateGravureRate(formData));
   }
 
   function handleReset() {
@@ -39,8 +45,8 @@ export default function GravureRateCalculator() {
         </div>
 
         {/* Right — Breakdown */}
-        <div className="overflow-y-auto p-3 flex items-center justify-center glass-panel">
-          <p className="text-label-3 text-sm">Breakdown goes here</p>
+        <div className="overflow-y-auto p-3 glass-panel">
+          <GravureResult result={result} form={form} />
         </div>
       </div>
     </div>

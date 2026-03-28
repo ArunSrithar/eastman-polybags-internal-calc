@@ -2,7 +2,7 @@ import { useState } from "react";
 import Sidebar from "./Sidebar/Sidebar";
 import PlaceholderView from "./PlaceholderView";
 import { MAIN_MARGIN_LEFT } from "../../constants/layout";
-import GravureRateCalculator from "../calculators/GravureRateCalculator";
+import GravureRateCalculator from "../calculators/GravureRateCalculator/GravureRateCalculator";
 
 // Calculator views will be wired here once rebuilt.
 const CALCULATOR_VIEWS = {
