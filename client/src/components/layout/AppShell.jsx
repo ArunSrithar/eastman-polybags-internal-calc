@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRouting } from "../../hooks/useRouting";
 import Sidebar from "./Sidebar/Sidebar";
 import PlaceholderView from "./PlaceholderView";
 import { MAIN_MARGIN_LEFT } from "../../constants/layout";
@@ -18,7 +18,7 @@ const CALCULATOR_VIEWS = {
 };
 
 export default function AppShell() {
-  const [activeView, setActiveView] = useState("dashboard");
+  const [activeView, navigate] = useRouting();
 
   function renderFallback() {
     const CalcComponent = CALCULATOR_VIEWS[activeView];
@@ -32,7 +32,7 @@ export default function AppShell() {
 
   return (
     <>
-      <Sidebar activeView={activeView} onNavigate={setActiveView} />
+      <Sidebar activeView={activeView} onNavigate={navigate} />
 
       <main className="h-dvh p-3" style={{ marginLeft: MAIN_MARGIN_LEFT }}>
         {/* Persistent views — always mounted, hidden via CSS */}

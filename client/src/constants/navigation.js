@@ -85,6 +85,28 @@ export const QUOTE_STORAGE_KEYS = {
 };
 
 /**
+ * View ↔ URL path mapping.
+ * Every navigable view must have an entry here for URL routing to work.
+ */
+export const VIEW_TO_PATH = {
+  dashboard: "/",
+  gravure: "/gravure/",
+  "gravure-quotes": "/gravure/quotes/",
+  "gravure-history": "/gravure/history/",
+  flexo: "/flexo/",
+  "flexo-quotes": "/flexo/quotes/",
+  "flexo-history": "/flexo/history/",
+  "job-cost": "/job-cost/",
+  "job-cost-quotes": "/job-cost/quotes/",
+  "job-cost-history": "/job-cost/history/",
+  "price-settings": "/price-settings/",
+};
+
+export const PATH_TO_VIEW = Object.fromEntries(
+  Object.entries(VIEW_TO_PATH).map(([view, path]) => [path, view]),
+);
+
+/**
  * Placeholder view metadata — title + description for views not yet built.
  */
 export const VIEW_META = {
