@@ -6,6 +6,7 @@ import {
   CalculatorSubIcon,
   QuotesIcon,
   HistoryIcon,
+  PriceSettingsIcon,
 } from "../components/ui/Icons";
 
 /**
@@ -64,6 +65,12 @@ export const NAV_ITEMS = [
       },
       { id: "job-cost-history", label: "Price History", icon: HistoryIcon },
     ],
+  },
+  {
+    id: "price-settings",
+    label: "Price Settings",
+    icon: PriceSettingsIcon,
+    subItems: null,
   },
 ];
 

@@ -29,9 +29,9 @@ export default function NavItem({
     <li>
       <button
         onClick={() => onTopClick(item)}
-        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
+        className={`nav-button ${
           isActive
-            ? "bg-tint/10 text-tint"
+            ? "bg-tint text-white"
             : "text-label-2 hover:bg-fill-3 hover:text-label"
         }`}
         aria-expanded={hasSubItems ? isExpanded : undefined}
@@ -41,7 +41,7 @@ export default function NavItem({
         <span className="flex-1 text-left">{item.label}</span>
         {hasSubItems ? (
           <ChevronDownIcon
-            className={`size-4 text-label-3 transition-transform duration-200 ${
+            className={`size-4 transition-transform duration-200 ${isActive ? "text-white" : "text-tint"} ${
               isExpanded ? "rotate-180" : ""
             }`}
           />
@@ -54,7 +54,7 @@ export default function NavItem({
             isExpanded ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
           }`}
         >
-          <ul className="mt-0.5 ml-5 space-y-0.5 border-l border-black/10 dark:border-white/10 pl-3">
+          <ul className="mt-0.5 ml-5 space-y-0.5 border-l border-separator dark:border-separator pl-3">
             {item.subItems.map((sub) => (
               <SubNavItem
                 key={sub.id}

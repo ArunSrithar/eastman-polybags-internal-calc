@@ -1,9 +1,9 @@
 # UI Redesign — Sprint Plan
 
-> **Status**: Sprint 1 complete. Ready for Sprint 2.
+> **Status**: Sprint 1 complete. Sprint 2 in progress (Gravure form rebuilt with compound components).
 > **Approach**: Clean-slate rebuild. Old `components/` folder was deleted entirely (git checkpoint `ebecfc5` preserves it). New modular architecture built from scratch with proper separation of concerns.
 >
-> **Main workspace design**: After the sidebar (Sprints 1–3) is finalized, the user will provide a custom layout skeleton for the main work area. Sprints 4–6 (forms, results, modals) will follow that design.
+> **Main workspace design**: Calculator forms use a 2-column grid layout (form left, result right) with a shared `CalculatorHeader`. Form fields built using reusable compound form components (`components/form/`).
 
 ---
 
@@ -169,25 +169,67 @@ Sidebar is a frosted glass island (rounded, detached from edges).
 
 ---
 
-### Sprint 2 — Calculator Rebuild + Saved Quotes Views
+### Sprint 2 — Calculator Rebuild + Saved Quotes Views 🔄 IN PROGRESS
 
 > **Goal**: Rebuild all 3 calculator components in the new layout (form + result in main workspace). Build the "Saved Quotes" views accessible from sidebar sub-menus. Quote operations (view, save, delete) work through the new architecture.
 >
 > **Architecture note**: Quotes are no longer in a unified right sidebar. Each calculator has a "Saved Quotes" sub-menu in the left nav that renders a quotes list view in the main workspace area.
+>
+> **New architecture**: Reusable compound form components (`components/form/`) replace raw Tailwind in form JSX. Calculator containers use a 2-column grid (form + result) with a shared `CalculatorHeader`.
 
-**Chunk 2.1 — Rebuild calculator containers** `[Containers]` 🔲
+**Chunk 2.0 — Compound form component system** `[FormComponents]` ✅ NEW
 
-- Rebuild each calculator `index.jsx` (Gravure, Flexo, Job Cost)
-- New layout: form + result in main workspace (full width of main area)
-- Receives `activeView` context to know which view is active
-- No per-calculator sidebar — quotes accessed via nav sub-menu
+- Created 7 reusable form primitives in `components/form/`:
+  - `FormStack.jsx` — outer wrapper, `flex flex-col gap-4`
+  - `FormSection.jsx` — `.card` wrapper with title + auto-dividers between children
+  - `TextField.jsx` — labeled text input (`.field-label` + `.input-base`)
+  - `NumberField.jsx` — inline row (`.form-row`) with label + compact number input
+  - `ToggleField.jsx` — inline row with label + `IOSToggle`
+  - `RadioField.jsx` — horizontal radio group with `.radio-pill` styling
+  - `SelectField.jsx` — labeled `CreatableSelect`, supports `inline` mode with `width` + `unit` props
+- Composition approach: small reusable components composed in JSX (not JSON schema)
+
+**Chunk 2.0b — CalculatorHeader component** `[CalcHeader]` ✅ NEW
+
+- Created `components/layout/CalculatorHeader.jsx`
+- Renders icon + title + subtitle on left, action buttons on right
+- Action buttons: Reset (`ResetIcon`), Save (`SaveIcon`), Print (`PrintIcon`), Delete (`DeleteIcon`)
+- Props: `icon`, `title`, `subtitle`, `onSave`, `onPrint`, `onReset`, `onDelete`
+
+**Chunk 2.0c — CSS class extraction** `[CSSClasses]` ✅ NEW
+
+- Extracted 10+ reusable `@layer components` classes to `index.css`:
+  - `.glass-panel`, `.section-header`, `.form-row`, `.form-row-label`
+  - `.btn-danger`, `.btn-pill`, `.radio-pill`/active/inactive
+  - `.nav-button`, `.sub-nav-button`, `.dropdown-menu`, `.dropdown-option`
+- Updated all JSX files to use extracted classes
+
+**Chunk 2.0d — CreatableSelect dropdown fix** `[DropdownFix]` ✅ NEW
+
+- Fixed dropdown positioning when opening above input and filtered list is shorter than `maxH`
+- Switched from `top = r.top - maxH - 4` (fixed offset) to `bottom: window.innerHeight - r.top + 4` (anchors bottom edge of list to input top)
+- Dropdown now grows upward naturally regardless of list height
+
+**Chunk 2.0e — Icons expansion** `[IconsExpand]` ✅ NEW
+
+- Added `PrintIcon`, `ResetIcon`, `SaveIcon`, `DeleteIcon` to `Icons.jsx`
+- Total icon count: 18+
+
+**Chunk 2.1 — Rebuild calculator containers** `[Containers]` 🔄 PARTIAL
+
+- ✅ Gravure `index.jsx` rebuilt: 2-column grid, `CalculatorHeader`, `formRef` + `useImperativeHandle` for reset, `window.print()` for print
+- 🔲 Flexo `index.jsx` — not started
+- 🔲 Job Cost `index.jsx` — not started
 - Wire into `AppShell.jsx` CALCULATOR_VIEWS
 
-**Chunk 2.2 — Rebuild Gravure form + result** `[GravureRebuild]` 🔲
+**Chunk 2.2 — Rebuild Gravure form + result** `[GravureRebuild]` 🔄 PARTIAL
 
-- Rebuild `GravureForm.jsx` and `GravureResult.jsx` using old code as reference (from git)
-- Same field logic, same `onProceed` pattern, same calculation
-- Form may get section grouping (Sprint 4) but basic rebuild first
+- ✅ `GravureForm.jsx` rebuilt using compound form components (`FormStack`, `FormSection`, `TextField`, `NumberField`, `ToggleField`, `RadioField`, `SelectField`, `MaterialRow`)
+- ✅ `formConfig.js` extracted — `MATERIALS` config, localStorage helpers, `makeInitialForm()`
+- ✅ `MaterialRow.jsx` extracted — presentational material toggle row
+- ✅ `forwardRef` + `useImperativeHandle` for reset (clears quoteName, pouchSize, colors, mattFinish, lamination, slitting, wastage; keeps material toggle states + prices)
+- ✅ Wastage field changed from NumberField to `SelectField` with `inline` mode
+- 🔲 `GravureResult.jsx` — not yet rebuilt
 
 **Chunk 2.3 — Rebuild Flexo form + result** `[FlexoRebuild]` 🔲
 
@@ -409,10 +451,17 @@ Sidebar is a frosted glass island (rounded, detached from edges).
   - `--color-calc-jobcost`: emerald accent for Job Cost
 - Dark mode overrides if needed
 
-**Chunk 7.2 — Section component classes** `[SectionClasses]` 🔲
+**Chunk 7.2 — Section component classes** `[SectionClasses]` � PARTIAL
 
-- Add to `index.css` `@layer components`:
-  - `.section-header` — flex row with dot + label + count + subtotal
+- ✅ Added to `index.css` `@layer components`:
+  - `.section-header` — flex row with label
+  - `.form-row` / `.form-row-label` — inline label+input rows
+  - `.radio-pill` / `.radio-pill-active` / `.radio-pill-inactive` — radio option styling
+  - `.glass-panel` — frosted glass surface
+  - `.dropdown-menu` / `.dropdown-option` — portal dropdown styling
+  - `.btn-pill` / `.btn-danger` — button variants
+  - `.nav-button` / `.sub-nav-button` — sidebar nav styling
+- 🔲 Still pending:
   - `.section-dot` — `size-2 rounded-full` base class
   - `.section-group` — container with left border accent or subtle indent
 
@@ -467,7 +516,7 @@ Sidebar is a frosted glass island (rounded, detached from edges).
 ```
 Sprint 1 (sidebar + layout shell) ✅ COMPLETE
    │
-   ├──▸ Sprint 2 (calculator rebuild + quotes views) ← NEXT
+   ├──▸ Sprint 2 (calculator rebuild + quotes views) ← IN PROGRESS
    │       │
    │       ├──▸ Sprint 3 (price history)
    │       │
@@ -484,22 +533,22 @@ Sprint 1 (sidebar + layout shell) ✅ COMPLETE
    └──▸ Sprint 8 (docs & verify) — in progress (docs being updated)
 ```
 
-**Recommended next sprint**: Sprint 2 — rebuild calculators in the new layout. User will provide main workspace design reference before starting.
+**Current sprint**: Sprint 2 — Gravure form rebuilt with compound components. Next: GravureResult, then Flexo and Job Cost rebuilds.
 
 ---
 
 ## Estimated Chunk Sizes
 
-| Sprint                         | Chunks                   | Status         |
-| ------------------------------ | ------------------------ | -------------- |
-| **1 — Layout Shell + Sidebar** | 8 chunks                 | ✅ Complete    |
-| **2 — Calculator Rebuild**     | 7 chunks                 | 🔲 Next        |
-| **3 — Price History**          | 4 chunks                 | 🔲 Pending     |
-| **4 — Form Sections**          | 5 chunks                 | 🔲 Pending     |
-| **5 — Result Redesign**        | 3 chunks                 | 🔲 Pending     |
-| **6 — Modal Redesign**         | 5 chunks                 | 🔲 Pending     |
-| **7 — Design Tokens**          | 4 chunks (1 done)        | 🔄 Partial     |
-| **8 — Docs & Verify**          | 3 chunks (1 in progress) | 🔄 In progress |
+| Sprint                         | Chunks                     | Status         |
+| ------------------------------ | -------------------------- | -------------- |
+| **1 — Layout Shell + Sidebar** | 8 chunks                   | ✅ Complete    |
+| **2 — Calculator Rebuild**     | 12 chunks (5 new + 7 orig) | 🔄 In progress |
+| **3 — Price History**          | 4 chunks                   | 🔲 Pending     |
+| **4 — Form Sections**          | 5 chunks                   | 🔲 Pending     |
+| **5 — Result Redesign**        | 3 chunks                   | 🔲 Pending     |
+| **6 — Modal Redesign**         | 5 chunks                   | 🔲 Pending     |
+| **7 — Design Tokens**          | 4 chunks (2 partial)       | 🔄 Partial     |
+| **8 — Docs & Verify**          | 3 chunks (1 in progress)   | 🔄 In progress |
 
 ---
 

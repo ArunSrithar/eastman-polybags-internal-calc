@@ -123,7 +123,16 @@ client/src/
 │   │   ├── Badge.jsx            ✅ Reusable count pill (min-w-5 h-5 rounded-full)
 │   │   ├── GlassSeparator.jsx   ✅ Inset glass separator line with role="separator"
 │   │   ├── SectionLabel.jsx     ✅ Uppercase tracking label for sidebar sections
-│   │   └── Icons.jsx            ✅ 14 icons: Close, Trash, ChevronDown, Dashboard, Gravure, Flexo, JobCost, Sun, Moon, Calculator, Quotes, History, User, Logout
+│   │   └── Icons.jsx            ✅ 18+ icons: Close, Trash, ChevronDown, Dashboard, Gravure, Flexo, JobCost, Sun, Moon, Calculator, Quotes, History, User, Logout, Save, Print, Reset, Delete
+│   │
+│   ├── form/                        ✅ Reusable compound form components (composition pattern)
+│   │   ├── FormStack.jsx            ✅ Outer wrapper, flex col gap-4
+│   │   ├── FormSection.jsx          ✅ .card wrapper with optional title + auto-dividers
+│   │   ├── TextField.jsx            ✅ Labeled text input (.field-label + .input-base)
+│   │   ├── NumberField.jsx          ✅ Inline row (.form-row) with label + compact number input
+│   │   ├── ToggleField.jsx          ✅ Inline row with label + IOSToggle
+│   │   ├── RadioField.jsx           ✅ Horizontal radio group with .radio-pill styling
+│   │   └── SelectField.jsx          ✅ Labeled CreatableSelect, supports inline mode with width + unit
 │   │
 │   ├── layout/
 │   │   ├── Sidebar/
@@ -134,14 +143,20 @@ client/src/
 │   │   │   ├── NavItem.jsx          ✅ Expandable top-level nav item (active = bg-tint/10 text-tint)
 │   │   │   └── SubNavItem.jsx       ✅ Sub-menu item with icon + badge
 │   │   ├── PlaceholderView.jsx          ✅ Centered placeholder for unbuilt views
+│   │   ├── CalculatorHeader.jsx         ✅ Calculator page header (icon + title + subtitle + action buttons)
 │   │   └── AppShell.jsx                 ✅ Sidebar + main workspace, manages activeView state
 │   │
 │   ├── overlays/                🔲 All pending
 │   │
 │   ├── RateSettings/            🔲 All pending
 │   │
-│   └── calculators/             🔄 All deleted — pending rebuild (original code in git checkpoint ebecfc5)
-│       ├── GravureRateCalculator/   🔲 index, Form, Result, QuoteModal
+│   └── calculators/             🔄 Rebuild in progress
+│       ├── GravureRateCalculator/
+│       │   ├── index.jsx            ✅ Container: 2-col grid, CalculatorHeader, formRef, reset/print
+│       │   ├── GravureForm.jsx      ✅ Rebuilt with compound form components, forwardRef + reset()
+│       │   ├── formConfig.js        ✅ MATERIALS config, localStorage helpers, makeInitialForm()
+│       │   ├── MaterialRow.jsx      ✅ Presentational material toggle row
+│       │   └── GravureResult.jsx    🔲 Pending rebuild
 │       ├── FlexoRateCalculator/     🔲 index, Form, Result, QuoteModal
 │       └── JobCostCalculator/       🔲 index, Form, Result, QuoteModal
 │
@@ -219,17 +234,30 @@ Dark mode is toggled by `ThemeContext` (`useTheme()` hook), which adds/removes `
 
 Prefer `@layer components` classes from `index.css` over repeating utility strings:
 
-| Class            | Description                                           |
-| ---------------- | ----------------------------------------------------- |
-| `.card`          | `bg-grouped-background-2 rounded-2xl overflow-hidden` |
-| `.card-section`  | `px-4 py-3` padding inside a card                     |
-| `.divider`       | `border-t border-separator` horizontal rule           |
-| `.field-label`   | `text-sm font-medium text-label-2`                    |
-| `.input-base`    | full-width rounded input with focus ring              |
-| `.btn-primary`   | filled tint button                                    |
-| `.btn-secondary` | filled fill-2 button                                  |
-| `.btn-ghost`     | text-only tint button                                 |
-| `.btn-icon`      | 36px circular icon button                             |
+| Class                  | Description                                           |
+| ---------------------- | ----------------------------------------------------- |
+| `.card`                | `bg-grouped-background-2 rounded-2xl overflow-hidden` |
+| `.card-section`        | `px-4 py-3` padding inside a card                     |
+| `.divider`             | `border-t border-separator` horizontal rule           |
+| `.field-label`         | `text-sm font-medium text-label-2`                    |
+| `.input-base`          | full-width rounded input with focus ring              |
+| `.form-row`            | inline flex row for label + input pairs               |
+| `.form-row-label`      | label styling inside `.form-row`                      |
+| `.glass-panel`         | frosted glass surface with backdrop blur              |
+| `.section-header`      | flex row section title                                |
+| `.radio-pill`          | horizontal radio option base                          |
+| `.radio-pill-active`   | selected radio pill state                             |
+| `.radio-pill-inactive` | unselected radio pill state                           |
+| `.dropdown-menu`       | fixed portal dropdown container                       |
+| `.dropdown-option`     | dropdown list item button                             |
+| `.btn-primary`         | filled tint button                                    |
+| `.btn-secondary`       | filled fill-2 button                                  |
+| `.btn-ghost`           | text-only tint button                                 |
+| `.btn-icon`            | 36px circular icon button                             |
+| `.btn-pill`            | rounded pill button                                   |
+| `.btn-danger`          | red pill button                                       |
+| `.nav-button`          | sidebar top-level nav item                            |
+| `.sub-nav-button`      | sidebar sub-menu item                                 |
 
 ```jsx
 // ✅ Preferred
@@ -398,7 +426,7 @@ Use existing primitives from `components/ui/` — do not re-implement them:
 | `Badge`          | Count pill display (sidebar quote counts, notification dots) |
 | `GlassSeparator` | Glass-style inset separator line (`role="separator"`)        |
 | `SectionLabel`   | Uppercase tracking label for sidebar/form sections           |
-| `Icons.jsx`      | 14 SVG icons (nav, actions, theme, account)                  |
+| `Icons.jsx`      | 18+ SVG icons (nav, actions, theme, account)                 |
 
 ---
 
@@ -487,9 +515,20 @@ _Exception: simple file-scoped leaf components like `IOSToggle` (`on` prop) or `
 > Sprint plan: [`UI_REDESIGN_SPRINTS.md`](UI_REDESIGN_SPRINTS.md)
 > Read that file before starting any UI work.
 
-**Sprint 1 (sidebar + layout shell) is complete.** The old header, segmented control, and per-calculator sidebars have been removed. A left navigation sidebar (glass island) with expandable menus is in place. Calculator components are deleted and pending rebuild.
+**Sprint 1 (sidebar + layout shell) is complete.** The old header, segmented control, and per-calculator sidebars have been removed. A left navigation sidebar (glass island) with expandable menus is in place.
 
-**Next: Sprint 2** — Rebuild all 3 calculator components (form + result) in the new main workspace area. Build saved quotes views accessible from sidebar sub-menus. User will provide a main workspace design reference before starting.
+**Sprint 2 is in progress.** Completed so far:
+
+- ✅ Compound form component system (7 primitives in `components/form/`)
+- ✅ `CalculatorHeader` component (layout/)
+- ✅ CSS class extraction (15+ reusable `@layer components` classes)
+- ✅ Gravure container rebuilt (`index.jsx` — 2-col grid, formRef, reset/print)
+- ✅ `GravureForm.jsx` rebuilt with compound form components + `forwardRef` + reset
+- ✅ `formConfig.js` + `MaterialRow.jsx` extracted from GravureForm
+- ✅ `CreatableSelect` dropdown positioning bug fixed (bottom-anchoring when opening above)
+- ✅ Icons expanded (Save, Print, Reset, Delete added)
+
+**Next:** GravureResult rebuild, then Flexo and Job Cost calculator rebuilds, then saved quotes views.
 
 **Git checkpoint**: `ebecfc5` — pre-UI-redesign state with all 3 calculators working. Use `git checkout ebecfc5 -- client/src/components/` to reference old component code.
 
@@ -508,7 +547,7 @@ Design references are stored in `UI References/` folder at project root.
 | 1c        | Job Cost Calculator — form, result, sidebar, modal, inline validation             | ✅ Done (deleted, pending rebuild) |
 | 1d        | Full-width layout expansion — removed max-w-6xl, reduced page padding             | ✅ Done                            |
 | **UI-1**  | **UI Redesign Sprint 1 — Left sidebar + layout shell + grid bg**                  | **✅ Complete**                    |
-| **UI-2**  | **UI Redesign Sprint 2 — Calculator rebuild + saved quotes views**                | **🔲 Next**                        |
+| **UI-2**  | **UI Redesign Sprint 2 — Calculator rebuild + saved quotes views**                | **� In progress**                  |
 | **UI-3+** | **UI Redesign Sprints 3–8 (see `UI_REDESIGN_SPRINTS.md`)**                        | **🔲 Pending**                     |
 | 2         | DB persistence — Express server, MongoDB, save & retrieve quotes                  | 🔲 Pending                         |
 | 3         | Rate Settings — global rates + per-calculator overrides                           | 🔲 Pending                         |

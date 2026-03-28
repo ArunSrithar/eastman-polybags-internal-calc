@@ -10,7 +10,7 @@ export default function SidebarHeader() {
         </p>
         <p className="text-xs text-label-2 mt-1.5">{APP_SUBTITLE}</p>
       </div>
-      <GlassSeparator className="mx-6 mt-4" />
+      <GlassSeparator className="mx-2 mt-4" />
     </div>
   );
 }

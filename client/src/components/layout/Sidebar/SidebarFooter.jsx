@@ -2,19 +2,16 @@ import { useTheme } from "../../../context/ThemeContext";
 import { SunIcon, MoonIcon, UserIcon, LogoutIcon } from "../../ui/Icons";
 import IOSToggle from "../../ui/IOSToggle";
 import GlassSeparator from "../../ui/GlassSeparator";
-import SectionLabel from "../../ui/SectionLabel";
 
 export default function SidebarFooter() {
   const { isDark, toggleTheme } = useTheme();
 
   return (
     <div className="px-3 pb-5">
-      <GlassSeparator className="mx-3 mb-3" />
-
-      <SectionLabel>Settings</SectionLabel>
+      <GlassSeparator className="mb-4" />
 
       {/* Theme toggle row */}
-      <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-label-2">
+      <div className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-label-2">
         {isDark ? (
           <MoonIcon className="size-5 shrink-0" />
         ) : (
@@ -27,17 +24,17 @@ export default function SidebarFooter() {
       </div>
 
       {/* Account row */}
-      <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-label-2 mt-0.5 bg-black/5 dark:bg-white/5">
-        <span className="shrink-0 size-7 flex items-center justify-center rounded-full bg-tint/10 text-tint">
-          <UserIcon className="size-3.5" />
+      <div className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-label mt-0.5 bg-fill-4 dark:bg-fill-4">
+        <span className="shrink-0 size-8 flex items-center justify-center rounded-full bg-tint/12 text-tint">
+          <UserIcon className="size-4" />
         </span>
-        <span className="flex-1 text-left truncate">Admin</span>
+        <span className="flex-1 text-left truncate font-semibold">Admin</span>
         <button
           type="button"
-          className="shrink-0 size-7 flex items-center justify-center rounded-full bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors cursor-pointer"
+          className="btn-icon bg-red-500/12 text-red-500 hover:bg-red-500/24"
           aria-label="Logout"
         >
-          <LogoutIcon className="size-3.5" />
+          <LogoutIcon className="size-4" />
         </button>
       </div>
     </div>

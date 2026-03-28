@@ -1,34 +1,7 @@
 @import "./theme.css";
 
-/* ─── Dark Mode Overrides ─────────────────────────────────────────────────── */
+/* ─── Base ────────────────────────────────────────────────────────────────── */
 @layer base {
-  .dark {
-    --color-background: #000000;
-    --color-background-2: #1c1c1e;
-    --color-background-3: #2c2c2e;
-
-    --color-grouped-background: #000000;
-    --color-grouped-background-2: #1c1c1e;
-    --color-grouped-background-3: #2c2c2e;
-
-    --color-fill: rgba(120, 120, 128, 0.36);
-    --color-fill-2: rgba(120, 120, 128, 0.32);
-    --color-fill-3: rgba(118, 118, 128, 0.24);
-    --color-fill-4: rgba(118, 118, 128, 0.18);
-
-    --color-label: rgb(255, 255, 255);
-    --color-label-2: rgba(235, 235, 245, 0.6);
-    --color-label-3: rgba(235, 235, 245, 0.3);
-    --color-label-4: rgba(235, 235, 245, 0.16);
-    --color-placeholder: rgba(235, 235, 245, 0.3);
-    --color-hyperlink: #0984ff;
-
-    --color-separator: rgba(84, 84, 88, 0.65);
-    --color-separator-opaque: #38383a;
-
-    --color-tint: #0091ff;
-  }
-
   html,
   body {
     min-height: 100dvh;
@@ -38,7 +11,7 @@
 /* ─── Grid Background Pattern ─────────────────────────────────────────────── */
 body {
   background: var(--color-grouped-background);
-  --grid-gap: 5em;
+  --grid-gap: 3em;
   --grid-line: 1px;
   --grid-color: var(--color-separator);
 
@@ -62,11 +35,23 @@ body {
 @layer components {
   /* Cards */
   .card {
-    @apply bg-grouped-background-2 rounded-2xl overflow-hidden;
+    @apply bg-grouped-background-2/12 rounded-2xl backdrop-blur-xs border border-separator/36 dark:border-separator/36 overflow-hidden;
   }
 
   .card-section {
-    @apply px-4 py-3;
+    @apply p-3;
+  }
+
+  /* Glass panels — shared sidebar & calc column material */
+  .glass-panel {
+    @apply bg-grouped-background-2/44 dark:bg-grouped-background-2/44 backdrop-blur-sm
+           border border-separator/36 dark:border-separator/36
+           rounded-2xl shadow-lg shadow-black/5 dark:shadow-black/30;
+  }
+
+  /* Section header (Materials, Printing Charges, Lamination, etc.) */
+  .section-header {
+    @apply text-xs font-semibold text-label-2 uppercase tracking-wide;
   }
 
   /* Form */
@@ -77,6 +62,15 @@ body {
   .input-base {
     @apply w-full bg-fill-3 rounded-xl px-3 py-2.5 text-sm text-label
            outline-none focus:ring-2 focus:ring-tint/50 transition-all;
+  }
+
+  /* Inline row — label left, input/toggle right */
+  .form-row {
+    @apply flex items-center justify-between;
+  }
+
+  .form-row-label {
+    @apply text-sm font-medium text-label;
   }
 
   /* Buttons */
@@ -100,8 +94,54 @@ body {
            text-label-2 active:opacity-70 transition-opacity cursor-pointer;
   }
 
+  .btn-danger {
+    @apply bg-red-500/20 text-red-500 font-medium rounded-xl px-5 py-2.5
+           active:opacity-70 transition-colors cursor-pointer;
+  }
+
+  /* Pill-style action button (Save, PDF in header) */
+  .btn-pill {
+    @apply rounded-full flex items-center gap-2 text-sm;
+  }
+
+  /* Radio pill (lamination none/single/double) */
+  .radio-pill {
+    @apply flex-1 flex items-center justify-center gap-2 px-3 py-2.5
+           rounded-xl text-sm font-medium cursor-pointer transition-colors;
+  }
+
+  .radio-pill-active {
+    @apply bg-tint/10 text-tint ring-1 ring-tint/30;
+  }
+
+  .radio-pill-inactive {
+    @apply bg-fill-3 text-label-2 hover:text-label;
+  }
+
+  /* Navigation */
+  .nav-button {
+    @apply w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
+           text-sm font-medium transition-colors cursor-pointer;
+  }
+
+  .sub-nav-button {
+    @apply w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg
+           text-[13px] transition-colors cursor-pointer;
+  }
+
+  /* Dropdown (CreatableSelect portal) */
+  .dropdown-menu {
+    @apply fixed z-[9999] max-h-[200px] overflow-y-auto rounded-xl
+           bg-grouped-background-2 border border-separator/40
+           shadow-lg shadow-black/10 py-1;
+  }
+
+  .dropdown-option {
+    @apply w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors;
+  }
+
   /* Divider */
   .divider {
-    @apply border-t border-separator;
+    @apply border-t border-separator/44 dark:border-separator/44;
   }
 }
