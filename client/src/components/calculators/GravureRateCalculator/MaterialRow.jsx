@@ -13,16 +13,16 @@ import CreatableSelect from "../../ui/CreatableSelect";
 export default function MaterialRow({ name, material: m, onToggle, onChange }) {
   return (
     <div className="card-section">
-      <div className="flex items-center justify-between mb-3">
+      <div className="item-row-header">
         <span
-          className={`font-medium text-sm ${m.enabled ? "text-label" : "text-label-3"}`}
+          className={`item-row-label ${m.enabled ? "text-label" : "text-label-3"}`}
         >
           {name}
         </span>
         <IOSToggle on={m.enabled} onToggle={onToggle} />
       </div>
       <div
-        className={`grid grid-cols-3 gap-2 transition-opacity duration-200 ${m.enabled ? "opacity-100" : "opacity-30 pointer-events-none"}`}
+        className={`grid grid-cols-3 item-row-inputs ${m.enabled ? "" : "item-row-inputs-off"}`}
       >
         <div>
           <p className="field-label mb-1">Price (₹/kg)</p>

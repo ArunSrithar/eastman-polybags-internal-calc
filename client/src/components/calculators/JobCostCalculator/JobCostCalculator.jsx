@@ -1,19 +1,20 @@
 import CalculatorHeader from "../../layout/CalculatorHeader";
-import { GravureIcon } from "../../ui/Icons";
-import GravureForm from "./GravureForm";
-import GravureResult from "./GravureResult";
+import { JobCostIcon } from "../../ui/Icons";
+import JobCostForm from "./JobCostForm";
+import JobCostResult from "./JobCostResult";
 import { makeInitialForm } from "./formConfig";
-import { calculateGravureRate } from "../../../utils/calculators/gravureRate";
+import { calculateJobCost } from "../../../utils/calculators/jobCost";
 import useCalculator from "../../../hooks/useCalculator";
 
 const buildPayload = (name, form, calc) => ({
   quoteName: name,
-  pouchSize: form.pouchSize,
-  pricePerKg: calc.pricePerKg,
+  costOfJob: calc.costOfJob,
+  totalAmount: calc.totalAmount,
+  dispatchWeight: calc.dispatchWeight,
   form: { ...form, quoteName: name },
 });
 
-export default function GravureRateCalculator() {
+export default function JobCostCalculator() {
   const {
     form,
     result,
@@ -25,20 +26,20 @@ export default function GravureRateCalculator() {
     handleReset,
     handlePrint,
   } = useCalculator({
-    calcKey: "gravure",
-    calculateFn: calculateGravureRate,
+    calcKey: "job-cost",
+    calculateFn: calculateJobCost,
     makeInitialForm,
     buildPayload,
-    toastMessage: "Saved the gravure calculation successfully",
+    toastMessage: "Saved the job cost calculation successfully",
   });
 
   return (
     <div className="calc-shell">
       {toast}
       <CalculatorHeader
-        icon={GravureIcon}
-        title="Gravure Rate Calculator"
-        subtitle="Calculate printing rates for gravure jobs"
+        icon={JobCostIcon}
+        title="Job Cost Calculator"
+        subtitle="Calculate total job cost and cost per kg"
         onSave={handleSave}
         onPrint={handlePrint}
         onReset={handleReset}
@@ -48,7 +49,7 @@ export default function GravureRateCalculator() {
       <div className="calc-grid">
         {/* Left — Form */}
         <div className="calc-column">
-          <GravureForm
+          <JobCostForm
             ref={formRef}
             onProceed={handleFormChange}
             saveError={saveError}
@@ -57,7 +58,7 @@ export default function GravureRateCalculator() {
 
         {/* Right — Breakdown */}
         <div className="calc-column" data-print-area>
-          <GravureResult result={result} form={form} />
+          <JobCostResult result={result} form={form} />
         </div>
       </div>
     </div>

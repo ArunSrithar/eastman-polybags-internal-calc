@@ -1,6 +1,6 @@
 # UI Redesign — Sprint Plan
 
-> **Status**: Sprint 1 complete. Sprint 2 in progress — Gravure and Flexo calculators fully complete (form, result, saved quotes, all features). Job Cost pending.
+> **Status**: Sprint 1 complete. Sprint 2 complete — all 3 calculators fully rebuilt (Gravure, Flexo, Job Cost) with forms, results, saved quotes, shared `useCalculator` hook, shared `SECTION_COLORS`, CSS directive extraction, and full documentation.
 > **Approach**: Clean-slate rebuild. Old `components/` folder was deleted entirely (git checkpoint `ebecfc5` preserves it). New modular architecture built from scratch with proper separation of concerns.
 >
 > **Main workspace design**: Calculator forms use a 2-column grid layout (form left, result right) with a shared `CalculatorHeader`. Form fields built using reusable compound form components (`components/form/`). Saved quotes are separate views (also 2-column: quote list left, breakdown right) accessible via sidebar sub-navigation.
@@ -169,7 +169,7 @@ Sidebar is a frosted glass island (rounded, detached from edges).
 
 ---
 
-### Sprint 2 — Calculator Rebuild + Saved Quotes Views 🔄 IN PROGRESS
+### Sprint 2 — Calculator Rebuild + Saved Quotes Views ✅ COMPLETE
 
 > **Goal**: Rebuild all 3 calculator components in the new layout (form + result in main workspace). Build the "Saved Quotes" views accessible from sidebar sub-menus. Quote operations (view, save, delete) work through the new architecture.
 >
@@ -215,12 +215,13 @@ Sidebar is a frosted glass island (rounded, detached from edges).
 - Added `PrintIcon`, `ResetIcon`, `SaveIcon`, `DeleteIcon`, `ExportIcon`, `SearchIcon`, `PdfIcon`, `PriceSettingsIcon` to `Icons.jsx`
 - Total icon count: 22
 
-**Chunk 2.1 — Rebuild calculator containers** `[Containers]` 🔄 PARTIAL
+**Chunk 2.1 — Rebuild calculator containers** `[Containers]` ✅ COMPLETE
 
 - ✅ Gravure `GravureRateCalculator.jsx` rebuilt: 2-column grid, `CalculatorHeader`, save with validation + toast, `formRef` + `useImperativeHandle` for reset, `window.print()` for print
 - ✅ Flexo `FlexoRateCalculator.jsx` rebuilt: same pattern as Gravure, `CALC_KEY = "flexo-rate-calc"`, saves `totalRate` (not `pricePerKg`)
-- 🔲 Job Cost — not started
-- ✅ Wired into `AppShell.jsx` PERSISTENT_VIEWS (gravure, gravure-quotes, flexo, flexo-quotes)
+- ✅ Job Cost `JobCostCalculator.jsx` rebuilt: same pattern, `CALC_KEY = "job-cost"`, saves `costOfJob`, `totalAmount`, `dispatchWeight`
+- ✅ All 3 containers refactored to use shared `useCalculator` hook (`hooks/useCalculator.js`)
+- ✅ Wired into `AppShell.jsx` PERSISTENT_VIEWS (gravure, gravure-quotes, flexo, flexo-quotes, job-cost, job-cost-quotes)
 
 **Chunk 2.2 — Rebuild Gravure form + result** `[GravureRebuild]` ✅ COMPLETE
 
@@ -250,9 +251,18 @@ Sidebar is a frosted glass island (rounded, detached from edges).
 - ✅ Save validation: empty name, duplicate name (case-insensitive), no calculable result
 - ✅ Toast notification on save
 
-**Chunk 2.4 — Rebuild Job Cost form + result** `[JobCostRebuild]` 🔲
+**Chunk 2.4 — Rebuild Job Cost form + result** `[JobCostRebuild]` ✅ COMPLETE
 
-- Rebuild `JobCostForm.jsx` and `JobCostResult.jsx`
+- ✅ `JobCostForm.jsx` rebuilt using compound form components (6 sections: Customer, Job Details, Specifications, Materials, Charges, Other Charges, Weights)
+- ✅ 10 toggleable line items via `ItemRow.jsx` — 4 materials (qty × price), 4 charges (qty × price), 2 flat charges (amount only)
+- ✅ `formConfig.js` — `makeInitialForm()`, derived groups (`MATERIAL_ITEMS`, `CHARGE_ITEMS`, `FLAT_ITEMS`), re-exports from constants
+- ✅ `ItemRow.jsx` extracted as standalone component — toggleable with `IOSToggle`, supports qty+price or flat amount
+- ✅ `forwardRef` + `useImperativeHandle` for reset
+- ✅ `JobCostResult.jsx` rebuilt — invoice breakdown with 3 color-coded sections (Materials/blue, Charges/green, Other/orange)
+- ✅ Uses shared `SECTION_COLORS` from `constants/invoiceColors.js`
+- ✅ Dynamic `meta` array in `InvoiceHeader` (Job Card, Company, Film, Micron, Colours)
+- ✅ `InvoiceFooter` with costOfJob highlight (`/kg` unit) + annotation showing total ÷ despatch weight
+- ✅ Save validation: empty name, duplicate name, null result
 
 **Chunk 2.5 — Saved Quotes view component** `[QuotesView]` ✅ COMPLETE (Gravure)
 
@@ -268,7 +278,7 @@ Sidebar is a frosted glass island (rounded, detached from edges).
 - ✅ 20 sample quotes seeded across 4 months via `getInitialQuotes()` shared utility
 - ✅ `FlexoSavedQuotes.jsx` — wraps `SavedQuotesView` with Flexo config + `formatFlexoPrice` (₹X not ₹X/kg)
 - ✅ `SavedQuotesView.jsx` — accepts `formatPrice` prop, passes through to `QuoteListItem`
-- 🔲 Job Cost saved quotes — not started
+- ✅ `JobCostSavedQuotes.jsx` — wraps `SavedQuotesView` with Job Cost config + `formatJobCostPrice` (₹X/kg)
 
 **Chunk 2.6 — Invoice primitives system** `[InvoicePrimitives]` ✅ COMPLETE
 
@@ -298,14 +308,16 @@ Sidebar is a frosted glass island (rounded, detached from edges).
 **Chunk 2.9 — Documentation** `[CalcDocs]` ✅ COMPLETE
 
 - ✅ `GravureRateCalculator.md` — full calculator documentation (formula, fields, rates, data flow, file structure, storage, status)
-- ✅ `copilot-instructions.md` updated with current architecture, file tree, patterns
+- ✅ `FlexoRateCalculator.md` — full calculator documentation
+- ✅ `JobCostCalculator.md` — full calculator documentation (formula, line items, 3 color-coded sections, data flow)
+- ✅ `copilot-instructions.md` updated with current architecture, file tree, patterns, shared hook + colors
 
 **Chunk 2.10 — Wire sidebar badge counts** `[Badges]` ✅ COMPLETE
 
 - `useQuoteCounts` hook reads from localStorage + listens to `quotes-updated` CustomEvent
 - Badges display on "Saved Quotes" sub-items, update live on save/delete
 
-**Verification**: Gravure and Flexo calculators fully functional: form input → live result → save quote with validation + toast → view in saved quotes list → search → select to view breakdown → delete with auto-select. Badges update live. Print works. State persists across navigation. Flexo uses lookup-based rates (conversion, printing, gusset) and displays flat total rate (₹X not ₹X/kg). Job Cost pending rebuild.
+**Verification**: All 3 calculators fully functional: form input → live result → save quote with validation + toast → view in saved quotes list → search → select to view breakdown → delete with auto-select. Badges update live. Print works. State persists across navigation. All containers use shared `useCalculator` hook. All result components use shared `SECTION_COLORS`. CSS directives extracted (`.calc-shell`, `.calc-grid`, `.calc-column`, `.item-row-*`). Build: 95 modules, 261.33 KB JS, 0 errors.
 
 ---
 

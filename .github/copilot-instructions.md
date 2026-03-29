@@ -115,7 +115,8 @@ client/src/
 │   └── RateContext.jsx          🔲 Global daily rates + per-calculator overrides
 │
 ├── hooks/
-│   └── useQuoteCounts.js        ✅ Reads quote counts for all calcs from localStorage, listens to storage events
+│   ├── useQuoteCounts.js        ✅ Reads quote counts for all calcs from localStorage, listens to storage events
+│   └── useCalculator.js         ✅ Shared calculator state + handlers hook (form, result, save, toast, reset, print)
 │
 ├── components/
 │   ├── ui/
@@ -163,31 +164,39 @@ client/src/
 │   │
 │   ├── RateSettings/            🔲 All pending
 │   │
-│   └── calculators/             🔄 Rebuild in progress
+│   └── calculators/             ✅ All 3 calculators complete
+│       ├── SavedQuotesView.jsx          ✅ Shared saved quotes 2-col layout (list + breakdown)
 │       ├── GravureRateCalculator/
-│       │   ├── GravureRateCalculator.jsx ✅ Container: 2-col grid, save/print/reset, toast
+│       │   ├── GravureRateCalculator.jsx ✅ Container: useCalculator hook, 2-col grid
 │       │   ├── GravureForm.jsx          ✅ Controlled form, forwardRef + reset(), compound form components
 │       │   ├── GravureResult.jsx        ✅ Invoice-style breakdown card (reused by saved quotes)
 │       │   ├── GravureSavedQuotes.jsx   ✅ Saved quotes list + search + breakdown panel
-│       │   ├── QuoteListItem.jsx        ✅ Presentational quote row (name, price, date)
 │       │   ├── MaterialRow.jsx          ✅ Material toggle + price/micron/qty inputs
 │       │   ├── formConfig.js            ✅ MATERIALS config, localStorage helpers, makeInitialForm()
 │       │   └── GravureRateCalculator.md ✅ Full calculator documentation
 │       ├── FlexoRateCalculator/
-│       │   ├── FlexoRateCalculator.jsx  ✅ Container: 2-col grid, save/print/reset, toast
+│       │   ├── FlexoRateCalculator.jsx  ✅ Container: useCalculator hook, 2-col grid
 │       │   ├── FlexoForm.jsx            ✅ Controlled form, forwardRef + reset(), compound form components
 │       │   ├── FlexoResult.jsx          ✅ Invoice-style breakdown card (reused by saved quotes)
 │       │   ├── FlexoSavedQuotes.jsx     ✅ Saved quotes list (wraps SavedQuotesView + formatFlexoPrice)
 │       │   ├── formConfig.js            ✅ Option arrays, makeInitialForm()
 │       │   └── FlexoRateCalculator.md   ✅ Full calculator documentation
-│       └── JobCostCalculator/       🔲 index, Form, Result, QuoteModal
+│       └── JobCostCalculator/
+│           ├── JobCostCalculator.jsx     ✅ Container: useCalculator hook, 2-col grid
+│           ├── JobCostForm.jsx          ✅ 6-section form, forwardRef + reset(), 10 toggleable items
+│           ├── JobCostResult.jsx         ✅ Invoice breakdown, 3 color-coded sections (Materials/Charges/Other)
+│           ├── JobCostSavedQuotes.jsx    ✅ Saved quotes (wraps SavedQuotesView + formatJobCostPrice)
+│           ├── ItemRow.jsx              ✅ Toggleable line item row (qty + price or flat amount)
+│           ├── formConfig.js            ✅ makeInitialForm(), item group exports, re-exports
+│           └── JobCostCalculator.md     ✅ Full calculator documentation
 │
 ├── constants/
 │   ├── navigation.js        ✅ NAV_ITEMS array, QUOTE_STORAGE_KEYS, VIEW_META
 │   ├── layout.js            ✅ SIDEBAR_WIDTH, SIDEBAR_GAP, MAIN_MARGIN_LEFT, APP_NAME, APP_SUBTITLE
 │   ├── gravureRates.js      ✅ Printing/lam/slitting rates, pouch lookup, sample quotes
 │   ├── flexoRateCalc.js     ✅ Conversion/printing/gusset rate lookups, toggle rates, cutting/wastage, sample quotes
-│   └── jobCost.js           ✅ Line item definitions, default prices, dropdown seeds, sample quotes
+│   ├── jobCost.js           ✅ Line item definitions, default prices, dropdown seeds, sample quotes
+│   └── invoiceColors.js     ✅ Shared SECTION_COLORS for invoice section labels (blue, green, purple, orange)
 │
 ├── utils/
 │   ├── format.js            ✅ fmt(), formatDate(), groupByMonth()
@@ -283,6 +292,13 @@ Prefer `@layer components` classes from `index.css` over repeating utility strin
 | `.quote-list-item`        | saved quote list button base                          |
 | `.quote-list-item-active` | selected quote item state                             |
 | `.month-label`            | month grouping label in quote lists                   |
+| `.calc-shell`             | `h-full flex flex-col` calculator page wrapper        |
+| `.calc-grid`              | `flex-1 grid grid-cols-2 gap-3 min-h-0` 2-col layout  |
+| `.calc-column`            | overflow scroll column with glass-panel styling       |
+| `.item-row-header`        | flex row for item label + toggle                      |
+| `.item-row-label`         | item row label text styling                           |
+| `.item-row-inputs`        | item row input grid container                         |
+| `.item-row-inputs-off`    | disabled state for item row inputs                    |
 
 ```jsx
 // ✅ Preferred
@@ -349,67 +365,67 @@ Rate constants go in `constants/{camelName}.js`.
 
 ## Calculator Container Pattern
 
-Follow the pattern established in `GravureRateCalculator.jsx`:
+All 3 calculator containers use the shared `useCalculator` hook from `hooks/useCalculator.js`:
 
 ```jsx
-import {
-  getInitialQuotes,
-  saveQuote,
-  getQuotes,
-} from "../../../utils/quoteStorage";
+import useCalculator from "../../../hooks/useCalculator";
+import { calculateMyRate } from "../../../utils/calculators/myRate";
+import { makeInitialForm } from "./formConfig";
 
-const CALC_KEY = "my-calc";
+const buildPayload = (name, form, calc) => ({
+  quoteName: name,
+  pricePerKg: calc.pricePerKg,
+  form: { ...form, quoteName: name },
+});
 
 export default function MyCalculator() {
-  const [form, setForm] = useState(() => makeInitialForm());
-  const [result, setResult] = useState(() =>
-    calculateMyRate(makeInitialForm()),
+  const {
+    form,
+    result,
+    saveError,
+    formRef,
+    toast,
+    handleFormChange,
+    handleSave,
+    handleReset,
+    handlePrint,
+  } = useCalculator({
+    calcKey: "my-calc",
+    calculateFn: calculateMyRate,
+    makeInitialForm,
+    buildPayload,
+    toastMessage: "Saved successfully",
+  });
+
+  return (
+    <div className="calc-shell">
+      {toast}
+      <CalculatorHeader
+        icon={MyIcon}
+        title="My Calculator"
+        subtitle="Description"
+        onSave={handleSave}
+        onPrint={handlePrint}
+        onReset={handleReset}
+      />
+      <div className="calc-grid">
+        <div className="calc-column">
+          <MyForm
+            ref={formRef}
+            onProceed={handleFormChange}
+            saveError={saveError}
+          />
+        </div>
+        <div className="calc-column" data-print-area>
+          <MyResult result={result} form={form} />
+        </div>
+      </div>
+    </div>
   );
-  const [saveError, setSaveError] = useState(null);
-  const formRef = useRef(null);
-  const [toast, showToast] = useToast();
-
-  function handleFormChange(formData) {
-    setForm(formData);
-    setResult(calculateMyRate(formData));
-    setSaveError(null);
-  }
-
-  function handleSave() {
-    const name = form.quoteName.trim();
-    if (!name) {
-      setSaveError("Enter a customer name before saving.");
-      return;
-    }
-    const quotes = getQuotes(CALC_KEY);
-    const dup = quotes.some(
-      (q) => q.quoteName.trim().toLowerCase() === name.toLowerCase(),
-    );
-    if (dup) {
-      setSaveError(
-        `A quote named "${name}" already exists. Use a different name.`,
-      );
-      return;
-    }
-    const calc = calculateMyRate(form);
-    if (!calc) {
-      setSaveError("Fill in required fields before saving.");
-      return;
-    }
-    setSaveError(null);
-    saveQuote(CALC_KEY, {
-      quoteName: name,
-      pricePerKg: calc.pricePerKg,
-      form: { ...form, quoteName: name },
-    });
-    window.dispatchEvent(
-      new CustomEvent("quotes-updated", { detail: CALC_KEY }),
-    );
-    showToast(name, "Saved successfully");
-    formRef.current?.reset();
-  }
 }
 ```
+
+The hook encapsulates: form state, result calculation, save validation (empty name → duplicate → null result), quote storage, `CustomEvent("quotes-updated")`, toast, form reset via `formRef`, and print.
 
 ---
 
@@ -564,38 +580,29 @@ _Exception: simple file-scoped leaf components like `IOSToggle` (`on` prop) or `
 
 **Sprint 1 (sidebar + layout shell) is complete.**
 
-**Sprint 2 — Gravure + Flexo calculators fully complete.** All features built:
+**Sprint 2 (all 3 calculator rebuilds) is complete.** All features built:
 
 - ✅ Compound form component system (7 primitives in `components/form/`)
 - ✅ `CalculatorHeader` component with Save/Print/Export/Reset/Delete buttons
-- ✅ CSS class extraction (20+ reusable `@layer components` classes)
-- ✅ `GravureRateCalculator.jsx` — 2-col grid, save with validation + toast, print, reset
-- ✅ `GravureForm.jsx` — compound form components + `forwardRef` + reset
-- ✅ `GravureResult.jsx` — invoice-style breakdown card with status/date props
-- ✅ `GravureSavedQuotes.jsx` — saved quotes list + search + breakdown panel
-- ✅ `QuoteListItem.jsx` — presentational quote row extracted as reusable component (configurable `formatPrice`)
-- ✅ `formConfig.js` + `MaterialRow.jsx` extracted from GravureForm
+- ✅ CSS class extraction (28+ reusable `@layer components` classes including `.calc-shell`, `.calc-grid`, `.calc-column`, `.item-row-*`)
+- ✅ Shared `useCalculator` hook — all 3 containers refactored to use it
+- ✅ Shared `SECTION_COLORS` in `constants/invoiceColors.js` — all 3 result components use it
+- ✅ **Gravure**: form, result (4 sections), saved quotes, material row, formConfig, documentation
+- ✅ **Flexo**: form (6 sections), result (4 sections), saved quotes, formConfig, documentation
+- ✅ **Job Cost**: form (6 sections, 10 toggleable items), result (3 color-coded sections), saved quotes, ItemRow, formConfig, documentation
 - ✅ `Toast.jsx` — macOS-style self-dismissing notification + `useToast()` hook
-- ✅ Icons expanded (Save, Print, Reset, Delete, Export, Search, Pdf, PriceSettings)
+- ✅ Icons expanded (22 total)
 - ✅ `CreatableSelect` dropdown positioning bug fixed
 - ✅ Persistent view mounting in AppShell (preserves state across navigation)
 - ✅ Cross-component sync via `CustomEvent("quotes-updated")`
 - ✅ Badge live update via `useQuoteCounts` hook
 - ✅ Print styles with `data-print-area` + `@media print`
 - ✅ Shared utilities: `getInitialQuotes()`, `groupByMonth()` in utils
-- ✅ Full calculator documentation in `GravureRateCalculator.md`
-- ✅ `FlexoRateCalculator.jsx` — 2-col grid, save with validation + toast, print, reset
-- ✅ `FlexoForm.jsx` — compound form components + `forwardRef` + reset (6 sections)
-- ✅ `FlexoResult.jsx` — invoice breakdown (Material & Conversion, Printing, Additional Charges, Adjustments)
-- ✅ `FlexoSavedQuotes.jsx` — wraps `SavedQuotesView` with `formatFlexoPrice` (₹X not ₹X/kg)
-- ✅ `formConfig.js` — option arrays derived from constant keys + `makeInitialForm()`
-- ✅ Flexo constants updated: `CONVERSION_RATES`, `PRINTING_RATES`, `GUSSET_RATES` lookups (placeholder values)
-- ✅ `calculateFlexoRate()` updated: lookup-based conversion/printing/gusset rates
-- ✅ `WastageRow.jsx` — shared invoice primitive extracted from both Gravure + Flexo result components
-- ✅ `SavedQuotesView.jsx` + `QuoteListItem.jsx` — configurable `formatPrice` prop for Flexo compatibility
-- ✅ Full calculator documentation in `FlexoRateCalculator.md`
+- ✅ `WastageRow.jsx` — shared invoice primitive
+- ✅ `SavedQuotesView.jsx` + `QuoteListItem.jsx` — configurable `formatPrice` prop
+- ✅ Full calculator documentation for all 3 calculators
 
-**Next:** Job Cost Calculator rebuild.
+**Next:** Sprint 3 — Price History Feature, or Sprint 4 — Dashboard.
 
 **Git checkpoint**: `ebecfc5` — pre-UI-redesign state with all 3 calculators working. Use `git checkout ebecfc5 -- client/src/components/` to reference old component code.
 
@@ -605,17 +612,17 @@ Design references are stored in `UI References/` folder at project root.
 
 ## Development Phases
 
-| Phase     | Scope                                                                             | Status                             |
-| --------- | --------------------------------------------------------------------------------- | ---------------------------------- |
-| 1a        | App shell, header island, segmented control, dark mode, ThemeContext              | ✅ Done (removed in UI redesign)   |
-| 1b        | UI primitives (IOSToggle, CheckBox, CreatableCombobox, Icons), quote storage util | ✅ Done                            |
-| 1c        | Gravure Rate Calculator — form, result, saved quotes, validation                  | ✅ Done (rebuilt in UI redesign)   |
-| 1c        | Flexo Rate Calculator — form, result, sidebar, modal, validation                  | ✅ Done (rebuilt in UI redesign)   |
-| 1c        | Job Cost Calculator — form, result, sidebar, modal, inline validation             | ✅ Done (deleted, pending rebuild) |
-| 1d        | Full-width layout expansion — removed max-w-6xl, reduced page padding             | ✅ Done                            |
-| **UI-1**  | **UI Redesign Sprint 1 — Left sidebar + layout shell + grid bg**                  | **✅ Complete**                    |
-| **UI-2**  | **UI Redesign Sprint 2 — Calculator rebuild + saved quotes views**                | **� In progress**                  |
-| **UI-3+** | **UI Redesign Sprints 3–8 (see `UI_REDESIGN_SPRINTS.md`)**                        | **🔲 Pending**                     |
-| 2         | DB persistence — Express server, MongoDB, save & retrieve quotes                  | 🔲 Pending                         |
-| 3         | Rate Settings — global rates + per-calculator overrides                           | 🔲 Pending                         |
-| 4         | Authentication (nice-to-have)                                                     | 🔲 Pending                         |
+| Phase     | Scope                                                                             | Status                           |
+| --------- | --------------------------------------------------------------------------------- | -------------------------------- |
+| 1a        | App shell, header island, segmented control, dark mode, ThemeContext              | ✅ Done (removed in UI redesign) |
+| 1b        | UI primitives (IOSToggle, CheckBox, CreatableCombobox, Icons), quote storage util | ✅ Done                          |
+| 1c        | Gravure Rate Calculator — form, result, saved quotes, validation                  | ✅ Done (rebuilt in UI redesign) |
+| 1c        | Flexo Rate Calculator — form, result, sidebar, modal, validation                  | ✅ Done (rebuilt in UI redesign) |
+| 1c        | Job Cost Calculator — form, result, sidebar, modal, inline validation             | ✅ Done (rebuilt in UI redesign) |
+| 1d        | Full-width layout expansion — removed max-w-6xl, reduced page padding             | ✅ Done                          |
+| **UI-1**  | **UI Redesign Sprint 1 — Left sidebar + layout shell + grid bg**                  | **✅ Complete**                  |
+| **UI-2**  | **UI Redesign Sprint 2 — Calculator rebuild + saved quotes views**                | **✅ Complete**                  |
+| **UI-3+** | **UI Redesign Sprints 3–8 (see `UI_REDESIGN_SPRINTS.md`)**                        | **🔲 Pending**                   |
+| 2         | DB persistence — Express server, MongoDB, save & retrieve quotes                  | 🔲 Pending                       |
+| 3         | Rate Settings — global rates + per-calculator overrides                           | 🔲 Pending                       |
+| 4         | Authentication (nice-to-have)                                                     | 🔲 Pending                       |

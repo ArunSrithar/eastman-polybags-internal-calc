@@ -1,75 +1,39 @@
-import { useState, useRef } from "react";
 import CalculatorHeader from "../../layout/CalculatorHeader";
 import { FlexoIcon } from "../../ui/Icons";
 import FlexoForm from "./FlexoForm";
 import FlexoResult from "./FlexoResult";
 import { makeInitialForm } from "./formConfig";
 import { calculateFlexoRate } from "../../../utils/calculators/flexoRateCalc";
-import { saveQuote, getQuotes } from "../../../utils/quoteStorage";
-import { useToast } from "../../ui/Toast";
+import useCalculator from "../../../hooks/useCalculator";
 
-const CALC_KEY = "flexo-rate-calc";
+const buildPayload = (name, form, calc) => ({
+  quoteName: name,
+  totalRate: calc.totalRate,
+  coverSize: form.coverSize,
+  form: { ...form, quoteName: name },
+});
 
 export default function FlexoRateCalculator() {
-  const [form, setForm] = useState(() => makeInitialForm());
-  const [result, setResult] = useState(() =>
-    calculateFlexoRate(makeInitialForm()),
-  );
-  const [saveError, setSaveError] = useState(null);
-  const formRef = useRef(null);
-  const [toast, showToast] = useToast();
-
-  function handleFormChange(formData) {
-    setForm(formData);
-    setResult(calculateFlexoRate(formData));
-    setSaveError(null);
-  }
-
-  function handleSave() {
-    const name = form.quoteName.trim();
-    if (!name) {
-      setSaveError("Enter a customer name before saving.");
-      return;
-    }
-    const quotes = getQuotes(CALC_KEY);
-    const dup = quotes.some(
-      (q) => q.quoteName.trim().toLowerCase() === name.toLowerCase(),
-    );
-    if (dup) {
-      setSaveError(
-        `A quote named "${name}" already exists. Use a different name.`,
-      );
-      return;
-    }
-    const calc = calculateFlexoRate(form);
-    if (!calc) {
-      setSaveError("Fill in required fields before saving.");
-      return;
-    }
-    setSaveError(null);
-    saveQuote(CALC_KEY, {
-      quoteName: name,
-      totalRate: calc.totalRate,
-      coverSize: form.coverSize,
-      form: { ...form, quoteName: name },
-    });
-    window.dispatchEvent(
-      new CustomEvent("quotes-updated", { detail: CALC_KEY }),
-    );
-    showToast(name, "Saved the flexo calculation successfully");
-    formRef.current?.reset();
-  }
-
-  function handleReset() {
-    formRef.current?.reset();
-  }
-
-  function handlePrint() {
-    window.print();
-  }
+  const {
+    form,
+    result,
+    saveError,
+    formRef,
+    toast,
+    handleFormChange,
+    handleSave,
+    handleReset,
+    handlePrint,
+  } = useCalculator({
+    calcKey: "flexo-rate-calc",
+    calculateFn: calculateFlexoRate,
+    makeInitialForm,
+    buildPayload,
+    toastMessage: "Saved the flexo calculation successfully",
+  });
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="calc-shell">
       {toast}
       <CalculatorHeader
         icon={FlexoIcon}
@@ -81,9 +45,9 @@ export default function FlexoRateCalculator() {
       />
 
       {/* 2-column layout: form | breakdown */}
-      <div className="flex-1 grid grid-cols-2 gap-3 min-h-0">
+      <div className="calc-grid">
         {/* Left — Form */}
-        <div className="overflow-y-auto p-3 glass-panel">
+        <div className="calc-column">
           <FlexoForm
             ref={formRef}
             onProceed={handleFormChange}
@@ -92,7 +56,7 @@ export default function FlexoRateCalculator() {
         </div>
 
         {/* Right — Breakdown */}
-        <div className="overflow-y-auto p-3 glass-panel" data-print-area>
+        <div className="calc-column" data-print-area>
           <FlexoResult result={result} form={form} />
         </div>
       </div>

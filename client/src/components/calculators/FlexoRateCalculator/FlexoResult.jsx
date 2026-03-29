@@ -8,15 +8,7 @@ import ItemRow from "../../invoice/ItemRow";
 import SectionLabel from "../../invoice/SectionLabel";
 import SectionSubtotal from "../../invoice/SectionSubtotal";
 import WastageRow from "../../invoice/WastageRow";
-
-/* ─── Section colors ─────────────────────────────────────────────────────── */
-
-const COLOR = {
-  material: "var(--color-tint)",
-  printing: "#34c759",
-  charges: "#af52de",
-  adjustments: "#ff9f0a",
-};
+import { SECTION_COLORS } from "../../../constants/invoiceColors";
 
 /* ─── Main component ─────────────────────────────────────────────────────── */
 
@@ -51,7 +43,8 @@ export default function FlexoResult({ result, form, status, date }) {
 
   const materialSubtotal = materialPrice + conversionRate;
   const hasPrinting = printingRate > 0;
-  const additionalTotal = gussetRate + punchingRate + opackRate + cuttingSizeRate;
+  const additionalTotal =
+    gussetRate + punchingRate + opackRate + cuttingSizeRate;
   const hasAdditional = additionalTotal > 0;
   const hasWastage = wastagePercent > 0;
 
@@ -71,7 +64,10 @@ export default function FlexoResult({ result, form, status, date }) {
       <TableHeader />
 
       {/* ── Material & Conversion ──────────────────────────────────────── */}
-      <SectionLabel color={COLOR.material} label="Material &amp; Conversion" />
+      <SectionLabel
+        color={SECTION_COLORS.blue}
+        label="Material &amp; Conversion"
+      />
       <ItemRow label="Material Price" amount={materialPrice} />
       {conversionRate > 0 ? (
         <ItemRow
@@ -92,7 +88,7 @@ export default function FlexoResult({ result, form, status, date }) {
       {/* ── Printing ───────────────────────────────────────────────────── */}
       {hasPrinting ? (
         <>
-          <SectionLabel color={COLOR.printing} label="Printing" />
+          <SectionLabel color={SECTION_COLORS.green} label="Printing" />
           <ItemRow
             label={
               <>
@@ -112,7 +108,10 @@ export default function FlexoResult({ result, form, status, date }) {
       {/* ── Additional Charges ─────────────────────────────────────────── */}
       {hasAdditional ? (
         <>
-          <SectionLabel color={COLOR.charges} label="Additional Charges" />
+          <SectionLabel
+            color={SECTION_COLORS.purple}
+            label="Additional Charges"
+          />
           {gussetRate > 0 ? (
             <ItemRow
               label={
@@ -127,9 +126,7 @@ export default function FlexoResult({ result, form, status, date }) {
           {punchingRate > 0 ? (
             <ItemRow label="Punching" amount={punchingRate} />
           ) : null}
-          {opackRate > 0 ? (
-            <ItemRow label="Opack" amount={opackRate} />
-          ) : null}
+          {opackRate > 0 ? <ItemRow label="Opack" amount={opackRate} /> : null}
           {cuttingSizeRate > 0 ? (
             <ItemRow
               label={
@@ -154,7 +151,7 @@ export default function FlexoResult({ result, form, status, date }) {
       {/* ── Adjustments ────────────────────────────────────────────────── */}
       {hasWastage ? (
         <>
-          <SectionLabel color={COLOR.adjustments} label="Adjustments" />
+          <SectionLabel color={SECTION_COLORS.orange} label="Adjustments" />
           <WastageRow
             percent={wastagePercent}
             base={subtotal}

@@ -84,7 +84,7 @@ export default function SavedQuotesView({
     : null;
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="calc-shell">
       {toast}
       <CalculatorHeader
         icon={icon}
@@ -96,7 +96,7 @@ export default function SavedQuotesView({
       />
 
       {/* 2-column layout: quote list | breakdown */}
-      <div className="flex-1 grid grid-cols-2 gap-3 min-h-0">
+      <div className="calc-grid">
         {/* Left — Quote list */}
         <div className="flex flex-col glass-panel min-h-0">
           <div className="shrink-0 p-3 pb-0">
@@ -138,7 +138,7 @@ export default function SavedQuotesView({
         </div>
 
         {/* Right — Breakdown */}
-        <div className="overflow-y-auto p-3 glass-panel" data-print-area>
+        <div className="calc-column" data-print-area>
           <ResultComponent
             result={selectedResult}
             form={selectedQuote?.form ?? null}

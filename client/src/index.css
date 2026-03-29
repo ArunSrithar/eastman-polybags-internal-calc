@@ -183,6 +183,39 @@ body {
   .month-label {
     @apply text-[11px] font-semibold uppercase tracking-wider text-label-3;
   }
+
+  /* Calculator layout */
+  .calc-shell {
+    @apply h-full flex flex-col;
+  }
+
+  .calc-grid {
+    @apply flex-1 grid grid-cols-2 gap-3 min-h-0;
+  }
+
+  .calc-column {
+    @apply overflow-y-auto p-3
+           bg-grouped-background-2/44 dark:bg-grouped-background-2/44 backdrop-blur-sm
+           border border-separator/36 dark:border-separator/36
+           rounded-2xl shadow-lg shadow-black/5 dark:shadow-black/30;
+  }
+
+  /* Item row (toggleable material / charge line) */
+  .item-row-header {
+    @apply flex items-center justify-between mb-3;
+  }
+
+  .item-row-label {
+    @apply font-medium text-sm;
+  }
+
+  .item-row-inputs {
+    @apply gap-2 transition-opacity duration-200;
+  }
+
+  .item-row-inputs-off {
+    @apply opacity-30 pointer-events-none;
+  }
 }
 
 /* ─── Print Styles ────────────────────────────────────────────────────────── */

@@ -6,6 +6,8 @@ import GravureRateCalculator from "../calculators/GravureRateCalculator/GravureR
 import GravureSavedQuotes from "../calculators/GravureRateCalculator/GravureSavedQuotes";
 import FlexoRateCalculator from "../calculators/FlexoRateCalculator/FlexoRateCalculator";
 import FlexoSavedQuotes from "../calculators/FlexoRateCalculator/FlexoSavedQuotes";
+import JobCostCalculator from "../calculators/JobCostCalculator/JobCostCalculator";
+import JobCostSavedQuotes from "../calculators/JobCostCalculator/JobCostSavedQuotes";
 
 // Persistent views — stay mounted to preserve state across navigation.
 const PERSISTENT_VIEWS = {
@@ -13,21 +15,14 @@ const PERSISTENT_VIEWS = {
   "gravure-quotes": GravureSavedQuotes,
   flexo: FlexoRateCalculator,
   "flexo-quotes": FlexoSavedQuotes,
-};
-
-// Views that render fresh each time (placeholders, etc.)
-const CALCULATOR_VIEWS = {
-  "job-cost": null,
+  "job-cost": JobCostCalculator,
+  "job-cost-quotes": JobCostSavedQuotes,
 };
 
 export default function AppShell() {
   const [activeView, navigate] = useRouting();
 
   function renderFallback() {
-    const CalcComponent = CALCULATOR_VIEWS[activeView];
-    if (CalcComponent) {
-      return <CalcComponent />;
-    }
     return <PlaceholderView viewId={activeView} />;
   }
 

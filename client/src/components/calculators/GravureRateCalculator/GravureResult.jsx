@@ -14,15 +14,7 @@ import ItemRow from "../../invoice/ItemRow";
 import SectionLabel from "../../invoice/SectionLabel";
 import SectionSubtotal from "../../invoice/SectionSubtotal";
 import WastageRow from "../../invoice/WastageRow";
-
-/* ─── Section colors ─────────────────────────────────────────────────────── */
-
-const COLOR = {
-  materials: "var(--color-tint)",
-  printing: "#34c759",
-  charges: "#af52de",
-  adjustments: "#ff9f0a",
-};
+import { SECTION_COLORS } from "../../../constants/invoiceColors";
 
 /* ─── Main component ─────────────────────────────────────────────────────── */
 
@@ -76,7 +68,7 @@ export default function GravureResult({ result, form, status, date }) {
       <TableHeader />
 
       {/* ── Materials ──────────────────────────────────────────────────── */}
-      <SectionLabel color={COLOR.materials} label="Materials" />
+      <SectionLabel color={SECTION_COLORS.blue} label="Materials" />
       {materialLines.map((line) => {
         const micron = form.materials[line.key]?.micron;
         const name = MATERIAL_NAMES[line.key] ?? line.key;
@@ -107,7 +99,7 @@ export default function GravureResult({ result, form, status, date }) {
       {/* ── Printing ───────────────────────────────────────────────────── */}
       {hasPrinting ? (
         <>
-          <SectionLabel color={COLOR.printing} label="Printing" />
+          <SectionLabel color={SECTION_COLORS.green} label="Printing" />
           {normalColors > 0 ? (
             <ItemRow
               label="Normal Colors"
@@ -139,7 +131,7 @@ export default function GravureResult({ result, form, status, date }) {
       {/* ── Other Charges ──────────────────────────────────────────────── */}
       {hasOtherCharges ? (
         <>
-          <SectionLabel color={COLOR.charges} label="Other Charges" />
+          <SectionLabel color={SECTION_COLORS.purple} label="Other Charges" />
           {laminationRatePerKg > 0 ? (
             <ItemRow
               label={`${laminationType} Lamination`}
@@ -165,7 +157,7 @@ export default function GravureResult({ result, form, status, date }) {
       {/* ── Adjustments ────────────────────────────────────────────────── */}
       {hasWastage ? (
         <>
-          <SectionLabel color={COLOR.adjustments} label="Adjustments" />
+          <SectionLabel color={SECTION_COLORS.orange} label="Adjustments" />
           <WastageRow
             percent={wastagePercent}
             base={totalCost}

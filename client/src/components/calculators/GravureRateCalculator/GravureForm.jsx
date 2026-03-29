@@ -23,17 +23,7 @@ export default forwardRef(function GravureForm(
   const [form, setForm] = useState(() => makeInitialForm());
 
   function resetForm() {
-    const next = {
-      ...form,
-      quoteName: "",
-      pouchSize: "",
-      normalColors: "0",
-      metallicColors: "0",
-      mattFinish: false,
-      lamination: "none",
-      slitting: false,
-      wastage: "0",
-    };
+    const next = makeInitialForm();
     setForm(next);
     onProceed?.(next);
   }
