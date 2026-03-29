@@ -13,6 +13,7 @@ import TableHeader from "../../invoice/TableHeader";
 import ItemRow from "../../invoice/ItemRow";
 import SectionLabel from "../../invoice/SectionLabel";
 import SectionSubtotal from "../../invoice/SectionSubtotal";
+import WastageRow from "../../invoice/WastageRow";
 
 /* ─── Section colors ─────────────────────────────────────────────────────── */
 
@@ -165,17 +166,11 @@ export default function GravureResult({ result, form, status, date }) {
       {hasWastage ? (
         <>
           <SectionLabel color={COLOR.adjustments} label="Adjustments" />
-          <div className="flex items-baseline justify-between px-6 py-1.5">
-            <span className="text-sm text-label">
-              Wastage ({wastagePercent}%)
-              <span className="text-xs text-label-3 ml-1.5">
-                on ₹{fmt(totalCost)}
-              </span>
-            </span>
-            <span className="text-sm font-medium text-label tabular-nums">
-              ₹{fmt(wastageAmount)}
-            </span>
-          </div>
+          <WastageRow
+            percent={wastagePercent}
+            base={totalCost}
+            amount={wastageAmount}
+          />
         </>
       ) : null}
 

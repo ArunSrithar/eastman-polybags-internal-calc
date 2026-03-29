@@ -4,16 +4,19 @@ import PlaceholderView from "./PlaceholderView";
 import { MAIN_MARGIN_LEFT } from "../../constants/layout";
 import GravureRateCalculator from "../calculators/GravureRateCalculator/GravureRateCalculator";
 import GravureSavedQuotes from "../calculators/GravureRateCalculator/GravureSavedQuotes";
+import FlexoRateCalculator from "../calculators/FlexoRateCalculator/FlexoRateCalculator";
+import FlexoSavedQuotes from "../calculators/FlexoRateCalculator/FlexoSavedQuotes";
 
 // Persistent views — stay mounted to preserve state across navigation.
 const PERSISTENT_VIEWS = {
   gravure: GravureRateCalculator,
   "gravure-quotes": GravureSavedQuotes,
+  flexo: FlexoRateCalculator,
+  "flexo-quotes": FlexoSavedQuotes,
 };
 
 // Views that render fresh each time (placeholders, etc.)
 const CALCULATOR_VIEWS = {
-  flexo: null,
   "job-cost": null,
 };
 

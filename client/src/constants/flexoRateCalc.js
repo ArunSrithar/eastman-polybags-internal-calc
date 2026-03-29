@@ -5,18 +5,61 @@
  */
 
 // ── Fixed toggle rates ───────────────────────────────────────────────────
-export const GUSSET_RATE = 43.83;
 export const PUNCHING_RATE = 72.31;
 export const OPACK_RATE = 87.3;
 
-// ── Roll size → rate lookup (₹) ─────────────────────────────────────────
-export const ROLL_SIZE_RATES = {
-  "4x3": 12.5,
-  "6x4": 18.0,
-  "8x6": 24.5,
-  "10x8": 32.0,
-  "12x10": 40.0,
-  "14x12": 48.5,
+// ── Conversion material types ────────────────────────────────────────────
+export const CONVERSION_MATERIAL_TYPES = ["PP", "HM", "LD"];
+
+// ── Printing color options ───────────────────────────────────────────────
+export const PRINTING_COLORS_OPTIONS = ["1", "2", "3", "4"];
+
+// ── Conversion rate lookup: materialType × rollSize → ₹ (placeholder values) ─
+export const CONVERSION_RATES = {
+  PP: {
+    "4x3": 10.0,
+    "6x4": 14.0,
+    "8x6": 18.0,
+    "10x8": 24.0,
+    "12x10": 30.0,
+    "14x12": 36.0,
+  },
+  HM: {
+    "4x3": 12.0,
+    "6x4": 16.0,
+    "8x6": 21.0,
+    "10x8": 28.0,
+    "12x10": 34.0,
+    "14x12": 42.0,
+  },
+  LD: {
+    "4x3": 14.0,
+    "6x4": 19.0,
+    "8x6": 25.0,
+    "10x8": 32.0,
+    "12x10": 40.0,
+    "14x12": 48.0,
+  },
+};
+
+// ── Printing rate lookup: coverSize × numColors → ₹ (placeholder values) ─
+export const PRINTING_RATES = {
+  "8x10": { 1: 8.0, 2: 14.0, 3: 20.0, 4: 26.0 },
+  "10x12": { 1: 10.0, 2: 18.0, 3: 25.0, 4: 32.0 },
+  "12x14": { 1: 12.0, 2: 22.0, 3: 30.0, 4: 38.0 },
+  "14x16": { 1: 14.0, 2: 26.0, 3: 35.0, 4: 44.0 },
+  "16x18": { 1: 16.0, 2: 30.0, 3: 40.0, 4: 50.0 },
+  "18x20": { 1: 18.0, 2: 34.0, 3: 45.0, 4: 56.0 },
+};
+
+// ── Gusset rate lookup: coverSize → ₹ (placeholder values) ──────────────
+export const GUSSET_RATES = {
+  "8x10": 30.0,
+  "10x12": 36.0,
+  "12x14": 42.0,
+  "14x16": 48.0,
+  "16x18": 54.0,
+  "18x20": 60.0,
 };
 
 // ── Cover size preset options (informational only — no rates) ────────────
@@ -54,13 +97,14 @@ export const SAMPLE_QUOTES = [
     savedBy: "Arun",
     quoteName: "Mehta Stores — Gusset Pack",
     coverSize: "10x12",
-    totalRate: 385.6,
+    totalRate: 329.91,
     form: {
       quoteName: "Mehta Stores — Gusset Pack",
       materialPrice: "150",
+      conversionMaterial: "PP",
       coverSize: "10x12",
       rollSize: "8x6",
-      printingRate: "25",
+      printingColors: "2",
       gusset: true,
       punching: false,
       opack: true,
@@ -74,13 +118,14 @@ export const SAMPLE_QUOTES = [
     savedBy: "Arun",
     quoteName: "Sharma Foods — Plain",
     coverSize: "12x14",
-    totalRate: 218.0,
+    totalRate: 220.32,
     form: {
       quoteName: "Sharma Foods — Plain",
       materialPrice: "180",
+      conversionMaterial: "HM",
       coverSize: "12x14",
       rollSize: "6x4",
-      printingRate: "15",
+      printingColors: "1",
       gusset: false,
       punching: false,
       opack: false,
@@ -94,13 +139,14 @@ export const SAMPLE_QUOTES = [
     savedBy: "Arun",
     quoteName: "Royal Packaging — Full Options",
     coverSize: "14x16",
-    totalRate: 512.45,
+    totalRate: 513.04,
     form: {
       quoteName: "Royal Packaging — Full Options",
       materialPrice: "200",
+      conversionMaterial: "LD",
       coverSize: "14x16",
       rollSize: "10x8",
-      printingRate: "30",
+      printingColors: "3",
       gusset: true,
       punching: true,
       opack: true,
@@ -114,13 +160,14 @@ export const SAMPLE_QUOTES = [
     savedBy: "Arun",
     quoteName: "Patel Brothers — Small",
     coverSize: "8x10",
-    totalRate: 142.8,
+    totalRate: 198.78,
     form: {
       quoteName: "Patel Brothers — Small",
       materialPrice: "100",
+      conversionMaterial: "PP",
       coverSize: "8x10",
       rollSize: "4x3",
-      printingRate: "10",
+      printingColors: "1",
       gusset: false,
       punching: true,
       opack: false,
@@ -134,13 +181,14 @@ export const SAMPLE_QUOTES = [
     savedBy: "Arun",
     quoteName: "Krishna Traders — Punched",
     coverSize: "16x18",
-    totalRate: 345.25,
+    totalRate: 362.24,
     form: {
       quoteName: "Krishna Traders — Punched",
       materialPrice: "175",
+      conversionMaterial: "HM",
       coverSize: "16x18",
       rollSize: "12x10",
-      printingRate: "20",
+      printingColors: "4",
       gusset: false,
       punching: true,
       opack: false,
@@ -154,13 +202,14 @@ export const SAMPLE_QUOTES = [
     savedBy: "Arun",
     quoteName: "Deepak Polymers — Opack",
     coverSize: "18x20",
-    totalRate: 428.9,
+    totalRate: 452.48,
     form: {
       quoteName: "Deepak Polymers — Opack",
       materialPrice: "190",
+      conversionMaterial: "LD",
       coverSize: "18x20",
       rollSize: "14x12",
-      printingRate: "28",
+      printingColors: "2",
       gusset: true,
       punching: false,
       opack: true,

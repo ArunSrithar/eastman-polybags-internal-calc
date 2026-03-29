@@ -1,6 +1,6 @@
 # UI Redesign — Sprint Plan
 
-> **Status**: Sprint 1 complete. Sprint 2 in progress — Gravure calculator fully complete (form, result, saved quotes, all features). Flexo and Job Cost pending.
+> **Status**: Sprint 1 complete. Sprint 2 in progress — Gravure and Flexo calculators fully complete (form, result, saved quotes, all features). Job Cost pending.
 > **Approach**: Clean-slate rebuild. Old `components/` folder was deleted entirely (git checkpoint `ebecfc5` preserves it). New modular architecture built from scratch with proper separation of concerns.
 >
 > **Main workspace design**: Calculator forms use a 2-column grid layout (form left, result right) with a shared `CalculatorHeader`. Form fields built using reusable compound form components (`components/form/`). Saved quotes are separate views (also 2-column: quote list left, breakdown right) accessible via sidebar sub-navigation.
@@ -218,9 +218,9 @@ Sidebar is a frosted glass island (rounded, detached from edges).
 **Chunk 2.1 — Rebuild calculator containers** `[Containers]` 🔄 PARTIAL
 
 - ✅ Gravure `GravureRateCalculator.jsx` rebuilt: 2-column grid, `CalculatorHeader`, save with validation + toast, `formRef` + `useImperativeHandle` for reset, `window.print()` for print
-- 🔲 Flexo — not started
+- ✅ Flexo `FlexoRateCalculator.jsx` rebuilt: same pattern as Gravure, `CALC_KEY = "flexo-rate-calc"`, saves `totalRate` (not `pricePerKg`)
 - 🔲 Job Cost — not started
-- ✅ Wired into `AppShell.jsx` PERSISTENT_VIEWS (gravure, gravure-quotes)
+- ✅ Wired into `AppShell.jsx` PERSISTENT_VIEWS (gravure, gravure-quotes, flexo, flexo-quotes)
 
 **Chunk 2.2 — Rebuild Gravure form + result** `[GravureRebuild]` ✅ COMPLETE
 
@@ -235,9 +235,20 @@ Sidebar is a frosted glass island (rounded, detached from edges).
 - ✅ Save validation: empty name, duplicate name (case-insensitive), no calculable result
 - ✅ Toast notification on save + delete (`useToast()` hook, macOS-style)
 
-**Chunk 2.3 — Rebuild Flexo form + result** `[FlexoRebuild]` 🔲
+**Chunk 2.3 — Rebuild Flexo form + result** `[FlexoRebuild]` ✅ COMPLETE
 
-- Rebuild `FlexoRateCalcForm.jsx` and `FlexoRateCalcResult.jsx`
+- ✅ `FlexoForm.jsx` rebuilt using compound form components (`FormStack`, `FormSection`, `TextField`, `NumberField`, `ToggleField`, `RadioField`, `SelectField`)
+- ✅ `formConfig.js` extracted — `makeInitialForm()`, derived option arrays (`ROLL_SIZE_OPTIONS`, `CUTTING_SIZE_OPTIONS`), re-exports from constants
+- ✅ `forwardRef` + `useImperativeHandle` for reset (clears all fields to initial state)
+- ✅ 6 form sections: Customer, Material (price + PP/HM/LD radio), Size & Printing (cover size, roll size, color count radio), Additional Charges (3 toggles), Cutting, Wastage
+- ✅ `FlexoResult.jsx` rebuilt — invoice-style breakdown with 4 conditional sections (Material & Conversion, Printing, Additional Charges, Adjustments)
+- ✅ Uses `WastageRow` shared component (extracted from inline JSX in both Gravure + Flexo)
+- ✅ `InvoiceFooter` highlight: "Total Rate" with no /kg suffix, annotation shows subtotal + wastage
+- ✅ Constants updated: `CONVERSION_RATES` (materialType × rollSize), `PRINTING_RATES` (coverSize × numColors), `GUSSET_RATES` (coverSize) — all lookup-based with placeholder values
+- ✅ `calculateFlexoRate()` updated: lookup-based conversion/printing/gusset rates, new return shape
+- ✅ `SAMPLE_QUOTES` updated: added `conversionMaterial` + `printingColors`, removed `printingRate`, recalculated `totalRate` values
+- ✅ Save validation: empty name, duplicate name (case-insensitive), no calculable result
+- ✅ Toast notification on save
 
 **Chunk 2.4 — Rebuild Job Cost form + result** `[JobCostRebuild]` 🔲
 
@@ -246,7 +257,7 @@ Sidebar is a frosted glass island (rounded, detached from edges).
 **Chunk 2.5 — Saved Quotes view component** `[QuotesView]` ✅ COMPLETE (Gravure)
 
 - ✅ `GravureSavedQuotes.jsx` — 2-column layout (quote list left, breakdown right)
-- ✅ `QuoteListItem.jsx` — extracted presentational quote row (name, price, date, savedBy)
+- ✅ `QuoteListItem.jsx` — extracted presentational quote row (name, price, date, savedBy) with configurable `formatPrice` prop
 - ✅ Quote list grouped by month via `groupByMonth()` utility
 - ✅ Search bar with `SearchIcon` (capsule-shaped, sticky)
 - ✅ Breakdown panel reuses `GravureResult` with `status="Saved"` and `date` props
@@ -255,7 +266,8 @@ Sidebar is a frosted glass island (rounded, detached from edges).
 - ✅ Persistent view mounting in AppShell (display toggle preserves state)
 - ✅ Cross-component sync: `CustomEvent("quotes-updated")` refreshes list + badge count
 - ✅ 20 sample quotes seeded across 4 months via `getInitialQuotes()` shared utility
-- 🔲 Flexo saved quotes — not started
+- ✅ `FlexoSavedQuotes.jsx` — wraps `SavedQuotesView` with Flexo config + `formatFlexoPrice` (₹X not ₹X/kg)
+- ✅ `SavedQuotesView.jsx` — accepts `formatPrice` prop, passes through to `QuoteListItem`
 - 🔲 Job Cost saved quotes — not started
 
 **Chunk 2.6 — Invoice primitives system** `[InvoicePrimitives]` ✅ COMPLETE
@@ -267,6 +279,7 @@ Sidebar is a frosted glass island (rounded, detached from edges).
 - ✅ `ItemRow.jsx` — 4-column data row with `.invoice-grid`
 - ✅ `SectionLabel.jsx` — colored dot + section name
 - ✅ `SectionSubtotal.jsx` — bordered pill subtotal row + divider
+- ✅ `WastageRow.jsx` — reusable wastage adjustment line (percent, base, amount)
 - Reusable across all calculator result/breakdown views
 
 **Chunk 2.7 — Toast notification system** `[ToastSystem]` ✅ COMPLETE
@@ -292,7 +305,7 @@ Sidebar is a frosted glass island (rounded, detached from edges).
 - `useQuoteCounts` hook reads from localStorage + listens to `quotes-updated` CustomEvent
 - Badges display on "Saved Quotes" sub-items, update live on save/delete
 
-**Verification**: Gravure calculator fully functional: form input → live result → save quote with validation + toast → view in saved quotes list → search → select to view breakdown → delete with auto-select. Badges update live. Print works. State persists across navigation. Flexo and Job Cost pending rebuild.
+**Verification**: Gravure and Flexo calculators fully functional: form input → live result → save quote with validation + toast → view in saved quotes list → search → select to view breakdown → delete with auto-select. Badges update live. Print works. State persists across navigation. Flexo uses lookup-based rates (conversion, printing, gusset) and displays flat total rate (₹X not ₹X/kg). Job Cost pending rebuild.
 
 ---
 
@@ -525,10 +538,11 @@ Sidebar is a frosted glass island (rounded, detached from edges).
 
 **Chunk 8.1 — Update documentation** `[UpdateDocs]` ✅ COMPLETE
 
-- ✅ Updated `UI_REDESIGN_SPRINTS.md` with completion status for all Gravure features
+- ✅ Updated `UI_REDESIGN_SPRINTS.md` with completion status for all Gravure + Flexo features
 - ✅ Updated `copilot-instructions.md` with new architecture, file tree, layout rules, patterns
 - ✅ Created `GravureRateCalculator.md` with full calculator documentation
-- ✅ Updated "Next Session" section to reflect Gravure completion
+- ✅ Created `FlexoRateCalculator.md` with full calculator documentation
+- ✅ Updated "Next Session" section to reflect Flexo completion
 
 **Chunk 8.2 — Full regression test** `[RegressionTest]`
 

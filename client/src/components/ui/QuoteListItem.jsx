@@ -7,7 +7,12 @@ import { fmt, formatDate } from "../../utils/format";
  * @param {boolean} isActive  — whether this item is currently selected
  * @param {Function} onSelect — called when the item is clicked
  */
-export default function QuoteListItem({ quote, isActive, onSelect }) {
+export default function QuoteListItem({
+  quote,
+  isActive,
+  onSelect,
+  formatPrice = (q) => "₹" + fmt(q.pricePerKg) + "/kg",
+}) {
   return (
     <button
       type="button"
@@ -22,7 +27,7 @@ export default function QuoteListItem({ quote, isActive, onSelect }) {
           {quote.quoteName}
         </span>
         <span className="text-xs font-semibold text-label-2 tabular-nums whitespace-nowrap">
-          ₹{fmt(quote.pricePerKg)}/kg
+          {formatPrice(quote)}
         </span>
       </div>
 

@@ -1,8 +1,9 @@
 import {
-  GUSSET_RATE,
+  CONVERSION_RATES,
+  PRINTING_RATES,
+  GUSSET_RATES,
   PUNCHING_RATE,
   OPACK_RATE,
-  ROLL_SIZE_RATES,
   CUTTING_SIZE_RATES,
 } from "../../constants/flexoRateCalc";
 
@@ -12,8 +13,13 @@ import {
  * Formula:
  *   Total Rate = Subtotal × (1 + wastage% / 100)
  *
- * Where Subtotal = materialPrice + rollSizeRate + printingRate
+ * Where Subtotal = materialPrice + conversionRate + printingRate
  *                + gussetRate + punchingRate + opackRate + cuttingSizeRate
+ *
+ * Lookups:
+ *   conversionRate = CONVERSION_RATES[conversionMaterial][rollSize]
+ *   printingRate   = PRINTING_RATES[coverSize][printingColors]
+ *   gussetRate     = GUSSET_RATES[coverSize]  (only when gusset toggle is on)
  *
  * Returns null if materialPrice is 0 or empty.
  */
@@ -21,16 +27,18 @@ export function calculateFlexoRate(form) {
   const materialPrice = parseFloat(form.materialPrice) || 0;
   if (materialPrice === 0) return null;
 
-  const rollSizeRate = ROLL_SIZE_RATES[form.rollSize] ?? 0;
-  const printingRate = parseFloat(form.printingRate) || 0;
-  const gussetRate = form.gusset ? GUSSET_RATE : 0;
+  const conversionRate =
+    CONVERSION_RATES[form.conversionMaterial]?.[form.rollSize] ?? 0;
+  const printingRate =
+    PRINTING_RATES[form.coverSize]?.[form.printingColors] ?? 0;
+  const gussetRate = form.gusset ? (GUSSET_RATES[form.coverSize] ?? 0) : 0;
   const punchingRate = form.punching ? PUNCHING_RATE : 0;
   const opackRate = form.opack ? OPACK_RATE : 0;
   const cuttingSizeRate = CUTTING_SIZE_RATES[form.cuttingSize] ?? 0;
 
   const subtotal =
     materialPrice +
-    rollSizeRate +
+    conversionRate +
     printingRate +
     gussetRate +
     punchingRate +
@@ -43,8 +51,11 @@ export function calculateFlexoRate(form) {
 
   return {
     materialPrice,
+    conversionMaterial: form.conversionMaterial,
+    conversionRate,
     rollSize: form.rollSize,
-    rollSizeRate,
+    coverSize: form.coverSize,
+    printingColors: form.printingColors,
     printingRate,
     gussetRate,
     punchingRate,

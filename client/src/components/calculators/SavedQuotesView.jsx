@@ -31,6 +31,7 @@ export default function SavedQuotesView({
   sampleQuotes,
   calculateRate,
   ResultComponent,
+  formatPrice,
 }) {
   const [quotes, setQuotes] = useState(() =>
     getInitialQuotes(calcKey, sampleQuotes),
@@ -127,6 +128,7 @@ export default function SavedQuotesView({
                       quote={q}
                       isActive={selectedId === q.id}
                       onSelect={() => setSelectedId(q.id)}
+                      formatPrice={formatPrice}
                     />
                   ))}
                 </div>
