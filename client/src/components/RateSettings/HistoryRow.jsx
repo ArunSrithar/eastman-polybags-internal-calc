@@ -13,28 +13,20 @@ export default function HistoryRow({ entry, index, total, valueKey }) {
   );
 
   return (
-    <tr>
-      <td
-        className={`table-cell text-label-3 ${isCurrent ? "current-row-first" : ""}`}
-      >
+    <tr className={isCurrent ? "current-row" : ""}>
+      <td className="table-cell text-label-3">
         {sno}
       </td>
-      <td
-        className={`table-cell text-label ${isCurrent ? "current-row-mid" : ""}`}
-      >
+      <td className="table-cell text-label">
         {entry.changedBy}
       </td>
-      <td
-        className={`table-cell text-label font-medium ${isCurrent ? "current-row-mid" : ""}`}
-      >
+      <td className="table-cell text-label font-medium">
         ₹{fmt(entry[valueKey])}
       </td>
-      <td
-        className={`table-cell text-label-2 ${isCurrent ? "current-row-mid" : ""}`}
-      >
+      <td className="table-cell text-label-2">
         {formatDate(entry.changedAt)}
       </td>
-      <td className={`table-cell ${isCurrent ? "current-row-last" : ""}`} />
+      <td className="table-cell" />
     </tr>
   );
 }

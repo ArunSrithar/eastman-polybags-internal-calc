@@ -19,12 +19,12 @@ Tabs are defined in `settingsConfig.js` → `ALL_TABS` array. Each tab has `{ id
 
 ### 1. Material Prices (4 tabs)
 
-| Tab ID       | Label       | Type       |
-| ------------ | ----------- | ---------- |
-| `polyester`  | Polyester   | `material` |
-| `silverPet`  | Silver PET  | `material` |
-| `ldRoll`     | L.D. Roll   | `material` |
-| `bopp`       | B.O.P.P.    | `material` |
+| Tab ID      | Label      | Type       |
+| ----------- | ---------- | ---------- |
+| `polyester` | Polyester  | `material` |
+| `silverPet` | Silver PET | `material` |
+| `ldRoll`    | L.D. Roll  | `material` |
+| `bopp`      | B.O.P.P.   | `material` |
 
 Each material stores:
 
@@ -78,14 +78,14 @@ Each pouch stores:
 
 ### 3. Charge Rates (6 tabs)
 
-| Tab ID              | Label              | Type   | Unit      |
-| ------------------- | ------------------ | ------ | --------- |
-| `normalColorRate`   | Normal Color       | `rate` | ₹/color   |
-| `metallicColorRate` | Metallic Color     | `rate` | ₹/color   |
-| `mattFinishRate`    | Matt Finish        | `rate` | ₹/kg      |
-| `singleLamRate`     | Single Lamination  | `rate` | ₹/kg      |
-| `doubleLamRate`     | Double Lamination  | `rate` | ₹/kg      |
-| `slittingRate`      | Slitting           | `rate` | ₹/kg      |
+| Tab ID              | Label             | Type   | Unit    |
+| ------------------- | ----------------- | ------ | ------- |
+| `normalColorRate`   | Normal Color      | `rate` | ₹/color |
+| `metallicColorRate` | Metallic Color    | `rate` | ₹/color |
+| `mattFinishRate`    | Matt Finish       | `rate` | ₹/kg    |
+| `singleLamRate`     | Single Lamination | `rate` | ₹/kg    |
+| `doubleLamRate`     | Double Lamination | `rate` | ₹/kg    |
+| `slittingRate`      | Slitting          | `rate` | ₹/kg    |
 
 Each charge rate stores:
 
@@ -166,6 +166,7 @@ User action (add/edit/delete)
 ### Context Provider Integration
 
 `GravureSettingsProvider` is instantiated once in `AppShell.jsx`, wrapping all persistent views. This ensures:
+
 - Settings are shared between the Price Settings page and the Calculator form
 - No duplicate providers or stale data
 
@@ -194,22 +195,29 @@ If the server is unreachable on initial load, `GravureSettingsContext` falls bac
 
 All endpoints are under `/api/gravure`.
 
-| Method   | Endpoint                              | Middleware                                         | Body                                | Response        |
-| -------- | ------------------------------------- | -------------------------------------------------- | ----------------------------------- | --------------- |
-| `GET`    | `/settings`                           | —                                                  | —                                   | Full settings   |
-| `PUT`    | `/materials/:materialKey/price`       | `validateMaterial`, `validateNumber("price")`       | `{ price: number }`                 | Updated material|
-| `POST`   | `/materials/:materialKey/options`     | `validateMaterial`, `validateOptionType`            | `{ type: "micron"\|"qty", value }`  | Updated material|
-| `POST`   | `/pouches`                            | `validateString("length","breadth")`, `validateNumber("rate")` | `{ length, breadth, rate }` | New pouch (201) |
-| `PUT`    | `/pouches/:id`                        | —                                                  | `{ rate?, enabled?, length?, breadth? }` | Updated pouch |
-| `DELETE` | `/pouches/:id`                        | —                                                  | —                                   | `{ success: true }` |
-| `PUT`    | `/charge-rates/:rateKey`              | `validateRateKey`, `validateNumber("rate")`         | `{ rate: number }`                  | Updated rate obj|
+| Method   | Endpoint                          | Middleware                                                     | Body                                     | Response            |
+| -------- | --------------------------------- | -------------------------------------------------------------- | ---------------------------------------- | ------------------- |
+| `GET`    | `/settings`                       | —                                                              | —                                        | Full settings       |
+| `PUT`    | `/materials/:materialKey/price`   | `validateMaterial`, `validateNumber("price")`                  | `{ price: number }`                      | Updated material    |
+| `POST`   | `/materials/:materialKey/options` | `validateMaterial`, `validateOptionType`                       | `{ type: "micron"\|"qty", value }`       | Updated material    |
+| `POST`   | `/pouches`                        | `validateString("length","breadth")`, `validateNumber("rate")` | `{ length, breadth, rate }`              | New pouch (201)     |
+| `PUT`    | `/pouches/:id`                    | —                                                              | `{ rate?, enabled?, length?, breadth? }` | Updated pouch       |
+| `DELETE` | `/pouches/:id`                    | —                                                              | —                                        | `{ success: true }` |
+| `PUT`    | `/charge-rates/:rateKey`          | `validateRateKey`, `validateNumber("rate")`                    | `{ rate: number }`                       | Updated rate obj    |
 
 ### Validation Constants
 
 ```js
-VALID_MATERIALS = ["polyester", "silverPet", "ldRoll", "bopp"]
-VALID_RATE_KEYS = ["normalColorRate", "metallicColorRate", "mattFinishRate", "singleLamRate", "doubleLamRate", "slittingRate"]
-VALID_OPTION_TYPES = ["micron", "qty"]
+VALID_MATERIALS = ["polyester", "silverPet", "ldRoll", "bopp"];
+VALID_RATE_KEYS = [
+  "normalColorRate",
+  "metallicColorRate",
+  "mattFinishRate",
+  "singleLamRate",
+  "doubleLamRate",
+  "slittingRate",
+];
+VALID_OPTION_TYPES = ["micron", "qty"];
 ```
 
 ---
@@ -218,22 +226,22 @@ VALID_OPTION_TYPES = ["micron", "qty"]
 
 Created by `server/utils/seed.js` on first server start if `data/gravure-settings.json` doesn't exist.
 
-| Category        | Key                | Default Value |
-| --------------- | ------------------ | ------------- |
-| Material price  | polyester          | ₹220/kg       |
-| Material price  | silverPet          | ₹260/kg       |
-| Material price  | ldRoll             | ₹158/kg       |
-| Material price  | bopp               | ₹0/kg         |
-| Pouch           | 4 × 6              | ₹15/kg        |
-| Pouch           | 5 × 7              | ₹18/kg        |
-| Pouch           | 6 × 8              | ₹20/kg        |
-| Pouch           | 7 × 10             | ₹25/kg        |
-| Charge rate     | normalColorRate    | ₹5/color      |
-| Charge rate     | metallicColorRate  | ₹8/color      |
-| Charge rate     | mattFinishRate     | ₹3/kg         |
-| Charge rate     | singleLamRate      | ₹12/kg        |
-| Charge rate     | doubleLamRate      | ₹20/kg        |
-| Charge rate     | slittingRate       | ₹4/kg         |
+| Category       | Key               | Default Value |
+| -------------- | ----------------- | ------------- |
+| Material price | polyester         | ₹220/kg       |
+| Material price | silverPet         | ₹260/kg       |
+| Material price | ldRoll            | ₹158/kg       |
+| Material price | bopp              | ₹0/kg         |
+| Pouch          | 4 × 6             | ₹15/kg        |
+| Pouch          | 5 × 7             | ₹18/kg        |
+| Pouch          | 6 × 8             | ₹20/kg        |
+| Pouch          | 7 × 10            | ₹25/kg        |
+| Charge rate    | normalColorRate   | ₹5/color      |
+| Charge rate    | metallicColorRate | ₹8/color      |
+| Charge rate    | mattFinishRate    | ₹3/kg         |
+| Charge rate    | singleLamRate     | ₹12/kg        |
+| Charge rate    | doubleLamRate     | ₹20/kg        |
+| Charge rate    | slittingRate      | ₹4/kg         |
 
 ---
 
@@ -241,38 +249,36 @@ Created by `server/utils/seed.js` on first server start if `data/gravure-setting
 
 ### Shared / Reusable (available for Flexo & Job Cost settings)
 
-| Component      | Props                                        | Purpose                                          |
-| -------------- | -------------------------------------------- | ------------------------------------------------ |
-| `TabBar`       | `tabs, activeTab, onSelect`                  | Underline tab navigation, scrollable overflow     |
-| `TableShell`   | `columns, children`                          | `<table>` wrapper with capsule rounded header     |
-| `HistoryRow`   | `entry, index, total, valueKey`              | Single history row, ★ gradient for `index === 0`  |
-| `NewValueRow`  | `placeholder, onConfirm, onCancel`           | Inline add row with auto-focused number input     |
+| Component     | Props                              | Purpose                                          |
+| ------------- | ---------------------------------- | ------------------------------------------------ |
+| `TabBar`      | `tabs, activeTab, onSelect`        | Underline tab navigation, scrollable overflow    |
+| `TableShell`  | `columns, children`                | `<table>` wrapper with capsule rounded header    |
+| `HistoryRow`  | `entry, index, total, valueKey`    | Single history row, ★ gradient for `index === 0` |
+| `NewValueRow` | `placeholder, onConfirm, onCancel` | Inline add row with auto-focused number input    |
 
 ### Gravure-Specific
 
-| Component           | Props                                           | Purpose                                       |
-| ------------------- | ----------------------------------------------- | --------------------------------------------- |
-| `MaterialPriceTable`| `materialKey, settings, adding, onAdd, onCancelAdd` | Material price history table               |
-| `ChargeRateTable`   | `rateKey, settings, adding, onAdd, onCancelAdd` | Charge rate history table                      |
-| `PouchTable`        | `settings, onEdit, onDelete, adding, onAdd, onCancelAdd` | Pouch CRUD table                      |
-| `PouchRow`          | `pouch, index, onEdit, onDelete`                | Display + inline edit mode for single pouch    |
-| `NewPouchRow`       | `onConfirm, onCancel`                           | Inline add form (L + B + rate)                 |
+| Component            | Props                                                    | Purpose                                     |
+| -------------------- | -------------------------------------------------------- | ------------------------------------------- |
+| `MaterialPriceTable` | `materialKey, settings, adding, onAdd, onCancelAdd`      | Material price history table                |
+| `ChargeRateTable`    | `rateKey, settings, adding, onAdd, onCancelAdd`          | Charge rate history table                   |
+| `PouchTable`         | `settings, onEdit, onDelete, adding, onAdd, onCancelAdd` | Pouch CRUD table                            |
+| `PouchRow`           | `pouch, index, onEdit, onDelete`                         | Display + inline edit mode for single pouch |
+| `NewPouchRow`        | `onConfirm, onCancel`                                    | Inline add form (L + B + rate)              |
 
 ### CSS Classes Used
 
-| Class                 | Where Used                   |
-| --------------------- | ---------------------------- |
-| `.table-header-cell`  | `TableShell` header `<th>`   |
-| `.table-cell`         | `HistoryRow`, `PouchRow` display mode |
-| `.table-cell-compact` | `PouchRow` edit mode, `NewValueRow`, `NewPouchRow` |
-| `.table-action-btn`   | Edit/Delete/Check/X buttons  |
-| `.input-no-spinner`   | Number inputs (hides arrows) |
-| `.current-row-first`  | HistoryRow gradient start    |
-| `.current-row-mid`    | HistoryRow gradient middle   |
-| `.current-row-last`   | HistoryRow gradient end      |
-| `.calc-shell`         | Page wrapper                 |
-| `.glass-panel`        | Tab + table container        |
-| `.btn-primary .btn-pill` | "Add New" button          |
+| Class                    | Where Used                                         |
+| ------------------------ | -------------------------------------------------- |
+| `.table-header-cell`     | `TableShell` header `<th>`                         |
+| `.table-cell`            | `HistoryRow`, `PouchRow` display mode              |
+| `.table-cell-compact`    | `PouchRow` edit mode, `NewValueRow`, `NewPouchRow` |
+| `.table-action-btn`      | Edit/Delete/Check/X buttons                        |
+| `.input-no-spinner`      | Number inputs (hides arrows)                       |
+| `.current-row`          | HistoryRow gradient (applied on `<tr>`, rounds first/last `<td>`) |
+| `.calc-shell`            | Page wrapper                                       |
+| `.glass-panel`           | Tab + table container                              |
+| `.btn-primary .btn-pill` | "Add New" button                                   |
 
 ---
 
@@ -318,6 +324,7 @@ To implement price settings for another calculator:
 ### 6. Reuse Existing Components
 
 The following are **fully reusable** without modification:
+
 - `TabBar` — works with any tab array
 - `TableShell` — works with any column definitions
 - `HistoryRow` — works with any `{ changedBy, changedAt, [valueKey] }` entry shape

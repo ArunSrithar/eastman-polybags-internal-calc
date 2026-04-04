@@ -240,17 +240,15 @@ body {
     @apply px-4 py-2;
   }
 
-  /* Current (top) history row — violet→indigo→blue gradient */
-  .current-row-first {
-    @apply bg-gradient-to-r from-violet-500/15 to-indigo-500/10 rounded-l-full;
+  /* Current (top) history row — single gradient across the full <tr> */
+  .current-row {
+    background: linear-gradient(to right, oklch(0.65 0.15 290 / 0.15), oklch(0.62 0.14 270 / 0.08), oklch(0.62 0.15 250 / 0.05), transparent);
   }
-
-  .current-row-mid {
-    @apply bg-indigo-500/7;
+  .current-row td:first-child {
+    border-radius: 9999px 0 0 9999px;
   }
-
-  .current-row-last {
-    @apply bg-gradient-to-r from-blue-500/5 to-transparent rounded-r-full;
+  .current-row td:last-child {
+    border-radius: 0 9999px 9999px 0;
   }
 }
 

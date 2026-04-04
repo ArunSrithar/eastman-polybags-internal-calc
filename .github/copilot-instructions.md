@@ -662,6 +662,7 @@ Present the commit message to the user for approval.
 After the commit message is approved and committed, remind the user:
 
 > **Push your changes before starting the next task:**
+>
 > ```bash
 > git push
 > ```
