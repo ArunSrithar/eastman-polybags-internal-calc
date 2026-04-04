@@ -1,4 +1,10 @@
-import { useState, useImperativeHandle, forwardRef } from "react";
+import {
+  useState,
+  useImperativeHandle,
+  forwardRef,
+  useEffect,
+  useRef,
+} from "react";
 import FormStack from "../../form/FormStack";
 import FormSection from "../../form/FormSection";
 import TextField from "../../form/TextField";
@@ -8,6 +14,10 @@ import RadioField from "../../form/RadioField";
 import SelectField from "../../form/SelectField";
 import MaterialRow from "./MaterialRow";
 import { MATERIALS, storeMaterialField, makeInitialForm } from "./formConfig";
+import {
+  useGravureSettings,
+  getCurrentPrice,
+} from "../../../context/GravureSettingsContext";
 
 const LAMINATION_OPTIONS = [
   { value: "none", label: "None" },
@@ -21,6 +31,45 @@ export default forwardRef(function GravureForm(
   ref,
 ) {
   const [form, setForm] = useState(() => makeInitialForm());
+  const { settings, addMaterialOption } = useGravureSettings();
+
+  // Derive pouch size options from settings (only enabled pouches)
+  const pouchSizeOptions = settings?.pouches
+    ?.filter((p) => p.enabled !== false)
+    .map((p) => `${p.length} x ${p.breadth}`) ?? [
+    "4 x 6",
+    "5 x 7",
+    "6 x 8",
+    "7 x 10",
+  ];
+
+  // Sync material prices from settings into form state
+  const didSyncPrices = useRef(false);
+  useEffect(() => {
+    if (!settings?.materials) return;
+    setForm((prev) => {
+      const nextMaterials = { ...prev.materials };
+      let changed = false;
+      for (const mat of MATERIALS) {
+        const settingsPrice = getCurrentPrice(settings.materials[mat.key]);
+        if (
+          settingsPrice &&
+          String(nextMaterials[mat.key]?.price) !== String(settingsPrice)
+        ) {
+          nextMaterials[mat.key] = {
+            ...nextMaterials[mat.key],
+            price: String(settingsPrice),
+          };
+          changed = true;
+        }
+      }
+      if (!changed) return prev;
+      const next = { ...prev, materials: nextMaterials };
+      if (didSyncPrices.current) onProceed?.(next);
+      didSyncPrices.current = true;
+      return next;
+    });
+  }, [settings?.materials]);
 
   function resetForm() {
     const next = makeInitialForm();
@@ -77,15 +126,25 @@ export default forwardRef(function GravureForm(
       </FormSection>
 
       <FormSection title="Materials">
-        {MATERIALS.map((mat) => (
-          <MaterialRow
-            key={mat.key}
-            name={mat.name}
-            material={form.materials[mat.key]}
-            onToggle={() => toggleMaterial(mat.key)}
-            onChange={(field, val) => setMaterial(mat.key, field, val)}
-          />
-        ))}
+        {MATERIALS.map((mat) => {
+          const matSettings = settings?.materials?.[mat.key];
+          return (
+            <MaterialRow
+              key={mat.key}
+              name={mat.name}
+              materialKey={mat.key}
+              material={form.materials[mat.key]}
+              currentPrice={getCurrentPrice(matSettings)}
+              micronOptions={
+                matSettings?.micronOptions?.map((o) => o.value) ?? []
+              }
+              qtyOptions={matSettings?.qtyOptions?.map((o) => o.value) ?? []}
+              onToggle={() => toggleMaterial(mat.key)}
+              onChange={(field, val) => setMaterial(mat.key, field, val)}
+              onNewOption={addMaterialOption}
+            />
+          );
+        })}
       </FormSection>
 
       <FormSection>
@@ -93,7 +152,7 @@ export default forwardRef(function GravureForm(
           label="Pouch Size"
           placeholder="e.g. 4x6"
           storageKey="gravure-pouch-sizes"
-          defaultOptions={["4x6", "5x7", "6x8", "7x10"]}
+          defaultOptions={pouchSizeOptions}
           value={form.pouchSize}
           onChange={(v) => setField("pouchSize", v)}
         />

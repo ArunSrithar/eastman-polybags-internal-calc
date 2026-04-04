@@ -5,7 +5,6 @@ import {
   JobCostIcon,
   CalculatorSubIcon,
   QuotesIcon,
-  HistoryIcon,
   PriceSettingsIcon,
 } from "../components/ui/Icons";
 
@@ -19,6 +18,12 @@ export const NAV_ITEMS = [
     id: "dashboard",
     label: "Dashboard",
     icon: DashboardIcon,
+    path: "/",
+    meta: {
+      title: "Dashboard",
+      description:
+        "Overview of recent quotes and activity across all calculators.",
+    },
     subItems: null,
   },
   {
@@ -26,14 +31,33 @@ export const NAV_ITEMS = [
     label: "Gravure",
     icon: GravureIcon,
     subItems: [
-      { id: "gravure", label: "Calculator", icon: CalculatorSubIcon },
+      {
+        id: "gravure",
+        label: "Calculator",
+        icon: CalculatorSubIcon,
+        path: "/gravure/",
+      },
       {
         id: "gravure-quotes",
         label: "Saved Quotes",
         icon: QuotesIcon,
         badgeKey: "gravure",
+        path: "/gravure/quotes/",
+        meta: {
+          title: "Gravure — Saved Quotes",
+          description: "View and manage saved Gravure rate quotes.",
+        },
       },
-      { id: "gravure-history", label: "Price History", icon: HistoryIcon },
+      {
+        id: "gravure-settings",
+        label: "Price Settings",
+        icon: PriceSettingsIcon,
+        path: "/gravure/settings/",
+        meta: {
+          title: "Gravure — Price History",
+          description: "Track price changes for Gravure material rates.",
+        },
+      },
     ],
   },
   {
@@ -41,14 +65,33 @@ export const NAV_ITEMS = [
     label: "Flexo",
     icon: FlexoIcon,
     subItems: [
-      { id: "flexo", label: "Calculator", icon: CalculatorSubIcon },
+      {
+        id: "flexo",
+        label: "Calculator",
+        icon: CalculatorSubIcon,
+        path: "/flexo/",
+      },
       {
         id: "flexo-quotes",
         label: "Saved Quotes",
         icon: QuotesIcon,
         badgeKey: "flexo-rate-calc",
+        path: "/flexo/quotes/",
+        meta: {
+          title: "Flexo — Saved Quotes",
+          description: "View and manage saved Flexo rate quotes.",
+        },
       },
-      { id: "flexo-history", label: "Price History", icon: HistoryIcon },
+      {
+        id: "flexo-settings",
+        label: "Price Settings",
+        icon: PriceSettingsIcon,
+        path: "/flexo/settings/",
+        meta: {
+          title: "Flexo — Price History",
+          description: "Track price changes for Flexo material rates.",
+        },
+      },
     ],
   },
   {
@@ -56,87 +99,67 @@ export const NAV_ITEMS = [
     label: "Job Cost",
     icon: JobCostIcon,
     subItems: [
-      { id: "job-cost", label: "Calculator", icon: CalculatorSubIcon },
+      {
+        id: "job-cost",
+        label: "Calculator",
+        icon: CalculatorSubIcon,
+        path: "/job-cost/",
+      },
       {
         id: "job-cost-quotes",
         label: "Saved Quotes",
         icon: QuotesIcon,
         badgeKey: "job-cost",
+        path: "/job-cost/quotes/",
+        meta: {
+          title: "Job Cost — Saved Quotes",
+          description: "View and manage saved Job Cost quotes.",
+        },
       },
-      { id: "job-cost-history", label: "Price History", icon: HistoryIcon },
+      {
+        id: "job-cost-settings",
+        label: "Price Settings",
+        icon: PriceSettingsIcon,
+        path: "/job-cost/settings/",
+        meta: {
+          title: "Job Cost — Price History",
+          description: "Track price changes for Job Cost material rates.",
+        },
+      },
     ],
-  },
-  {
-    id: "price-settings",
-    label: "Price Settings",
-    icon: PriceSettingsIcon,
-    subItems: null,
   },
 ];
 
 /**
- * Quote storage keys for all calculators.
- * Used by sidebar badge counts and the unified quotes system.
+ * Derive VIEW_TO_PATH, PATH_TO_VIEW, VIEW_META, and QUOTE_STORAGE_KEYS from NAV_ITEMS.
+ * Single source of truth — no duplicate key maintenance.
  */
-export const QUOTE_STORAGE_KEYS = {
-  gravure: "gravure",
-  flexo: "flexo-rate-calc",
-  "job-cost": "job-cost",
-};
+function buildLookups(items) {
+  const viewToPath = {};
+  const viewMeta = {};
+  const quoteKeys = {};
+  for (const item of items) {
+    if (item.path) viewToPath[item.id] = item.path;
+    if (item.meta) viewMeta[item.id] = item.meta;
+    if (item.subItems) {
+      for (const sub of item.subItems) {
+        if (sub.path) viewToPath[sub.id] = sub.path;
+        if (sub.meta) viewMeta[sub.id] = sub.meta;
+        if (sub.badgeKey) quoteKeys[item.id] = sub.badgeKey;
+      }
+    }
+  }
+  return { viewToPath, viewMeta, quoteKeys };
+}
 
-/**
- * View ↔ URL path mapping.
- * Every navigable view must have an entry here for URL routing to work.
- */
-export const VIEW_TO_PATH = {
-  dashboard: "/",
-  gravure: "/gravure/",
-  "gravure-quotes": "/gravure/quotes/",
-  "gravure-history": "/gravure/history/",
-  flexo: "/flexo/",
-  "flexo-quotes": "/flexo/quotes/",
-  "flexo-history": "/flexo/history/",
-  "job-cost": "/job-cost/",
-  "job-cost-quotes": "/job-cost/quotes/",
-  "job-cost-history": "/job-cost/history/",
-  "price-settings": "/price-settings/",
-};
+const { viewToPath, viewMeta, quoteKeys } = buildLookups(NAV_ITEMS);
+
+export const VIEW_TO_PATH = viewToPath;
 
 export const PATH_TO_VIEW = Object.fromEntries(
   Object.entries(VIEW_TO_PATH).map(([view, path]) => [path, view]),
 );
 
-/**
- * Placeholder view metadata — title + description for views not yet built.
- */
-export const VIEW_META = {
-  dashboard: {
-    title: "Dashboard",
-    description:
-      "Overview of recent quotes and activity across all calculators.",
-  },
-  "gravure-quotes": {
-    title: "Gravure — Saved Quotes",
-    description: "View and manage saved Gravure rate quotes.",
-  },
-  "gravure-history": {
-    title: "Gravure — Price History",
-    description: "Track price changes for Gravure material rates.",
-  },
-  "flexo-quotes": {
-    title: "Flexo — Saved Quotes",
-    description: "View and manage saved Flexo rate quotes.",
-  },
-  "flexo-history": {
-    title: "Flexo — Price History",
-    description: "Track price changes for Flexo material rates.",
-  },
-  "job-cost-quotes": {
-    title: "Job Cost — Saved Quotes",
-    description: "View and manage saved Job Cost quotes.",
-  },
-  "job-cost-history": {
-    title: "Job Cost — Price History",
-    description: "Track price changes for Job Cost material rates.",
-  },
-};
+export const VIEW_META = viewMeta;
+
+export const QUOTE_STORAGE_KEYS = quoteKeys;

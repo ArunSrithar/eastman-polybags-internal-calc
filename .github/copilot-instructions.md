@@ -162,7 +162,7 @@ client/src/
 │   │
 │   ├── overlays/                🔲 All pending
 │   │
-│   ├── RateSettings/            🔲 All pending
+│   ├── RateSettings/            ✅ Gravure Price Settings (11 files, see GravurePriceSettings.md)
 │   │
 │   └── calculators/             ✅ All 3 calculators complete
 │       ├── SavedQuotesView.jsx          ✅ Shared saved quotes 2-col layout (list + breakdown)
@@ -512,6 +512,161 @@ Use existing primitives from `components/ui/` — do not re-implement them:
 - ❌ No hardcoded `#hex` or `rgb()` values in JSX className strings
 - ❌ No direct `document.querySelector` / DOM manipulation — use refs
 - ❌ No saving with `quoteName: "Untitled"` — always validate and require a name
+
+---
+
+## Code Review Checklist — Always Apply
+
+When the user says **"review the code"**, **"clean up"**, **"organize"**, or after completing any implementation, run through **all** of these checks on both client and server:
+
+### File & Component Structure
+
+- **One component per file** — never define multiple components in one `.jsx` file. Extract every `function ComponentName` into its own file.
+- **Single responsibility** — each file does one thing. Config/constants, UI, business logic, and data access must live in separate files.
+- **Folder conventions** — group related files in folders (e.g. `RateSettings/`, `calculators/`, `config/`, `controllers/`, `services/`, `middleware/`).
+
+### Dead Code & Unused Imports
+
+- Remove all unused imports, variables, functions, and commented-out code.
+- Remove unused props being passed to components.
+- Remove any orphaned files that are no longer imported anywhere.
+
+### Tailwind / CSS Class Reuse
+
+- **Extract repeated className strings** into `@layer components` classes in `index.css` whenever the same combination appears 3+ times across files.
+- Keep JSX `className` strings short — reference extracted classes (`.card`, `.btn-primary`, `.table-action-btn`, etc.) instead of long utility chains.
+- Never duplicate what an existing `@layer components` class already provides.
+
+### Server Architecture (Express)
+
+- **Routes** — only route definitions + middleware chains. No business logic.
+- **Controllers** — handle `req`/`res`, call services, set HTTP status. No data access.
+- **Services** — pure business logic + data access. No `req`/`res` objects.
+- **Middleware** — reusable validation (e.g. `validateNumber("price")`, `validateMaterial`).
+- **Config** — constants, paths, and environment variables in `config/` folder.
+- No circular dependencies between modules.
+
+### React Patterns
+
+- Use `useState` with factory init (`() => makeInitialForm()`) for expensive defaults.
+- Call parent callbacks in event handlers, never in `useEffect`.
+- Use ternary `? : null` for conditionals, never `&&`.
+- Derive state during render where possible — avoid `useEffect` for derived values.
+- Icons belong in `Icons.jsx` — never inline SVGs in feature components.
+- Shared UI primitives (`IOSToggle`, `Badge`, `CreatableSelect`, etc.) must be used — never re-implement.
+
+### Scalability & Maintainability
+
+- Code must be easy to extend — new calculators, new settings tabs, new rate types should only require adding data to config + a new component file.
+- Business logic (calculation functions, rate builders) must be **pure functions** — no DOM, no React, no side effects.
+- All shared state providers should be instantiated at the highest necessary level (e.g. `AppShell`), never duplicated in child components.
+
+### Security
+
+- **Input sanitization** — validate and sanitize all user input on the server. Never trust `req.body`/`req.params`/`req.query`. Add length limits and trim strings in validation middleware.
+- **CORS origin** — `cors({ origin })` must use an env-var allowlist, never `"*"` in production. Use `process.env.CLIENT_ORIGIN` or similar.
+- **Body size limit** — `express.json({ limit: '100kb' })` to prevent large payload attacks.
+- **Helmet headers** — add `helmet` middleware for security headers (`X-Content-Type-Options`, `X-Frame-Options`, CSP, etc.).
+- **Rate limiting** — add `express-rate-limit` on mutation endpoints (POST/PUT/DELETE) to prevent abuse.
+- **No secrets in code** — API keys, DB URIs, ports must come from `process.env` via `.env` + `dotenv`. `.env` must be in `.gitignore`.
+
+### Error Handling
+
+- **Consistent error shape** — every error response must use `{ error: string }`. Never leak stack traces, file paths, or internal details to the client.
+- **Async error propagation** — every controller must wrap logic in try/catch and call `next(err)`. No unhandled promise rejections.
+- **Client fetch error handling** — every `fetch()` / API call must handle network errors, non-2xx responses, and JSON parse failures. Never assume a fetch succeeds.
+- **Graceful degradation** — if the server is unreachable, the client must show a fallback state (error message, cached data, or empty state), never crash or show a blank screen.
+
+### API Design Consistency
+
+- **HTTP status codes** — `200` reads/updates, `201` creates, `204` deletes, `400` validation errors, `404` not found, `500` server errors. Apply consistently across all controllers.
+- **Response shape** — use a consistent envelope (flat payload or `{ data: ... }`) across all endpoints. Don't mix styles.
+- **URL naming** — all routes use kebab-case nouns (`/api/gravure/settings`). No verbs in URLs (`/api/getSettings` ❌).
+
+### Performance
+
+- **Memoize expensive derivations** — use `useMemo` for filtering/sorting/transforming large lists. Don't memoize trivially cheap operations.
+- **Stable callback references** — use `useCallback` for handlers passed to memoized children or used in dependency arrays. Not everywhere — only when it prevents unnecessary re-renders of expensive subtrees.
+- **Avoid new references in JSX** — `style={{}}`, `options={[...]}`, or inline `onChange={() => {}}` create new objects every render. Hoist to module-level constants or memoize when passed to memoized children.
+- **Key prop correctness** — list `key` must be a stable unique identifier (ID), never an array index (unless the list is static and never reordered/filtered).
+
+### Data Integrity
+
+- **Optimistic UI with rollback** — if a mutation fails after optimistic update, revert to the previous state rather than leaving stale/incorrect data on screen.
+- **localStorage guard** — always wrap `localStorage.getItem`/`setItem` in try/catch — quota exceeded or disabled storage (private/incognito) throws.
+- **Idempotent mutations** — PUT/DELETE operations must produce the same result if called multiple times (no duplicate entries on retry).
+
+### Accessibility
+
+- **Interactive elements** — every clickable element must be a `<button>` or `<a>`, never a `<div onClick>` or `<span onClick>`.
+- **Form labels** — every `<input>` has an associated `<label>` (via `htmlFor`) or `aria-label`.
+- **Keyboard navigation** — all interactive flows (modals, dropdowns, table row actions) must be operable with keyboard alone (Tab, Enter, Escape).
+- **Focus management** — when opening a modal/sheet, focus moves into it; on close, focus returns to the trigger element.
+
+### Build & Lint Hygiene
+
+- **Zero build warnings** — `vite build` must produce zero warnings. Treat warnings as errors.
+- **Zero ESLint errors** — run `eslint` before committing. All rules in `eslint.config.js` must pass.
+- **No `console.log`** — remove all debug logging before review is complete. Server-side `console.error` in the global error handler is the only exception.
+
+---
+
+## Post-Implementation Workflow — Always Follow
+
+After completing any implementation, review, or cleanup pass, execute these steps **in order** before moving to the next task:
+
+### Step 1 — Code Review
+
+Run through **every** subsection of the Code Review Checklist above. Fix all violations before proceeding.
+
+### Step 2 — Build & Lint Verification
+
+```bash
+# Client
+cd client && npx vite build
+
+# Server (if changed)
+cd server && node --check index.js
+```
+
+Both must exit with zero errors and zero warnings.
+
+### Step 3 — Documentation
+
+Update the relevant documentation to reflect what was built or changed:
+
+- **Changed an existing feature?** → Update its existing `.md` doc (e.g., `GravureRateCalculator.md`, `FlexoRateCalculator.md`, `JobCostCalculator.md`).
+- **Built a new feature/concept?** → Create a new `.md` doc in the feature's folder following the existing documentation pattern.
+- **Changed architecture, file structure, or shared patterns?** → Update the Architecture & Module Structure tree and any affected sections in `copilot-instructions.md`.
+- **Added new components, hooks, utils, or constants?** → Add them to the relevant reference table in `copilot-instructions.md` (UI Primitives, Component Layer Classes, etc.).
+- **Added new `@layer components` classes?** → Add them to the Component Layer Classes table in `copilot-instructions.md`.
+
+### Step 4 — Commit
+
+Prepare a structured commit message from the staged + unstaged diff:
+
+```
+<type>(<scope>): <summary>
+
+- bullet point for each logical change
+- group by area (client, server, docs)
+```
+
+**Types:** `feat`, `fix`, `refactor`, `style`, `docs`, `chore`, `perf`
+**Scopes:** `gravure`, `flexo`, `job-cost`, `settings`, `sidebar`, `ui`, `server`, `shell`, `docs`
+
+Present the commit message to the user for approval.
+
+### Step 5 — Push Reminder
+
+After the commit message is approved and committed, remind the user:
+
+> **Push your changes before starting the next task:**
+> ```bash
+> git push
+> ```
+
+Do not begin any new implementation until the user confirms the push is done.
 
 ---
 

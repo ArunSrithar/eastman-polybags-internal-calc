@@ -26,10 +26,10 @@ export const SLITTING_RATE = 4; // ₹ per kg
 
 // ── Pouch rates by size string (₹ per kg) ────────────────────────────────
 export const POUCH_RATE_BY_SIZE = {
-  "4x6": 15,
-  "5x7": 18,
-  "6x8": 20,
-  "7x10": 25,
+  "4 x 6": 15,
+  "5 x 7": 18,
+  "6 x 8": 20,
+  "7 x 10": 25,
 };
 export const DEFAULT_POUCH_RATE = 15; // fallback for unknown sizes
 

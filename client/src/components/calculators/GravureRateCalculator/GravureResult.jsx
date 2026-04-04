@@ -1,9 +1,4 @@
-import {
-  MATERIAL_NAMES,
-  NORMAL_COLOR_RATE,
-  METALLIC_COLOR_RATE,
-  MATT_FINISH_RATE,
-} from "../../../constants/gravureRates";
+import { MATERIAL_NAMES } from "../../../constants/gravureRates";
 import { fmt } from "../../../utils/format";
 import { GravureIcon } from "../../ui/Icons";
 import InvoiceHeader from "../../invoice/InvoiceHeader";
@@ -15,11 +10,20 @@ import SectionLabel from "../../invoice/SectionLabel";
 import SectionSubtotal from "../../invoice/SectionSubtotal";
 import WastageRow from "../../invoice/WastageRow";
 import { SECTION_COLORS } from "../../../constants/invoiceColors";
+import {
+  useGravureSettings,
+  getCurrentRate,
+} from "../../../context/GravureSettingsContext";
 
 /* ─── Main component ─────────────────────────────────────────────────────── */
 
 export default function GravureResult({ result, form, status, date }) {
   if (!result) return <InvoiceEmpty />;
+
+  const { settings } = useGravureSettings();
+  const normalColorRate = getCurrentRate(settings?.normalColorRate);
+  const metallicColorRate = getCurrentRate(settings?.metallicColorRate);
+  const mattFinishRate = getCurrentRate(settings?.mattFinishRate);
 
   const {
     materialLines,
@@ -103,23 +107,23 @@ export default function GravureResult({ result, form, status, date }) {
           {normalColors > 0 ? (
             <ItemRow
               label="Normal Colors"
-              rate={NORMAL_COLOR_RATE}
+              rate={normalColorRate}
               qty={normalColors}
               unit="clr"
-              amount={normalColors * NORMAL_COLOR_RATE}
+              amount={normalColors * normalColorRate}
             />
           ) : null}
           {metallicColors > 0 ? (
             <ItemRow
               label="Metallic Colors"
-              rate={METALLIC_COLOR_RATE}
+              rate={metallicColorRate}
               qty={metallicColors}
               unit="clr"
-              amount={metallicColors * METALLIC_COLOR_RATE}
+              amount={metallicColors * metallicColorRate}
             />
           ) : null}
           {hasMattFinish ? (
-            <ItemRow label="Matt Finish" amount={MATT_FINISH_RATE} />
+            <ItemRow label="Matt Finish" amount={mattFinishRate} />
           ) : null}
           <SectionSubtotal
             label="Printing subtotal"

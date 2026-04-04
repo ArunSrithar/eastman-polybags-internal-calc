@@ -5,6 +5,10 @@ import GravureResult from "./GravureResult";
 import { makeInitialForm } from "./formConfig";
 import { calculateGravureRate } from "../../../utils/calculators/gravureRate";
 import useCalculator from "../../../hooks/useCalculator";
+import {
+  useGravureSettings,
+  buildRatesFromSettings,
+} from "../../../context/GravureSettingsContext";
 
 const buildPayload = (name, form, calc) => ({
   quoteName: name,
@@ -13,7 +17,10 @@ const buildPayload = (name, form, calc) => ({
   form: { ...form, quoteName: name },
 });
 
-export default function GravureRateCalculator() {
+function GravureRateCalculatorInner() {
+  const { settings, loading } = useGravureSettings();
+  const rates = settings ? buildRatesFromSettings(settings) : undefined;
+
   const {
     form,
     result,
@@ -26,11 +33,19 @@ export default function GravureRateCalculator() {
     handlePrint,
   } = useCalculator({
     calcKey: "gravure",
-    calculateFn: calculateGravureRate,
+    calculateFn: (f) => calculateGravureRate(f, rates),
     makeInitialForm,
     buildPayload,
     toastMessage: "Saved the gravure calculation successfully",
   });
+
+  if (loading) {
+    return (
+      <div className="calc-shell items-center justify-center">
+        <p className="text-label-2">Loading settings…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="calc-shell">
@@ -62,4 +77,8 @@ export default function GravureRateCalculator() {
       </div>
     </div>
   );
+}
+
+export default function GravureRateCalculator() {
+  return <GravureRateCalculatorInner />;
 }

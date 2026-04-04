@@ -1,0 +1,7 @@
+node_modules
+.DS_Store
+.env
+*.local
+
+# Server runtime data (seeded on first start)
+server/data/

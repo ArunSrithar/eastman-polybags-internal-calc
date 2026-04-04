@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { ChevronDownIcon } from "./Icons";
 
 /**
  * CreatableSelect — dropdown that allows typing new values.
@@ -29,6 +30,12 @@ export default function CreatableSelect({
       return defaultOptions;
     }
   });
+
+  // Re-sync when defaultOptions change (e.g. pouch enabled/disabled in settings)
+  const defaultKey = defaultOptions.join(",");
+  useEffect(() => {
+    setOptions(defaultOptions);
+  }, [defaultKey]);
 
   const [inputVal, setInputVal] = useState(value);
   const [open, setOpen] = useState(false);
@@ -130,15 +137,7 @@ export default function CreatableSelect({
         className="absolute right-2 top-1/2 -translate-y-1/2 text-label-3 pointer-events-none"
         aria-hidden="true"
       >
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-          <path
-            d="M3 6l5 5 5-5"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <ChevronDownIcon className="size-3" />
       </span>
 
       {open && filtered.length > 0

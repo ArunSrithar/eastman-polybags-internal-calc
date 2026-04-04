@@ -216,6 +216,42 @@ body {
   .item-row-inputs-off {
     @apply opacity-30 pointer-events-none;
   }
+
+  /* Settings table */
+  .table-action-btn {
+    @apply size-7 flex items-center justify-center rounded-md cursor-pointer;
+  }
+
+  .input-no-spinner {
+    @apply [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none
+           [&::-webkit-outer-spin-button]:appearance-none;
+  }
+
+  .table-header-cell {
+    @apply px-4 py-3 text-left text-xs font-semibold text-label-2
+           uppercase tracking-wider bg-fill-3/60 backdrop-blur-sm;
+  }
+
+  .table-cell {
+    @apply px-4 py-3;
+  }
+
+  .table-cell-compact {
+    @apply px-4 py-2;
+  }
+
+  /* Current (top) history row — violet→indigo→blue gradient */
+  .current-row-first {
+    @apply bg-gradient-to-r from-violet-500/15 to-indigo-500/10 rounded-l-full;
+  }
+
+  .current-row-mid {
+    @apply bg-indigo-500/7;
+  }
+
+  .current-row-last {
+    @apply bg-gradient-to-r from-blue-500/5 to-transparent rounded-r-full;
+  }
 }
 
 /* ─── Print Styles ────────────────────────────────────────────────────────── */

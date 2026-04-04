@@ -9,8 +9,19 @@ import {
   DEFAULT_POUCH_RATE,
 } from "../../constants/gravureRates";
 
+/** Fallback rates derived from hardcoded constants */
+const FALLBACK_RATES = {
+  normalColorRate: NORMAL_COLOR_RATE,
+  metallicColorRate: METALLIC_COLOR_RATE,
+  mattFinishRate: MATT_FINISH_RATE,
+  singleLamRate: SINGLE_LAM_RATE,
+  doubleLamRate: DOUBLE_LAM_RATE,
+  slittingRate: SLITTING_RATE,
+  pouchRates: POUCH_RATE_BY_SIZE,
+};
+
 /**
- * calculateGravureRate(form)
+ * calculateGravureRate(form, rates?)
  *
  * Formula:
  *   Price per kg = (Total Cost × (1 + wastage%)) / Total Material Qty
@@ -18,9 +29,14 @@ import {
  * Where Total Cost = material cost + printing + lamination + slitting + pouch charges
  * (non-material charges are per-kg rates × total material qty)
  *
+ * @param {object} form  — form state from GravureForm
+ * @param {object} [rates] — { normalColorRate, metallicColorRate, mattFinishRate,
+ *                             singleLamRate, doubleLamRate, slittingRate,
+ *                             pouchRates: { "4x6": 15, ... } }
  * Returns null if no materials are enabled or total qty is 0.
  */
-export function calculateGravureRate(form) {
+export function calculateGravureRate(form, rates) {
+  const r = rates ?? FALLBACK_RATES;
   const MATERIAL_KEYS = ["polyester", "silverPet", "ldRoll", "bopp"];
 
   // ── Materials ────────────────────────────────────────────────────────────
@@ -46,21 +62,21 @@ export function calculateGravureRate(form) {
   const normalColors = parseInt(form.normalColors) || 0;
   const metallicColors = parseInt(form.metallicColors) || 0;
   const printingRatePerKg =
-    normalColors * NORMAL_COLOR_RATE +
-    metallicColors * METALLIC_COLOR_RATE +
-    (form.mattFinish ? MATT_FINISH_RATE : 0);
+    normalColors * r.normalColorRate +
+    metallicColors * r.metallicColorRate +
+    (form.mattFinish ? r.mattFinishRate : 0);
 
   const laminationRatePerKg =
     form.lamination === "single"
-      ? SINGLE_LAM_RATE
+      ? r.singleLamRate
       : form.lamination === "double"
-        ? DOUBLE_LAM_RATE
+        ? r.doubleLamRate
         : 0;
 
-  const slittingRatePerKg = form.slitting ? SLITTING_RATE : 0;
+  const slittingRatePerKg = form.slitting ? r.slittingRate : 0;
 
   const pouchRatePerKg = form.pouchSize
-    ? (POUCH_RATE_BY_SIZE[form.pouchSize] ?? DEFAULT_POUCH_RATE)
+    ? (r.pouchRates[form.pouchSize] ?? DEFAULT_POUCH_RATE)
     : 0;
 
   // ── Per-kg charge sums (NOT multiplied by qty) ──────────────────────────

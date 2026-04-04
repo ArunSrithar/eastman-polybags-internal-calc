@@ -5,12 +5,41 @@ import CreatableSelect from "../../ui/CreatableSelect";
  * MaterialRow — single material row with toggle + price/micron/qty fields.
  *
  * Props:
- *   name      string         display name (e.g. "Polyester")
- *   material  object         { enabled, price, micron, qty }
- *   onToggle  fn             toggle enabled state
- *   onChange  fn(field, val)  update a single field
+ *   name           string         display name (e.g. "Polyester")
+ *   materialKey    string         form key (e.g. "polyester")
+ *   material       object         { enabled, price, micron, qty }
+ *   currentPrice   number         latest price from settings (shown as placeholder)
+ *   micronOptions  string[]       server-backed micron dropdown options
+ *   qtyOptions     string[]       server-backed qty dropdown options
+ *   onToggle       fn             toggle enabled state
+ *   onChange        fn(field, val) update a single field
+ *   onNewOption    fn(key, type, value) persist new micron/qty to server
  */
-export default function MaterialRow({ name, material: m, onToggle, onChange }) {
+export default function MaterialRow({
+  name,
+  materialKey,
+  material: m,
+  currentPrice = 0,
+  micronOptions = [],
+  qtyOptions = [],
+  onToggle,
+  onChange,
+  onNewOption,
+}) {
+  function handleMicronChange(v) {
+    onChange("micron", v);
+    if (v && !micronOptions.includes(v) && onNewOption) {
+      onNewOption(materialKey, "micron", v);
+    }
+  }
+
+  function handleQtyChange(v) {
+    onChange("qty", v);
+    if (v && !qtyOptions.includes(v) && onNewOption) {
+      onNewOption(materialKey, "qty", v);
+    }
+  }
+
   return (
     <div className="card-section">
       <div className="item-row-header">
@@ -27,31 +56,29 @@ export default function MaterialRow({ name, material: m, onToggle, onChange }) {
         <div>
           <p className="field-label mb-1">Price (₹/kg)</p>
           <input
-            type="number"
-            min="0"
-            value={m.price}
-            onChange={(e) => onChange("price", e.target.value)}
-            placeholder="0.00"
-            className="input-base"
+            type="text"
+            value={currentPrice ? `₹${currentPrice}` : "—"}
+            disabled
+            className="input-base opacity-60 cursor-not-allowed"
           />
         </div>
         <div>
           <p className="field-label mb-1">Micron</p>
           <CreatableSelect
-            storageKey="gravure-microns"
-            defaultOptions={["12", "15", "20", "25", "30", "40", "50"]}
+            storageKey={`gravure-microns-${materialKey}`}
+            defaultOptions={micronOptions}
             value={m.micron}
-            onChange={(v) => onChange("micron", v)}
+            onChange={handleMicronChange}
             placeholder="e.g. 12"
           />
         </div>
         <div>
           <p className="field-label mb-1">Qty (kg)</p>
           <CreatableSelect
-            storageKey="gravure-qty"
-            defaultOptions={["0.5", "1", "1.5", "2", "2.5", "3", "5", "10"]}
+            storageKey={`gravure-qty-${materialKey}`}
+            defaultOptions={qtyOptions}
             value={m.qty}
-            onChange={(v) => onChange("qty", v)}
+            onChange={handleQtyChange}
             placeholder="0.000"
           />
         </div>
