@@ -1,16 +1,32 @@
 import { useState, useEffect, useCallback } from "react";
+import { CheckIcon, XMarkIcon } from "./Icons";
 
 /**
  * Toast — a lightweight self-dismissing notification.
  *
  * Usage:
  *   const [toast, showToast] = useToast();
- *   showToast("Quote saved successfully!");
+ *   showToast("Quote saved", "Details…");           // success (default)
+ *   showToast("Update Failed", "Details…", "error"); // error
  *   return <>{toast}</>
  */
 
-function Toast({ title, message, onDone }) {
+const VARIANTS = {
+  success: {
+    iconBg: "bg-green-500/15",
+    iconColor: "text-green-500",
+    Icon: CheckIcon,
+  },
+  error: {
+    iconBg: "bg-red-500/15",
+    iconColor: "text-red-500",
+    Icon: XMarkIcon,
+  },
+};
+
+function Toast({ title, message, variant = "success", onDone }) {
   const [phase, setPhase] = useState("enter"); // enter → visible → exit → done
+  const { iconBg, iconColor, Icon } = VARIANTS[variant] ?? VARIANTS.success;
 
   useEffect(() => {
     // Trigger slide-in on next frame
@@ -38,15 +54,22 @@ function Toast({ title, message, onDone }) {
 
   return (
     <div
-      className={`fixed top-4 right-4 z-50 px-5 py-3 rounded-2xl w-80
+      className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-2xl w-80
         bg-background/60 dark:bg-background-2/60 backdrop-blur-2xl backdrop-saturate-200
         border border-separator/30 dark:border-white/10 shadow-lg
-        text-sm font-medium text-label
+        flex items-center gap-3
         transition-all duration-400 ease-out
         ${translateX} ${phase === "exit" ? "opacity-0" : "opacity-100"}`}
     >
-      <p className="font-semibold text-label truncate">{title}</p>
-      <p className="text-label-2 mt-0.5">{message}</p>
+      <span
+        className={`shrink-0 size-8 rounded-full flex items-center justify-center ${iconBg} ${iconColor}`}
+      >
+        <Icon className="size-4" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-label truncate">{title}</p>
+        <p className="text-xs text-label-2 mt-0.5 leading-snug">{message}</p>
+      </div>
     </div>
   );
 }
@@ -54,8 +77,8 @@ function Toast({ title, message, onDone }) {
 export function useToast() {
   const [toast, setToast] = useState(null);
 
-  const showToast = useCallback((title, message) => {
-    setToast({ title, message, key: Date.now() });
+  const showToast = useCallback((title, message, variant = "success") => {
+    setToast({ title, message, variant, key: Date.now() });
   }, []);
 
   const element = toast ? (
@@ -63,6 +86,7 @@ export function useToast() {
       key={toast.key}
       title={toast.title}
       message={toast.message}
+      variant={toast.variant}
       onDone={() => setToast(null)}
     />
   ) : null;

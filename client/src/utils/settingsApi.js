@@ -1,4 +1,5 @@
 const API_BASE = "http://localhost:3001/api/gravure";
+const FLEXO_API_BASE = "http://localhost:3001/api/flexo";
 
 async function request(url, options = {}) {
   const res = await fetch(url, {
@@ -58,4 +59,102 @@ export function updateChargeRate(rateKey, rate) {
     method: "PUT",
     body: JSON.stringify({ rate }),
   });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Flexo Settings API
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+export function fetchFlexoSettings() {
+  return request(`${FLEXO_API_BASE}/settings`);
+}
+
+export function updateFlexoMaterialPrice(material, price) {
+  return request(`${FLEXO_API_BASE}/materials/${material}/price`, {
+    method: "PUT",
+    body: JSON.stringify({ price }),
+  });
+}
+
+export function updateFlexoConversionRate(material, rollSize, rate) {
+  return request(`${FLEXO_API_BASE}/conversion-rates/${material}/${rollSize}`, {
+    method: "PUT",
+    body: JSON.stringify({ rate }),
+  });
+}
+
+export function updateFlexoPrintingRate(coverSize, colorCount, rate) {
+  return request(
+    `${FLEXO_API_BASE}/printing-rates/${coverSize}/${colorCount}`,
+    { method: "PUT", body: JSON.stringify({ rate }) },
+  );
+}
+
+export function updateFlexoGussetRate(coverSize, rate) {
+  return request(`${FLEXO_API_BASE}/gusset-rates/${coverSize}`, {
+    method: "PUT",
+    body: JSON.stringify({ rate }),
+  });
+}
+
+export function updateFlexoCuttingRate(size, rate) {
+  return request(`${FLEXO_API_BASE}/cutting-rates/${size}`, {
+    method: "PUT",
+    body: JSON.stringify({ rate }),
+  });
+}
+
+export function updateFlexoChargeRate(rateKey, rate) {
+  return request(`${FLEXO_API_BASE}/charge-rates/${rateKey}`, {
+    method: "PUT",
+    body: JSON.stringify({ rate }),
+  });
+}
+
+export function addFlexoPrintingRow(coverSize) {
+  return request(`${FLEXO_API_BASE}/printing-rows`, {
+    method: "POST",
+    body: JSON.stringify({ coverSize }),
+  });
+}
+
+export function deleteFlexoPrintingRow(coverSize) {
+  return request(
+    `${FLEXO_API_BASE}/printing-rows/${encodeURIComponent(coverSize)}`,
+    { method: "DELETE" },
+  );
+}
+
+export function toggleFlexoPrintingRow(coverSize, enabled) {
+  return request(
+    `${FLEXO_API_BASE}/printing-rows/${encodeURIComponent(coverSize)}/enabled`,
+    { method: "PUT", body: JSON.stringify({ enabled }) },
+  );
+}
+
+export function updateFlexoRollSizeRate(material, rollSize, rate) {
+  return request(`${FLEXO_API_BASE}/roll-size-rates/${material}/${rollSize}`, {
+    method: "PUT",
+    body: JSON.stringify({ rate }),
+  });
+}
+
+export function addFlexoRollSizeRow(material, rollSize) {
+  return request(`${FLEXO_API_BASE}/roll-size-rows/${material}`, {
+    method: "POST",
+    body: JSON.stringify({ rollSize }),
+  });
+}
+
+export function deleteFlexoRollSizeRow(material, rollSize) {
+  return request(`${FLEXO_API_BASE}/roll-size-rows/${material}/${rollSize}`, {
+    method: "DELETE",
+  });
+}
+
+export function toggleFlexoRollSizeEnabled(material, rollSize, enabled) {
+  return request(
+    `${FLEXO_API_BASE}/roll-size-rows/${material}/${rollSize}/enabled`,
+    { method: "PUT", body: JSON.stringify({ enabled }) },
+  );
 }

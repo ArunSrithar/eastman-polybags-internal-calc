@@ -45,6 +45,8 @@ export default forwardRef(function GravureForm(
 
   // Sync material prices from settings into form state
   const didSyncPrices = useRef(false);
+  const pendingSyncRef = useRef(null);
+
   useEffect(() => {
     if (!settings?.materials) return;
     setForm((prev) => {
@@ -65,11 +67,19 @@ export default forwardRef(function GravureForm(
       }
       if (!changed) return prev;
       const next = { ...prev, materials: nextMaterials };
-      if (didSyncPrices.current) onProceed?.(next);
+      if (didSyncPrices.current) pendingSyncRef.current = next;
       didSyncPrices.current = true;
       return next;
     });
   }, [settings?.materials]);
+
+  // Notify parent after settings-driven form update (outside render)
+  useEffect(() => {
+    if (pendingSyncRef.current) {
+      onProceed?.(pendingSyncRef.current);
+      pendingSyncRef.current = null;
+    }
+  });
 
   function resetForm() {
     const next = makeInitialForm();

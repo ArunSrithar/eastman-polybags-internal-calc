@@ -1,4 +1,4 @@
-import { useState, useImperativeHandle, forwardRef } from "react";
+import { useState, useImperativeHandle, forwardRef, useEffect } from "react";
 import FormStack from "../../form/FormStack";
 import FormSection from "../../form/FormSection";
 import TextField from "../../form/TextField";
@@ -8,13 +8,13 @@ import RadioField from "../../form/RadioField";
 import SelectField from "../../form/SelectField";
 import {
   makeInitialForm,
-  ROLL_SIZE_OPTIONS,
   CUTTING_SIZE_OPTIONS,
-  COVER_SIZE_OPTIONS,
   WASTAGE_OPTIONS,
   CONVERSION_MATERIAL_TYPES,
   PRINTING_COLORS_OPTIONS,
 } from "./formConfig";
+import { useFlexoSettings } from "../../../context/FlexoSettingsContext";
+import { compareDimensions } from "../../../utils/dimensionUtils";
 
 const MATERIAL_TYPE_OPTIONS = CONVERSION_MATERIAL_TYPES.map((t) => ({
   value: t,
@@ -23,7 +23,7 @@ const MATERIAL_TYPE_OPTIONS = CONVERSION_MATERIAL_TYPES.map((t) => ({
 
 const COLOR_OPTIONS = PRINTING_COLORS_OPTIONS.map((c) => ({
   value: c,
-  label: c === "1" ? "1 Color" : `${c} Colors`,
+  label: c,
 }));
 
 /* ─── FlexoForm ──────────────────────────────────────────────────────────── */
@@ -32,6 +32,36 @@ export default forwardRef(function FlexoForm(
   ref,
 ) {
   const [form, setForm] = useState(() => makeInitialForm());
+  const { settings } = useFlexoSettings();
+
+  // Derive roll size options from live enabled rollSizeRates for selected material, sorted numerically
+  const liveRollSizeOptions = Object.entries(
+    settings?.rollSizeRates?.[form.conversionMaterial] ?? {},
+  )
+    .filter(([, entry]) => entry.enabled !== false)
+    .map(([key]) => key)
+    .sort((a, b) => parseFloat(a) - parseFloat(b));
+
+  // Derive cover size options from live printingRates (sorted L then B), filtered to enabled only
+  const liveCoverSizeOptions = Object.entries(settings?.printingRates ?? {})
+    .filter(([, entry]) => entry.enabled !== false)
+    .map(([key]) => key)
+    .sort(compareDimensions);
+
+  // Derive current material price from settings, default to 0 if not set
+  const currentMaterialPrice =
+    settings?.materials?.[form.conversionMaterial]?.priceHistory?.[0]?.price ??
+    0;
+
+  // Sync material price from settings whenever material or its price changes
+  useEffect(() => {
+    const priceStr = String(currentMaterialPrice);
+    if (form.materialPrice !== priceStr) {
+      const next = { ...form, materialPrice: priceStr };
+      setForm(next);
+      onProceed?.(next);
+    }
+  }, [form.conversionMaterial, currentMaterialPrice]);
 
   function resetForm() {
     const next = makeInitialForm();
@@ -62,18 +92,32 @@ export default forwardRef(function FlexoForm(
 
       {/* ── Material ── */}
       <FormSection title="Material">
+        <RadioField
+          name="conversionMaterial"
+          options={MATERIAL_TYPE_OPTIONS}
+          value={form.conversionMaterial}
+          onChange={(v) => {
+            const next = { ...form, conversionMaterial: v, rollSize: "" };
+            setForm(next);
+            onProceed?.(next);
+          }}
+        />
         <NumberField
           label="Material Price"
           value={form.materialPrice}
           onChange={(v) => setField("materialPrice", v)}
           min={0}
           unit="₹"
+          disabled
         />
-        <RadioField
-          name="conversionMaterial"
-          options={MATERIAL_TYPE_OPTIONS}
-          value={form.conversionMaterial}
-          onChange={(v) => setField("conversionMaterial", v)}
+        <SelectField
+          label="Roll Size"
+          placeholder="Select"
+          inline
+          storageKey="flexo-roll-sizes"
+          defaultOptions={liveRollSizeOptions}
+          value={form.rollSize}
+          onChange={(v) => setField("rollSize", v)}
         />
       </FormSection>
 
@@ -83,21 +127,14 @@ export default forwardRef(function FlexoForm(
           label="Cover Size"
           placeholder="e.g. 10x12"
           storageKey="flexo-cover-sizes"
-          defaultOptions={COVER_SIZE_OPTIONS}
+          defaultOptions={liveCoverSizeOptions}
           value={form.coverSize}
           onChange={(v) => setField("coverSize", v)}
-        />
-        <SelectField
-          label="Roll Size"
-          placeholder="Select"
-          inline
-          storageKey="flexo-roll-sizes"
-          defaultOptions={ROLL_SIZE_OPTIONS}
-          value={form.rollSize}
-          onChange={(v) => setField("rollSize", v)}
+          formatLabel={(v) => v.replace(/\s*[xX×]\s*/, " x ")}
         />
         <RadioField
           name="printingColors"
+          label="Printing Colors"
           options={COLOR_OPTIONS}
           value={form.printingColors}
           onChange={(v) => setField("printingColors", v)}

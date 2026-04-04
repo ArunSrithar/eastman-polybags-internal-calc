@@ -5,6 +5,10 @@ import FlexoResult from "./FlexoResult";
 import { makeInitialForm } from "./formConfig";
 import { calculateFlexoRate } from "../../../utils/calculators/flexoRateCalc";
 import useCalculator from "../../../hooks/useCalculator";
+import {
+  useFlexoSettings,
+  buildFlexoRatesFromSettings,
+} from "../../../context/FlexoSettingsContext";
 
 const buildPayload = (name, form, calc) => ({
   quoteName: name,
@@ -14,6 +18,9 @@ const buildPayload = (name, form, calc) => ({
 });
 
 export default function FlexoRateCalculator() {
+  const { settings, loading } = useFlexoSettings();
+  const rates = settings ? buildFlexoRatesFromSettings(settings) : undefined;
+
   const {
     form,
     result,
@@ -26,11 +33,19 @@ export default function FlexoRateCalculator() {
     handlePrint,
   } = useCalculator({
     calcKey: "flexo-rate-calc",
-    calculateFn: calculateFlexoRate,
+    calculateFn: (f) => calculateFlexoRate(f, rates),
     makeInitialForm,
     buildPayload,
     toastMessage: "Saved the flexo calculation successfully",
   });
+
+  if (loading) {
+    return (
+      <div className="calc-shell items-center justify-center">
+        <p className="text-label-2">Loading settings…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="calc-shell">

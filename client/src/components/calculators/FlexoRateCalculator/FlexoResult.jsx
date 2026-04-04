@@ -27,6 +27,7 @@ export default function FlexoResult({ result, form, status, date }) {
     conversionMaterial,
     conversionRate,
     rollSize,
+    rollSizeRate,
     coverSize,
     printingColors,
     printingRate,
@@ -41,7 +42,7 @@ export default function FlexoResult({ result, form, status, date }) {
     totalRate,
   } = result;
 
-  const materialSubtotal = materialPrice + conversionRate;
+  const materialSubtotal = materialPrice + conversionRate + rollSizeRate;
   const hasPrinting = printingRate > 0;
   const additionalTotal =
     gussetRate + punchingRate + opackRate + cuttingSizeRate;
@@ -81,6 +82,20 @@ export default function FlexoResult({ result, form, status, date }) {
             </>
           }
           amount={conversionRate}
+        />
+      ) : null}
+      {rollSizeRate > 0 ? (
+        <ItemRow
+          label={
+            <>
+              Roll Size Rate
+              <span className="text-label-3 italic">
+                {" "}
+                · {conversionMaterial} / {rollSize}
+              </span>
+            </>
+          }
+          amount={rollSizeRate}
         />
       ) : null}
       <SectionSubtotal label="Material subtotal" amount={materialSubtotal} />

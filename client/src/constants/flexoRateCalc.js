@@ -12,7 +12,7 @@ export const OPACK_RATE = 87.3;
 export const CONVERSION_MATERIAL_TYPES = ["PP", "HM", "LD"];
 
 // ── Printing color options ───────────────────────────────────────────────
-export const PRINTING_COLORS_OPTIONS = ["1", "2", "3", "4"];
+export const PRINTING_COLORS_OPTIONS = ["1", "2", "3", "4", "5", "6", "7", "8"];
 
 // ── Conversion rate lookup: materialType × rollSize → ₹ (placeholder values) ─
 export const CONVERSION_RATES = {

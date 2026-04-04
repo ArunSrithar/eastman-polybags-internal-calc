@@ -28,6 +28,7 @@ export default function SelectField({
   inline = false,
   width = "w-20",
   unit,
+  formatLabel,
 }) {
   const select = (
     <CreatableSelect
@@ -37,6 +38,7 @@ export default function SelectField({
       onChange={onChange}
       placeholder={placeholder}
       className={inline ? width : ""}
+      formatLabel={formatLabel}
     />
   );
 

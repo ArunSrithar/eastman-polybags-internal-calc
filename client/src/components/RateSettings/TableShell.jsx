@@ -1,6 +1,12 @@
-export default function TableShell({ columns, children }) {
+export default function TableShell({ title, action, columns, children }) {
   return (
     <div className="overflow-hidden">
+      {title ? (
+        <div className="flex items-center justify-between mb-3 px-1">
+          <p className="text-base font-semibold text-label">{title}</p>
+          {action ? action : null}
+        </div>
+      ) : null}
       <div className="overflow-x-auto">
         <table className="w-full text-sm table-fixed">
           <thead>

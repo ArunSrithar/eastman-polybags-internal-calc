@@ -2,6 +2,7 @@ import TableShell from "./TableShell";
 import NewValueRow from "./NewValueRow";
 import HistoryRow from "./HistoryRow";
 import { makeHistoryColumns } from "./settingsConfig";
+import { EditIcon } from "../ui/Icons";
 
 export default function ChargeRateTable({
   rateKey,
@@ -9,6 +10,8 @@ export default function ChargeRateTable({
   adding,
   onAdd,
   onCancelAdd,
+  title,
+  onAddStart,
 }) {
   const rateObj = settings[rateKey];
   if (!rateObj) return null;
@@ -16,8 +19,21 @@ export default function ChargeRateTable({
   const history = rateObj.history ?? [];
   const columns = makeHistoryColumns(`Rate (${rateObj.unit})`);
 
+  const tableTitle = title ? `${title} — Rate History` : "Rate History";
+  const action =
+    !adding && onAddStart ? (
+      <button
+        type="button"
+        onClick={onAddStart}
+        className="flex items-center gap-1 text-sm text-tint hover:text-tint/80 transition-colors"
+      >
+        <EditIcon className="size-3.5" />
+        <span>Update Rate</span>
+      </button>
+    ) : null;
+
   return (
-    <TableShell columns={columns}>
+    <TableShell title={tableTitle} action={action} columns={columns}>
       {adding ? (
         <NewValueRow
           placeholder="₹ rate"

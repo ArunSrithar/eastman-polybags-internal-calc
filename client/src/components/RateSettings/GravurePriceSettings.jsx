@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PriceSettingsIcon, PlusIcon } from "../ui/Icons";
+import { PriceSettingsIcon } from "../ui/Icons";
 import { useToast } from "../ui/Toast";
 import { useGravureSettings } from "../../context/GravureSettingsContext";
 import { ALL_TABS } from "./settingsConfig";
@@ -40,48 +40,58 @@ export default function GravurePriceSettings() {
   async function handleAddMaterialPrice(price) {
     try {
       await updateMaterialPrice(activeTab.id, price);
-      showToast(`Updated ${activeTab.label} price to ₹${price}`);
+      showToast(
+        "Price Updated",
+        `${activeTab.label} material price set to ₹${price}`,
+      );
       setAdding(false);
     } catch (err) {
-      showToast(err.message);
+      showToast("Update Failed", err.message, "error");
     }
   }
 
   async function handleAddPouch(length, breadth, rate) {
     try {
       await addPouch(length, breadth, rate);
-      showToast(`Added pouch size ${length}×${breadth}`);
+      showToast(
+        "Pouch Added",
+        `New size ${length}×${breadth} added at ₹${rate} per bag`,
+      );
       setAdding(false);
     } catch (err) {
-      showToast(err.message);
+      showToast("Failed to Add", err.message, "error");
     }
   }
 
   async function handleEditPouch(id, fields) {
     try {
       await editPouch(id, fields);
-      if (!("enabled" in fields)) showToast("Pouch size updated");
+      if (!("enabled" in fields))
+        showToast("Pouch Updated", "Size and rate saved successfully");
     } catch (err) {
-      showToast(err.message);
+      showToast("Update Failed", err.message, "error");
     }
   }
 
   async function handleDeletePouch(id) {
     try {
       await removePouch(id);
-      showToast("Pouch size deleted");
+      showToast("Pouch Deleted", "Pouch size removed from settings");
     } catch (err) {
-      showToast(err.message);
+      showToast("Delete Failed", err.message, "error");
     }
   }
 
   async function handleAddChargeRate(rate) {
     try {
       await updateChargeRate(activeTab.id, rate);
-      showToast(`Updated ${activeTab.label} rate to ₹${rate}`);
+      showToast(
+        "Rate Updated",
+        `${activeTab.label} charge rate set to ₹${rate}`,
+      );
       setAdding(false);
     } catch (err) {
-      showToast(err.message);
+      showToast("Update Failed", err.message, "error");
     }
   }
 
@@ -97,6 +107,7 @@ export default function GravurePriceSettings() {
             adding={adding}
             onAdd={handleAddMaterialPrice}
             onCancelAdd={() => setAdding(false)}
+            onAddStart={() => setAdding(true)}
           />
         );
       case "pouch":
@@ -108,6 +119,7 @@ export default function GravurePriceSettings() {
             adding={adding}
             onAdd={handleAddPouch}
             onCancelAdd={() => setAdding(false)}
+            onAddStart={() => setAdding(true)}
           />
         );
       case "rate":
@@ -118,6 +130,8 @@ export default function GravurePriceSettings() {
             adding={adding}
             onAdd={handleAddChargeRate}
             onCancelAdd={() => setAdding(false)}
+            title={activeTab.label}
+            onAddStart={() => setAdding(true)}
           />
         );
       default:
@@ -144,15 +158,6 @@ export default function GravurePriceSettings() {
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => setAdding(true)}
-          disabled={adding}
-          className="btn-primary btn-pill disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <PlusIcon className="size-4" />
-          <span>Add New</span>
-        </button>
       </div>
 
       {/* Glass container — tabs + table */}

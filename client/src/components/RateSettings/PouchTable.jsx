@@ -2,6 +2,7 @@ import TableShell from "./TableShell";
 import NewPouchRow from "./NewPouchRow";
 import PouchRow from "./PouchRow";
 import { POUCH_COLUMNS } from "./settingsConfig";
+import { PlusIcon } from "../ui/Icons";
 
 export default function PouchTable({
   settings,
@@ -10,11 +11,27 @@ export default function PouchTable({
   adding,
   onAdd,
   onCancelAdd,
+  onAddStart,
 }) {
   const pouches = settings.pouches ?? [];
+  const action =
+    !adding && onAddStart ? (
+      <button
+        type="button"
+        onClick={onAddStart}
+        className="flex items-center gap-1 text-sm text-tint hover:text-tint/80 transition-colors"
+      >
+        <PlusIcon className="size-3.5" />
+        <span>Add Pouch</span>
+      </button>
+    ) : null;
 
   return (
-    <TableShell columns={POUCH_COLUMNS}>
+    <TableShell
+      title="Pouch Size Rates"
+      action={action}
+      columns={POUCH_COLUMNS}
+    >
       {adding ? <NewPouchRow onConfirm={onAdd} onCancel={onCancelAdd} /> : null}
       {pouches.length === 0 && !adding ? (
         <tr>

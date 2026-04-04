@@ -20,3 +20,7 @@ See [`.github/copilot-instructions.md`](.github/copilot-instructions.md) for ful
 ```bash
 cd client && npm run dev
 ```
+
+
+gravure pouch size mm
+flexo pouch size inches

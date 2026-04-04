@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import gravureSettingsRouter from "./routes/gravureSettings.js";
+import flexoSettingsRouter from "./routes/flexoSettings.js";
 import { seedIfMissing } from "./utils/seed.js";
 
 const app = express();
@@ -11,6 +12,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api/gravure", gravureSettingsRouter);
+app.use("/api/flexo", flexoSettingsRouter);
 
 // Health check
 app.get("/health", (_req, res) => {

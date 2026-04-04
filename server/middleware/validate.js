@@ -1,7 +1,15 @@
+import { readJson } from "../utils/fileStore.js";
+import { FLEXO_SETTINGS_PATH } from "../config/paths.js";
 import {
   VALID_MATERIALS,
   VALID_RATE_KEYS,
   VALID_OPTION_TYPES,
+  VALID_FLEXO_MATERIALS,
+  VALID_CONVERSION_MATERIALS,
+  VALID_ROLL_SIZES,
+  VALID_COLOR_COUNTS,
+  VALID_CUTTING_SIZES,
+  VALID_FLEXO_CHARGE_RATE_KEYS,
 } from "../config/constants.js";
 
 /**
@@ -58,6 +66,73 @@ export function validateString(field) {
     }
     next();
   };
+}
+
+// ── Flexo validators ───────────────────────────────────────────────────────
+
+export function validateFlexoMaterial(req, res, next) {
+  if (!VALID_FLEXO_MATERIALS.includes(req.params.material)) {
+    return res
+      .status(400)
+      .json({ error: `Invalid material: ${req.params.material}` });
+  }
+  next();
+}
+
+export function validateConversionMaterial(req, res, next) {
+  if (!VALID_CONVERSION_MATERIALS.includes(req.params.material)) {
+    return res
+      .status(400)
+      .json({ error: `Invalid material: ${req.params.material}` });
+  }
+  next();
+}
+
+export function validateRollSize(req, res, next) {
+  if (!VALID_ROLL_SIZES.includes(req.params.rollSize)) {
+    return res
+      .status(400)
+      .json({ error: `Invalid roll size: ${req.params.rollSize}` });
+  }
+  next();
+}
+
+export function validateCoverSize(req, res, next) {
+  const data = readJson(FLEXO_SETTINGS_PATH);
+  const liveCoverSizes = Object.keys(data.printingRates);
+  if (!liveCoverSizes.includes(req.params.coverSize)) {
+    return res
+      .status(400)
+      .json({ error: `Invalid cover size: ${req.params.coverSize}` });
+  }
+  next();
+}
+
+export function validateColorCount(req, res, next) {
+  if (!VALID_COLOR_COUNTS.includes(req.params.colorCount)) {
+    return res
+      .status(400)
+      .json({ error: `Invalid color count: ${req.params.colorCount}` });
+  }
+  next();
+}
+
+export function validateCuttingSize(req, res, next) {
+  if (!VALID_CUTTING_SIZES.includes(req.params.size)) {
+    return res
+      .status(400)
+      .json({ error: `Invalid cutting size: ${req.params.size}` });
+  }
+  next();
+}
+
+export function validateFlexoRateKey(req, res, next) {
+  if (!VALID_FLEXO_CHARGE_RATE_KEYS.includes(req.params.rateKey)) {
+    return res
+      .status(400)
+      .json({ error: `Invalid rate key: ${req.params.rateKey}` });
+  }
+  next();
 }
 
 /**

@@ -21,6 +21,7 @@ export default function CreatableSelect({
   onChange,
   placeholder = "Select or type…",
   className = "",
+  formatLabel,
 }) {
   const [options, setOptions] = useState(() => {
     try {
@@ -122,7 +123,15 @@ export default function CreatableSelect({
       <input
         ref={inputRef}
         type="text"
-        value={inputVal}
+        value={
+          formatLabel
+            ? open
+              ? inputVal
+              : value
+                ? formatLabel(value)
+                : inputVal
+            : inputVal
+        }
         onChange={(e) => {
           setInputVal(e.target.value);
           if (!open) openDropdown();
@@ -165,7 +174,7 @@ export default function CreatableSelect({
                         : "text-label hover:bg-fill-3"
                     }`}
                   >
-                    {opt}
+                    {formatLabel ? formatLabel(opt) : opt}
                   </button>
                 </li>
               ))}

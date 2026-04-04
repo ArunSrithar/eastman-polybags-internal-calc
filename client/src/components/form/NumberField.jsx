@@ -18,6 +18,7 @@ export default function NumberField({
   max,
   width = "w-20",
   unit,
+  disabled,
 }) {
   const input = (
     <input
@@ -26,7 +27,8 @@ export default function NumberField({
       max={max}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className={`input-base ${width} text-center`}
+      disabled={disabled}
+      className={`input-base ${width} text-center ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
     />
   );
 

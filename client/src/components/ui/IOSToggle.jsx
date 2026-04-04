@@ -5,7 +5,11 @@
  *   on        boolean   current state
  *   onToggle  fn()      called on click
  */
-export default function IOSToggle({ on, onToggle }) {
+export default function IOSToggle({
+  on,
+  onToggle,
+  activeColor = "bg-green-500",
+}) {
   return (
     <button
       type="button"
@@ -15,7 +19,7 @@ export default function IOSToggle({ on, onToggle }) {
     >
       <span
         className={`relative inline-flex h-6 w-10 rounded-full transition-colors duration-200 ${
-          on ? "bg-tint" : "bg-fill-2"
+          on ? activeColor : "bg-fill-2"
         }`}
       >
         <span
