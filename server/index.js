@@ -1,14 +1,30 @@
+import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import gravureSettingsRouter from "./routes/gravureSettings.js";
 import flexoSettingsRouter from "./routes/flexoSettings.js";
+import { connectDB } from "./config/db.js";
+import { getServerConfig, makeCorsOriginChecker } from "./config/env.js";
+import { createMutationRateLimiter } from "./middleware/rateLimit.js";
 import { seedIfMissing } from "./utils/seed.js";
 
-const app = express();
-const PORT = process.env.PORT || 3001;
+dotenv.config();
 
-app.use(cors({ origin: "http://localhost:8000" }));
-app.use(express.json());
+const app = express();
+const { port, clientOrigins, mutationRateLimitMax, trustProxy } = getServerConfig();
+const mutationRateLimiter = createMutationRateLimiter(mutationRateLimitMax);
+
+app.set("trust proxy", trustProxy);
+
+app.use(helmet());
+app.use(
+  cors({
+    origin: makeCorsOriginChecker(clientOrigins),
+  }),
+);
+app.use(express.json({ limit: "100kb" }));
+app.use("/api", mutationRateLimiter);
 
 // Routes
 app.use("/api/gravure", gravureSettingsRouter);
@@ -21,13 +37,31 @@ app.get("/health", (_req, res) => {
 
 // Error handling
 app.use((err, _req, res, _next) => {
-  console.error(err.stack);
-  res.status(err.status || 500).json({ error: err.message });
+  const status = err.status || 500;
+
+  if (status >= 500) {
+    console.error(err.stack);
+  }
+
+  res
+    .status(status)
+    .json({ error: status >= 500 ? "Internal server error" : err.message });
 });
 
-// Seed data files if missing, then start
-seedIfMissing();
+async function startServer() {
+  try {
+    await connectDB();
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+    // Seed data files if missing, then start
+    await seedIfMissing();
+
+    app.listen(port, () => {
+      console.log(`Server running on http://localhost:${port}`);
+    });
+  } catch (err) {
+    console.error("Failed to start server", err);
+    process.exit(1);
+  }
+}
+
+startServer();

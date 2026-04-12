@@ -1,16 +1,16 @@
 import * as service from "../services/gravureSettings.js";
 
-export function getSettings(_req, res, next) {
+export async function getSettings(_req, res, next) {
   try {
-    res.json(service.getSettings());
+    res.json(await service.getSettings());
   } catch (err) {
     next(err);
   }
 }
 
-export function updateMaterialPrice(req, res, next) {
+export async function updateMaterialPrice(req, res, next) {
   try {
-    const result = service.addMaterialPrice(
+    const result = await service.addMaterialPrice(
       req.params.materialKey,
       req.body.price,
     );
@@ -20,9 +20,9 @@ export function updateMaterialPrice(req, res, next) {
   }
 }
 
-export function addMaterialOption(req, res, next) {
+export async function addMaterialOption(req, res, next) {
   try {
-    const result = service.addMaterialOption(
+    const result = await service.addMaterialOption(
       req.params.materialKey,
       req.body.type,
       req.body.value,
@@ -33,19 +33,19 @@ export function addMaterialOption(req, res, next) {
   }
 }
 
-export function createPouch(req, res, next) {
+export async function createPouch(req, res, next) {
   try {
     const { length, breadth, rate } = req.body;
-    const pouch = service.createPouch(length, breadth, rate);
+    const pouch = await service.createPouch(length, breadth, rate);
     res.status(201).json(pouch);
   } catch (err) {
     next(err);
   }
 }
 
-export function updatePouch(req, res, next) {
+export async function updatePouch(req, res, next) {
   try {
-    const pouch = service.updatePouch(req.params.id, req.body);
+    const pouch = await service.updatePouch(req.params.id, req.body);
     if (!pouch) {
       return res
         .status(404)
@@ -57,9 +57,9 @@ export function updatePouch(req, res, next) {
   }
 }
 
-export function deletePouch(req, res, next) {
+export async function deletePouch(req, res, next) {
   try {
-    const deleted = service.deletePouch(req.params.id);
+    const deleted = await service.deletePouch(req.params.id);
     if (!deleted) {
       return res
         .status(404)
@@ -71,9 +71,12 @@ export function deletePouch(req, res, next) {
   }
 }
 
-export function updateChargeRate(req, res, next) {
+export async function updateChargeRate(req, res, next) {
   try {
-    const result = service.addChargeRate(req.params.rateKey, req.body.rate);
+    const result = await service.addChargeRate(
+      req.params.rateKey,
+      req.body.rate,
+    );
     res.json(result);
   } catch (err) {
     next(err);

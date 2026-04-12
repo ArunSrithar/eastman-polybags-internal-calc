@@ -45,7 +45,7 @@ export function calculateJobCost(form) {
   const dispatchWeight = parseFloat(form.dispatchWeight) || 0;
   const finishedWeight = parseFloat(form.finishedWeight) || 0;
 
-  if (dispatchWeight === 0 || enabledItems.length === 0 || totalAmount === 0) {
+  if (enabledItems.length === 0 || totalAmount === 0) {
     return null;
   }
 
@@ -55,6 +55,6 @@ export function calculateJobCost(form) {
     totalAmount,
     finishedWeight,
     dispatchWeight,
-    costOfJob: totalAmount / dispatchWeight,
+    costOfJob: dispatchWeight > 0 ? totalAmount / dispatchWeight : null,
   };
 }

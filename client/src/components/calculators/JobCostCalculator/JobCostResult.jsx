@@ -134,7 +134,11 @@ export default function JobCostResult({ result, form, status, date }) {
         highlight={costOfJob}
         highlightLabel="Cost of Job"
         highlightUnit="/kg"
-        annotation={`₹${fmt(totalAmount)} total ÷ ${fmt(dispatchWeight)} kg despatch${finishedWeight > 0 ? ` · ${fmt(finishedWeight)} kg finished` : ""}`}
+        annotation={
+          dispatchWeight > 0
+            ? `₹${fmt(totalAmount)} total ÷ ${fmt(dispatchWeight)} kg despatch${finishedWeight > 0 ? ` · ${fmt(finishedWeight)} kg finished` : ""}`
+            : "Enter despatch weight to see cost per kg"
+        }
       />
     </div>
   );

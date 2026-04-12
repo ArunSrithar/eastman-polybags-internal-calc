@@ -30,17 +30,19 @@ export default function InvoiceFooter({
 
       {/* ── Highlight strip ────────────────────────────────────────────── */}
       <div className="bg-tint/5 border-t border-tint/15 px-6 py-4 rounded-b-2xl">
-        <div className="flex items-baseline justify-between">
-          <span className="text-sm font-semibold text-tint">
-            {highlightLabel}
-          </span>
-          <span className="text-2xl font-bold text-tint tabular-nums">
-            ₹{fmt(highlight)}
-            {highlightUnit ? (
-              <span className="text-sm font-medium">{highlightUnit}</span>
-            ) : null}
-          </span>
-        </div>
+        {highlight != null ? (
+          <div className="flex items-baseline justify-between">
+            <span className="text-sm font-semibold text-tint">
+              {highlightLabel}
+            </span>
+            <span className="text-2xl font-bold text-tint tabular-nums">
+              ₹{fmt(highlight)}
+              {highlightUnit ? (
+                <span className="text-sm font-medium">{highlightUnit}</span>
+              ) : null}
+            </span>
+          </div>
+        ) : null}
         {annotation ? (
           <p className="text-[11px] text-label-3 mt-1 text-right">
             {annotation}

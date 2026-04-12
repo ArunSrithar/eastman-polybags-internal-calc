@@ -1,6 +1,6 @@
 # Gravure Price Settings
 
-Admin panel for managing daily-fluctuating rates used by the Gravure Rate Calculator. Provides a tabbed interface for 3 data categories — material prices, pouch sizes, and charge rates — backed by a REST API with JSON file persistence.
+Admin panel for managing daily-fluctuating rates used by the Gravure Rate Calculator. Provides a tabbed interface for 3 data categories — material prices, pouch sizes, and charge rates — backed by a REST API with MongoDB persistence.
 
 ---
 
@@ -8,7 +8,7 @@ Admin panel for managing daily-fluctuating rates used by the Gravure Rate Calcul
 
 - **Route:** Sidebar → Gravure → Price Settings (`activeView: "gravure-settings"`)
 - **Component:** `GravurePriceSettings.jsx` — orchestrator with tab state + handler wrappers
-- **Data source:** `GravureSettingsContext` → Express API → `server/data/gravure-settings.json`
+- **Data source:** `GravureSettingsContext` → Express API → MongoDB (`gravureMaterials`, `gravurePouches`, `gravureChargeRates`)
 - **Pattern:** Tabbed single-page admin with inline add/edit rows per table type
 
 ---
@@ -132,21 +132,24 @@ client/src/
 │
 server/
 ├── config/
-│   ├── paths.js                    ← GRAVURE_SETTINGS_PATH
+│   ├── db.js                       ← Mongoose connection (local MongoDB by default)
+│   ├── env.js                      ← Runtime config (origin allowlist, rate limits, trust proxy)
 │   └── constants.js                ← VALID_MATERIALS, VALID_RATE_KEYS, VALID_OPTION_TYPES
+├── models/
+│   ├── GravureMaterial.js          ← `gravureMaterials` collection schema
+│   ├── GravurePouch.js             ← `gravurePouches` collection schema
+│   └── GravureChargeRate.js        ← `gravureChargeRates` collection schema
 ├── middleware/
-│   └── validate.js                 ← validateMaterial, validateRateKey, validateNumber(), validateString(), validateOptionType
+│   ├── validate.js                 ← validateMaterial, validateRateKey, validateNumber(), validateString(), validateOptionType
+│   └── rateLimit.js                ← Mutation rate-limit middleware
 ├── routes/
 │   └── gravureSettings.js          ← 7 endpoints, middleware chains → controller refs
 ├── controllers/
-│   └── gravureSettings.js          ← req/res handling, HTTP status codes, calls services
+│   └── gravureSettings.js          ← async req/res handling, HTTP status codes, calls services
 ├── services/
-│   └── gravureSettings.js          ← Pure business logic: getSettings, addMaterialPrice, createPouch, etc.
-├── utils/
-│   ├── fileStore.js                ← readJson/writeJson with atomic temp→rename writes
-│   └── seed.js                     ← Seeds gravure-settings.json with defaults if missing
-└── data/
-    └── gravure-settings.json       ← Persisted settings (gitignored)
+│   └── gravureSettings.js          ← MongoDB business logic: collection reads/writes, shape mapping
+└── utils/
+  └── seed.js                     ← Seeds Gravure MongoDB defaults if collections are empty
 ```
 
 ### Data Flow
@@ -157,7 +160,7 @@ User action (add/edit/delete)
     → GravureSettingsContext method (useCallback)
       → settingsApi fetch wrapper
         → Express route → middleware → controller → service
-          → fileStore.readJson / writeJson (atomic)
+          → Mongoose query/update on MongoDB collections
         ← JSON response
       ← setSettings() state update
     ← UI re-renders with new data
@@ -224,7 +227,7 @@ VALID_OPTION_TYPES = ["micron", "qty"];
 
 ## Seed Data (Defaults)
 
-Created by `server/utils/seed.js` on first server start if `data/gravure-settings.json` doesn't exist.
+Created by `server/utils/seed.js` on first server start if Gravure collections are empty in MongoDB.
 
 | Category       | Key               | Default Value |
 | -------------- | ----------------- | ------------- |
@@ -288,12 +291,12 @@ To implement price settings for another calculator:
 
 ### 1. Server Layer
 
-- Add `server/data/{calc}-settings.json` path to `config/paths.js`
+- Create Mongoose models for `{calc}` data collections
 - Add valid keys to `config/constants.js`
-- Create `services/{calc}Settings.js` — same pattern: `load()`, `save()`, CRUD functions
+- Create `services/{calc}Settings.js` — same pattern: collection queries + CRUD functions
 - Create `controllers/{calc}Settings.js` — thin req/res handlers calling service
 - Create `routes/{calc}Settings.js` — endpoints with middleware chains
-- Add seed data to `utils/seed.js`
+- Add seed data to `utils/seed.js` for empty collections
 - Register route in `index.js`: `app.use("/api/{calc}", router)`
 
 ### 2. Client Context

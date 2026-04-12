@@ -1,108 +1,202 @@
-import { readJson, writeJson } from "../utils/fileStore.js";
-import { GRAVURE_SETTINGS_PATH } from "../config/paths.js";
-import { randomBytes } from "crypto";
+import GravureMaterial from "../models/GravureMaterial.js";
+import GravurePouch from "../models/GravurePouch.js";
+import GravureChargeRate from "../models/GravureChargeRate.js";
 
-/* ── Data access ────────────────────────────────────────────────────────── */
+const CHANGED_BY = "Admin";
 
-function load() {
-  return readJson(GRAVURE_SETTINGS_PATH);
+function toMaterialResponse(doc) {
+  if (!doc) return null;
+  const { _id, ...rest } = doc;
+  return rest;
 }
 
-function save(data) {
-  writeJson(GRAVURE_SETTINGS_PATH, data);
+function toPouchResponse(doc) {
+  if (!doc) return null;
+  const { _id, ...rest } = doc;
+  return { id: _id, ...rest };
+}
+
+function toChargeRateResponse(doc) {
+  if (!doc) return null;
+  const { _id, ...rest } = doc;
+  return rest;
+}
+
+function makeNotFoundError(message) {
+  const err = new Error(message);
+  err.status = 404;
+  return err;
 }
 
 /* ── Settings ───────────────────────────────────────────────────────────── */
 
-export function getSettings() {
-  return load();
+export async function getSettings() {
+  const [materialsDocs, pouchDocs, chargeRateDocs] = await Promise.all([
+    GravureMaterial.find().lean(),
+    GravurePouch.find().sort({ createdAt: 1 }).lean(),
+    GravureChargeRate.find().lean(),
+  ]);
+
+  const materials = {};
+  for (const doc of materialsDocs) {
+    materials[doc._id] = toMaterialResponse(doc);
+  }
+
+  const chargeRates = {};
+  for (const doc of chargeRateDocs) {
+    chargeRates[doc._id] = toChargeRateResponse(doc);
+  }
+
+  return {
+    materials,
+    pouches: pouchDocs.map(toPouchResponse),
+    ...chargeRates,
+  };
 }
 
 /* ── Material prices ────────────────────────────────────────────────────── */
 
-export function addMaterialPrice(materialKey, price) {
-  const data = load();
-  data.materials[materialKey].priceHistory.unshift({
-    price,
-    changedBy: "Admin",
-    changedAt: new Date().toISOString(),
-  });
-  save(data);
-  return data.materials[materialKey];
+export async function addMaterialPrice(materialKey, price) {
+  const updated = await GravureMaterial.findByIdAndUpdate(
+    materialKey,
+    {
+      $push: {
+        priceHistory: {
+          $each: [
+            {
+              price,
+              changedBy: CHANGED_BY,
+              changedAt: new Date(),
+            },
+          ],
+          $position: 0,
+        },
+      },
+    },
+    {
+      new: true,
+      lean: true,
+    },
+  );
+
+  if (!updated) {
+    throw makeNotFoundError(`Material ${materialKey} not found`);
+  }
+
+  return toMaterialResponse(updated);
 }
 
 /* ── Material options (micron / qty) ────────────────────────────────────── */
 
-export function addMaterialOption(materialKey, type, value) {
-  const data = load();
+export async function addMaterialOption(materialKey, type, value) {
   const arrKey = type === "micron" ? "micronOptions" : "qtyOptions";
-  const existing = data.materials[materialKey][arrKey];
 
-  if (existing.some((o) => o.value === value)) {
-    return data.materials[materialKey];
+  const updated = await GravureMaterial.findOneAndUpdate(
+    {
+      _id: materialKey,
+      [`${arrKey}.value`]: { $ne: value },
+    },
+    {
+      $push: {
+        [arrKey]: {
+          value,
+          createdAt: new Date(),
+        },
+      },
+    },
+    {
+      new: true,
+      lean: true,
+    },
+  );
+
+  if (updated) {
+    return toMaterialResponse(updated);
   }
 
-  existing.push({ value, createdAt: new Date().toISOString() });
-  save(data);
-  return data.materials[materialKey];
+  const existing = await GravureMaterial.findById(materialKey).lean();
+  if (!existing) {
+    throw makeNotFoundError(`Material ${materialKey} not found`);
+  }
+
+  return toMaterialResponse(existing);
 }
 
 /* ── Pouches ────────────────────────────────────────────────────────────── */
 
-export function createPouch(length, breadth, rate) {
-  const data = load();
-  const now = new Date().toISOString();
-  const newPouch = {
-    id: "ps-" + randomBytes(4).toString("hex"),
+export async function createPouch(length, breadth, rate) {
+  const now = new Date();
+  const created = await GravurePouch.create({
     length,
     breadth,
     rate,
     enabled: true,
-    createdBy: "Admin",
+    createdBy: CHANGED_BY,
     createdAt: now,
     modifiedBy: null,
     modifiedAt: null,
+  });
+
+  return toPouchResponse(created.toObject());
+}
+
+export async function updatePouch(id, fields) {
+  const patch = {
+    modifiedBy: CHANGED_BY,
+    modifiedAt: new Date(),
   };
-  data.pouches.push(newPouch);
-  save(data);
-  return newPouch;
+
+  if (fields.length !== undefined) patch.length = fields.length;
+  if (fields.breadth !== undefined) patch.breadth = fields.breadth;
+  if (fields.rate !== undefined) patch.rate = fields.rate;
+  if (fields.enabled !== undefined) patch.enabled = !!fields.enabled;
+
+  const updated = await GravurePouch.findByIdAndUpdate(
+    id,
+    { $set: patch },
+    {
+      new: true,
+      lean: true,
+    },
+  );
+
+  if (!updated) return null;
+  return toPouchResponse(updated);
 }
 
-export function updatePouch(id, fields) {
-  const data = load();
-  const pouch = data.pouches.find((p) => p.id === id);
-  if (!pouch) return null;
-
-  if (fields.length !== undefined) pouch.length = fields.length;
-  if (fields.breadth !== undefined) pouch.breadth = fields.breadth;
-  if (fields.rate !== undefined) pouch.rate = fields.rate;
-  if (fields.enabled !== undefined) pouch.enabled = !!fields.enabled;
-
-  pouch.modifiedBy = "Admin";
-  pouch.modifiedAt = new Date().toISOString();
-  save(data);
-  return pouch;
-}
-
-export function deletePouch(id) {
-  const data = load();
-  const idx = data.pouches.findIndex((p) => p.id === id);
-  if (idx === -1) return false;
-
-  data.pouches.splice(idx, 1);
-  save(data);
-  return true;
+export async function deletePouch(id) {
+  const deleted = await GravurePouch.findByIdAndDelete(id).lean();
+  return !!deleted;
 }
 
 /* ── Charge rates ───────────────────────────────────────────────────────── */
 
-export function addChargeRate(rateKey, rate) {
-  const data = load();
-  data[rateKey].history.unshift({
-    rate,
-    changedBy: "Admin",
-    changedAt: new Date().toISOString(),
-  });
-  save(data);
-  return data[rateKey];
+export async function addChargeRate(rateKey, rate) {
+  const updated = await GravureChargeRate.findByIdAndUpdate(
+    rateKey,
+    {
+      $push: {
+        history: {
+          $each: [
+            {
+              rate,
+              changedBy: CHANGED_BY,
+              changedAt: new Date(),
+            },
+          ],
+          $position: 0,
+        },
+      },
+    },
+    {
+      new: true,
+      lean: true,
+    },
+  );
+
+  if (!updated) {
+    throw makeNotFoundError(`Rate ${rateKey} not found`);
+  }
+
+  return toChargeRateResponse(updated);
 }

@@ -1,131 +1,172 @@
 import { existsSync } from "fs";
 import { writeJson } from "./fileStore.js";
-import { GRAVURE_SETTINGS_PATH, FLEXO_SETTINGS_PATH } from "../config/paths.js";
+import { FLEXO_SETTINGS_PATH } from "../config/paths.js";
+import GravureMaterial from "../models/GravureMaterial.js";
+import GravurePouch from "../models/GravurePouch.js";
+import GravureChargeRate from "../models/GravureChargeRate.js";
 
-const now = new Date().toISOString();
+const DEFAULT_SEED_DATE = new Date();
 
-function makeRateEntry(rate) {
-  return { rate, changedBy: "Admin", changedAt: now };
+function asIso(now = DEFAULT_SEED_DATE) {
+  return now.toISOString();
 }
 
-function makeHistoryCell(rate) {
-  return { history: [makeRateEntry(rate)] };
+function makeRateEntry(rate, now = DEFAULT_SEED_DATE) {
+  return { rate, changedBy: "Admin", changedAt: now.toISOString() };
 }
 
-function makeMaterial(label, price, microns, qtys) {
+function makeHistoryCell(rate, now = DEFAULT_SEED_DATE) {
+  return { history: [makeRateEntry(rate, now)] };
+}
+
+function makeMaterial(label, price, microns, qtys, now = DEFAULT_SEED_DATE) {
   return {
     label,
-    priceHistory: price ? [{ price, changedBy: "Admin", changedAt: now }] : [],
-    micronOptions: microns.map((v) => ({ value: v, createdAt: now })),
-    qtyOptions: qtys.map((v) => ({ value: v, createdAt: now })),
+    priceHistory: price ? [{ price, changedBy: "Admin", changedAt: asIso(now) }] : [],
+    micronOptions: microns.map((v) => ({ value: v, createdAt: asIso(now) })),
+    qtyOptions: qtys.map((v) => ({ value: v, createdAt: asIso(now) })),
   };
 }
 
-const DEFAULT_SETTINGS = {
-  materials: {
+function buildGravureDefaults(now) {
+  const materials = {
     polyester: makeMaterial(
       "Polyester",
       220,
       ["12", "15", "20", "25"],
       ["0.5", "1", "1.5", "2", "2.5", "3"],
+      now,
     ),
     silverPet: makeMaterial(
       "Silver PET",
       260,
       ["12", "15", "20"],
       ["0.5", "1", "1.5", "2"],
+      now,
     ),
     ldRoll: makeMaterial(
       "L.D. Roll",
       158,
       ["25", "30", "40", "50"],
       ["0.5", "1", "1.5", "2"],
+      now,
     ),
-    bopp: makeMaterial("B.O.P.P.", 0, ["20", "25", "30"], ["0.5", "1", "1.5"]),
-  },
-  pouches: [
+    bopp: makeMaterial(
+      "B.O.P.P.",
+      0,
+      ["20", "25", "30"],
+      ["0.5", "1", "1.5"],
+      now,
+    ),
+  };
+
+  const materialDocs = Object.entries(materials).map(([key, value]) => ({
+    _id: key,
+    ...value,
+  }));
+
+  const pouchDocs = [
     {
-      id: "ps-1",
+      _id: "ps-1",
       length: "4",
       breadth: "6",
       rate: 15,
       enabled: true,
       createdBy: "Admin",
-      createdAt: now,
+      createdAt: asIso(now),
       modifiedBy: null,
       modifiedAt: null,
     },
     {
-      id: "ps-2",
+      _id: "ps-2",
       length: "5",
       breadth: "7",
       rate: 18,
       enabled: true,
       createdBy: "Admin",
-      createdAt: now,
+      createdAt: asIso(now),
       modifiedBy: null,
       modifiedAt: null,
     },
     {
-      id: "ps-3",
+      _id: "ps-3",
       length: "6",
       breadth: "8",
       rate: 20,
       enabled: true,
       createdBy: "Admin",
-      createdAt: now,
+      createdAt: asIso(now),
       modifiedBy: null,
       modifiedAt: null,
     },
     {
-      id: "ps-4",
+      _id: "ps-4",
       length: "7",
       breadth: "10",
       rate: 25,
       enabled: true,
       createdBy: "Admin",
-      createdAt: now,
+      createdAt: asIso(now),
       modifiedBy: null,
       modifiedAt: null,
     },
-  ],
-  normalColorRate: {
-    label: "Normal Color Rate",
-    unit: "₹/color",
-    history: [makeRateEntry(5)],
-  },
-  metallicColorRate: {
-    label: "Metallic Color Rate",
-    unit: "₹/color",
-    history: [makeRateEntry(8)],
-  },
-  mattFinishRate: {
-    label: "Matt Finish Rate",
-    unit: "₹/kg",
-    history: [makeRateEntry(3)],
-  },
-  singleLamRate: {
-    label: "Single Lamination",
-    unit: "₹/kg",
-    history: [makeRateEntry(12)],
-  },
-  doubleLamRate: {
-    label: "Double Lamination",
-    unit: "₹/kg",
-    history: [makeRateEntry(20)],
-  },
-  slittingRate: {
-    label: "Slitting Charges",
-    unit: "₹/kg",
-    history: [makeRateEntry(4)],
-  },
-};
+  ];
 
-export function seedIfMissing() {
-  if (!existsSync(GRAVURE_SETTINGS_PATH)) {
-    writeJson(GRAVURE_SETTINGS_PATH, DEFAULT_SETTINGS);
-    console.log("Seeded gravure-settings.json with defaults");
+  const chargeRateDocs = [
+    {
+      _id: "normalColorRate",
+      label: "Normal Color Rate",
+      unit: "₹/color",
+      history: [makeRateEntry(5, now)],
+    },
+    {
+      _id: "metallicColorRate",
+      label: "Metallic Color Rate",
+      unit: "₹/color",
+      history: [makeRateEntry(8, now)],
+    },
+    {
+      _id: "mattFinishRate",
+      label: "Matt Finish Rate",
+      unit: "₹/kg",
+      history: [makeRateEntry(3, now)],
+    },
+    {
+      _id: "singleLamRate",
+      label: "Single Lamination",
+      unit: "₹/kg",
+      history: [makeRateEntry(12, now)],
+    },
+    {
+      _id: "doubleLamRate",
+      label: "Double Lamination",
+      unit: "₹/kg",
+      history: [makeRateEntry(20, now)],
+    },
+    {
+      _id: "slittingRate",
+      label: "Slitting Charges",
+      unit: "₹/kg",
+      history: [makeRateEntry(4, now)],
+    },
+  ];
+
+  return { materialDocs, pouchDocs, chargeRateDocs };
+}
+
+export async function seedIfMissing() {
+  const gravureCount = await GravureMaterial.countDocuments();
+  if (gravureCount === 0) {
+    const now = new Date();
+    const { materialDocs, pouchDocs, chargeRateDocs } = buildGravureDefaults(now);
+
+    await GravureMaterial.insertMany(materialDocs);
+    await GravurePouch.insertMany(pouchDocs);
+    await GravureChargeRate.insertMany(chargeRateDocs);
+
+    console.log("Seeded Gravure MongoDB defaults");
   }
+
   if (!existsSync(FLEXO_SETTINGS_PATH)) {
     writeJson(FLEXO_SETTINGS_PATH, DEFAULT_FLEXO_SETTINGS);
     console.log("Seeded flexo-settings.json with defaults");
