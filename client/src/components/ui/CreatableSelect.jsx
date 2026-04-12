@@ -36,7 +36,7 @@ export default function CreatableSelect({
   const defaultKey = defaultOptions.join(",");
   useEffect(() => {
     setOptions(defaultOptions);
-  }, [defaultKey]);
+  }, [defaultKey, defaultOptions]);
 
   const [inputVal, setInputVal] = useState(value);
   const [open, setOpen] = useState(false);

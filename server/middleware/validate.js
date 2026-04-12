@@ -1,5 +1,3 @@
-import { readJson } from "../utils/fileStore.js";
-import { FLEXO_SETTINGS_PATH } from "../config/paths.js";
 import {
   VALID_MATERIALS,
   VALID_RATE_KEYS,
@@ -93,17 +91,6 @@ export function validateRollSize(req, res, next) {
     return res
       .status(400)
       .json({ error: `Invalid roll size: ${req.params.rollSize}` });
-  }
-  next();
-}
-
-export function validateCoverSize(req, res, next) {
-  const data = readJson(FLEXO_SETTINGS_PATH);
-  const liveCoverSizes = Object.keys(data.printingRates);
-  if (!liveCoverSizes.includes(req.params.coverSize)) {
-    return res
-      .status(400)
-      .json({ error: `Invalid cover size: ${req.params.coverSize}` });
   }
   next();
 }

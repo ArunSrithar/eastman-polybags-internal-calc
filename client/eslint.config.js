@@ -23,7 +23,40 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      'no-unused-vars': [
+        'error',
+        {
+          varsIgnorePattern: '^[A-Z_]',
+          argsIgnorePattern: '^[A-Z_]',
+        },
+      ],
+      'react-refresh/only-export-components': [
+        'error',
+        {
+          allowConstantExport: true,
+          allowExportNames: [
+            'useToast',
+            'useTheme',
+            'useFlexoSettings',
+            'useGravureSettings',
+            'getCurrentRate',
+            'getCurrentPrice',
+            'buildRatesFromSettings',
+            'buildFlexoRatesFromSettings',
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      'src/components/ui/Toast.jsx',
+      'src/context/FlexoSettingsContext.jsx',
+      'src/context/GravureSettingsContext.jsx',
+      'src/context/ThemeContext.jsx',
+    ],
+    rules: {
+      'react-refresh/only-export-components': 'off',
     },
   },
 ])

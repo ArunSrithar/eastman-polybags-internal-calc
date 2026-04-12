@@ -1,16 +1,16 @@
 import * as service from "../services/flexoSettings.js";
 
-export function getSettings(_req, res, next) {
+export async function getSettings(_req, res, next) {
   try {
-    res.json(service.getSettings());
+    res.json(await service.getSettings());
   } catch (err) {
     next(err);
   }
 }
 
-export function updateMaterialPrice(req, res, next) {
+export async function updateMaterialPrice(req, res, next) {
   try {
-    const result = service.addMaterialPrice(
+    const result = await service.addMaterialPrice(
       req.params.material,
       req.body.price,
     );
@@ -20,9 +20,9 @@ export function updateMaterialPrice(req, res, next) {
   }
 }
 
-export function updateConversionRate(req, res, next) {
+export async function updateConversionRate(req, res, next) {
   try {
-    const result = service.updateConversionRate(
+    const result = await service.updateConversionRate(
       req.params.material,
       req.params.rollSize,
       req.body.rate,
@@ -33,9 +33,9 @@ export function updateConversionRate(req, res, next) {
   }
 }
 
-export function updatePrintingRate(req, res, next) {
+export async function updatePrintingRate(req, res, next) {
   try {
-    const result = service.updatePrintingRate(
+    const result = await service.updatePrintingRate(
       req.params.coverSize,
       req.params.colorCount,
       req.body.rate,
@@ -46,18 +46,18 @@ export function updatePrintingRate(req, res, next) {
   }
 }
 
-export function addPrintingCoverSize(req, res, next) {
+export async function addPrintingCoverSize(req, res, next) {
   try {
-    const result = service.addPrintingCoverSize(req.body.coverSize);
+    const result = await service.addPrintingCoverSize(req.body.coverSize);
     res.status(201).json(result);
   } catch (err) {
     next(err);
   }
 }
 
-export function deletePrintingCoverSize(req, res, next) {
+export async function deletePrintingCoverSize(req, res, next) {
   try {
-    const result = service.deletePrintingCoverSize(
+    const result = await service.deletePrintingCoverSize(
       decodeURIComponent(req.params.coverSize),
     );
     res.json(result);
@@ -66,9 +66,9 @@ export function deletePrintingCoverSize(req, res, next) {
   }
 }
 
-export function updateGussetRate(req, res, next) {
+export async function updateGussetRate(req, res, next) {
   try {
-    const result = service.updateGussetRate(
+    const result = await service.updateGussetRate(
       req.params.coverSize,
       req.body.rate,
     );
@@ -78,27 +78,27 @@ export function updateGussetRate(req, res, next) {
   }
 }
 
-export function updateCuttingRate(req, res, next) {
+export async function updateCuttingRate(req, res, next) {
   try {
-    const result = service.updateCuttingRate(req.params.size, req.body.rate);
+    const result = await service.updateCuttingRate(req.params.size, req.body.rate);
     res.json(result);
   } catch (err) {
     next(err);
   }
 }
 
-export function updateChargeRate(req, res, next) {
+export async function updateChargeRate(req, res, next) {
   try {
-    const result = service.updateChargeRate(req.params.rateKey, req.body.rate);
+    const result = await service.updateChargeRate(req.params.rateKey, req.body.rate);
     res.json(result);
   } catch (err) {
     next(err);
   }
 }
 
-export function updateRollSizeRate(req, res, next) {
+export async function updateRollSizeRate(req, res, next) {
   try {
-    const result = service.updateRollSizeRate(
+    const result = await service.updateRollSizeRate(
       req.params.material,
       req.params.rollSize,
       req.body.rate,
@@ -109,9 +109,9 @@ export function updateRollSizeRate(req, res, next) {
   }
 }
 
-export function addRollSizeRow(req, res, next) {
+export async function addRollSizeRow(req, res, next) {
   try {
-    const result = service.addRollSizeRow(
+    const result = await service.addRollSizeRow(
       req.params.material,
       req.body.rollSize,
     );
@@ -121,9 +121,9 @@ export function addRollSizeRow(req, res, next) {
   }
 }
 
-export function togglePrintingCoverSize(req, res, next) {
+export async function togglePrintingCoverSize(req, res, next) {
   try {
-    const result = service.togglePrintingCoverSize(
+    const result = await service.togglePrintingCoverSize(
       decodeURIComponent(req.params.coverSize),
       req.body.enabled,
     );
@@ -133,9 +133,9 @@ export function togglePrintingCoverSize(req, res, next) {
   }
 }
 
-export function deleteRollSizeRow(req, res, next) {
+export async function deleteRollSizeRow(req, res, next) {
   try {
-    const result = service.deleteRollSizeRow(
+    const result = await service.deleteRollSizeRow(
       req.params.material,
       req.params.rollSize,
     );
@@ -145,9 +145,9 @@ export function deleteRollSizeRow(req, res, next) {
   }
 }
 
-export function toggleRollSizeEnabled(req, res, next) {
+export async function toggleRollSizeEnabled(req, res, next) {
   try {
-    const result = service.toggleRollSizeEnabled(
+    const result = await service.toggleRollSizeEnabled(
       req.params.material,
       req.params.rollSize,
       req.body.enabled,

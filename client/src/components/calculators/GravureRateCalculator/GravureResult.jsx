@@ -18,9 +18,10 @@ import {
 /* ─── Main component ─────────────────────────────────────────────────────── */
 
 export default function GravureResult({ result, form, status, date }) {
+  const { settings } = useGravureSettings();
+
   if (!result) return <InvoiceEmpty />;
 
-  const { settings } = useGravureSettings();
   const normalColorRate = getCurrentRate(settings?.normalColorRate);
   const metallicColorRate = getCurrentRate(settings?.metallicColorRate);
   const mattFinishRate = getCurrentRate(settings?.mattFinishRate);

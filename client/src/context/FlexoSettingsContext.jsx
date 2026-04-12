@@ -151,9 +151,7 @@ export function FlexoSettingsProvider({ children }) {
     } catch (err) {
       console.error("Failed to fetch flexo settings:", err);
       setError(err.message);
-      if (!settings) {
-        setSettings(buildFallbackSettings());
-      }
+      setSettings((prev) => prev ?? buildFallbackSettings());
     } finally {
       setLoading(false);
     }

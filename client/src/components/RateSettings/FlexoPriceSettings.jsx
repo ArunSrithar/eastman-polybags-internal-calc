@@ -14,7 +14,6 @@ export default function FlexoPriceSettings() {
     settings,
     loading,
     updateMaterialPrice,
-    updateConversionRate,
     updatePrintingRate,
     updateGussetRate,
     updateCuttingRate,
@@ -53,17 +52,6 @@ export default function FlexoPriceSettings() {
         `${activeTab.label} material price set to ₹${price}`,
       );
       setAdding(false);
-    } catch (err) {
-      showToast("Update Failed", err.message, "error");
-    }
-  }
-  async function handleUpdateConversion(rollSize, rate) {
-    try {
-      await updateConversionRate(activeTab.id, rollSize, rate);
-      showToast(
-        "Rate Updated",
-        `${activeTab.id} ${rollSize} conversion set to ₹${rate}`,
-      );
     } catch (err) {
       showToast("Update Failed", err.message, "error");
     }

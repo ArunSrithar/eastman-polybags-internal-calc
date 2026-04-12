@@ -1,4 +1,4 @@
-import { useState, useImperativeHandle, forwardRef, useEffect } from "react";
+import { useState, useImperativeHandle, forwardRef } from "react";
 import FormStack from "../../form/FormStack";
 import FormSection from "../../form/FormSection";
 import TextField from "../../form/TextField";
@@ -48,23 +48,19 @@ export default forwardRef(function FlexoForm(
     .map(([key]) => key)
     .sort(compareDimensions);
 
-  // Derive current material price from settings, default to 0 if not set
-  const currentMaterialPrice =
-    settings?.materials?.[form.conversionMaterial]?.priceHistory?.[0]?.price ??
-    0;
+  function withLiveMaterialPrice(nextForm) {
+    const liveMaterialPrice =
+      settings?.materials?.[nextForm.conversionMaterial]?.priceHistory?.[0]
+        ?.price ?? 0;
 
-  // Sync material price from settings whenever material or its price changes
-  useEffect(() => {
-    const priceStr = String(currentMaterialPrice);
-    if (form.materialPrice !== priceStr) {
-      const next = { ...form, materialPrice: priceStr };
-      setForm(next);
-      onProceed?.(next);
-    }
-  }, [form.conversionMaterial, currentMaterialPrice]);
+    return {
+      ...nextForm,
+      materialPrice: String(liveMaterialPrice),
+    };
+  }
 
   function resetForm() {
-    const next = makeInitialForm();
+    const next = withLiveMaterialPrice(makeInitialForm());
     setForm(next);
     onProceed?.(next);
   }
@@ -72,7 +68,7 @@ export default forwardRef(function FlexoForm(
   useImperativeHandle(ref, () => ({ reset: resetForm }));
 
   function setField(key, val) {
-    const next = { ...form, [key]: val };
+    const next = withLiveMaterialPrice({ ...form, [key]: val });
     setForm(next);
     onProceed?.(next);
   }
@@ -97,7 +93,11 @@ export default forwardRef(function FlexoForm(
           options={MATERIAL_TYPE_OPTIONS}
           value={form.conversionMaterial}
           onChange={(v) => {
-            const next = { ...form, conversionMaterial: v, rollSize: "" };
+            const next = withLiveMaterialPrice({
+              ...form,
+              conversionMaterial: v,
+              rollSize: "",
+            });
             setForm(next);
             onProceed?.(next);
           }}

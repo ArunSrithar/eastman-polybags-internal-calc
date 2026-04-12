@@ -137,9 +137,7 @@ export function GravureSettingsProvider({ children }) {
     } catch (err) {
       console.error("Failed to fetch gravure settings:", err);
       setError(err.message);
-      if (!settings) {
-        setSettings(buildFallbackSettings());
-      }
+      setSettings((prev) => prev ?? buildFallbackSettings());
     } finally {
       setLoading(false);
     }

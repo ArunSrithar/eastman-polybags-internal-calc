@@ -4,7 +4,6 @@ import {
   validateFlexoMaterial,
   validateConversionMaterial,
   validateRollSize,
-  validateCoverSize,
   validateColorCount,
   validateCuttingSize,
   validateFlexoRateKey,
@@ -58,7 +57,6 @@ router.put("/printing-rows/:coverSize/enabled", ctrl.togglePrintingCoverSize);
 // Gusset rates (coverSize)
 router.put(
   "/gusset-rates/:coverSize",
-  validateCoverSize,
   validateNumber("rate"),
   ctrl.updateGussetRate,
 );
