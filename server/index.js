@@ -4,6 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import gravureSettingsRouter from "./routes/gravureSettings.js";
 import flexoSettingsRouter from "./routes/flexoSettings.js";
+import quotesRouter from "./routes/quotes.js";
 import { connectDB } from "./config/db.js";
 import { getServerConfig, makeCorsOriginChecker } from "./config/env.js";
 import { createMutationRateLimiter } from "./middleware/rateLimit.js";
@@ -29,6 +30,7 @@ app.use("/api", mutationRateLimiter);
 // Routes
 app.use("/api/gravure", gravureSettingsRouter);
 app.use("/api/flexo", flexoSettingsRouter);
+app.use("/api/quotes", quotesRouter);
 
 // Health check
 app.get("/health", (_req, res) => {

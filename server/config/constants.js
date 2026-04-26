@@ -33,3 +33,8 @@ export const VALID_CUTTING_SIZES = [
 ];
 
 export const VALID_FLEXO_CHARGE_RATE_KEYS = ["punchingRate", "opackRate"];
+
+// ── Quotes ─────────────────────────────────────────────────────────────────
+// Allow-list of calcKeys whose quotes are persisted via /api/quotes/:calcKey.
+// Add "flexo-rate-calc" / "job-cost" here once those calculators migrate.
+export const VALID_QUOTE_CALC_KEYS = ["gravure"];

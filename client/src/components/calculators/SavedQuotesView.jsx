@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import CalculatorHeader from "../layout/CalculatorHeader";
 import { SearchIcon } from "../ui/Icons";
 import {
@@ -13,16 +13,17 @@ import { useToast } from "../ui/Toast";
 /**
  * SavedQuotesView — shared 2-column saved-quotes layout.
  *
- * Renders a search + grouped quote list (left) and a calculator-specific
- * breakdown card (right). All state, filtering, delete, and sync logic
- * lives here — each calculator only provides config via props.
+ * Fetches quotes asynchronously (server- or localStorage-backed depending on
+ * calcKey). Renders search + grouped quote list (left) and a calculator-
+ * specific breakdown card (right).
  *
  * @param {string}    calcKey         — quote storage key ("gravure", "flexo-rate-calc", "job-cost")
- * @param {Component} icon            — calculator icon component (e.g. GravureIcon)
- * @param {string}    title           — page title ("Gravure — Saved Quotes")
- * @param {Array}     sampleQuotes    — seed data from constants
+ * @param {Component} icon            — calculator icon component
+ * @param {string}    title           — page title
+ * @param {Array}     [sampleQuotes]  — optional seed data (local-storage calcs only)
  * @param {Function}  calculateRate   — pure calculation function (form → result | null)
- * @param {Component} ResultComponent — breakdown card component (receives result, form, status, date)
+ * @param {Component} ResultComponent — breakdown card component
+ * @param {Function}  [formatPrice]   — price formatter for QuoteListItem
  */
 export default function SavedQuotesView({
   calcKey,
@@ -33,43 +34,90 @@ export default function SavedQuotesView({
   ResultComponent,
   formatPrice,
 }) {
-  const [quotes, setQuotes] = useState(() =>
-    getInitialQuotes(calcKey, sampleQuotes),
-  );
+  const [quotes, setQuotes] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [toast, showToast] = useToast();
+
+  const refetch = useCallback(async () => {
+    try {
+      const list = await getQuotes(calcKey);
+      setQuotes(list);
+      setError(null);
+    } catch (err) {
+      console.error(`Failed to load quotes for ${calcKey}`, err);
+      setError("Couldn't load saved quotes. Check your connection.");
+    }
+  }, [calcKey]);
+
+  // Initial load — uses getInitialQuotes so local calcs still get sample seeding.
+  useEffect(() => {
+    let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- need to reset loading flag on calcKey change before async fetch
+    setLoading(true);
+    getInitialQuotes(calcKey, sampleQuotes)
+      .then((list) => {
+        if (cancelled) return;
+        setQuotes(list);
+        setError(null);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error(`Failed to load quotes for ${calcKey}`, err);
+        setError("Couldn't load saved quotes. Check your connection.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [calcKey, sampleQuotes]);
+
+  // Cross-component sync (save / delete elsewhere triggers refetch).
+  useEffect(() => {
+    function handleUpdate(e) {
+      if (e.detail === calcKey) refetch();
+    }
+    window.addEventListener("quotes-updated", handleUpdate);
+    return () => window.removeEventListener("quotes-updated", handleUpdate);
+  }, [calcKey, refetch]);
 
   const selectedQuote = selectedId
     ? quotes.find((q) => q.id === selectedId)
     : null;
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!selectedQuote) return;
     const name = selectedQuote.quoteName;
     const idx = quotes.findIndex((q) => q.id === selectedId);
-    const updated = deleteQuote(calcKey, selectedId);
-    const nextId =
-      updated.length > 0
-        ? (updated[Math.min(idx, updated.length - 1)]?.id ?? null)
-        : null;
-    setQuotes(updated);
-    setSelectedId(nextId);
-    window.dispatchEvent(
-      new CustomEvent("quotes-updated", { detail: calcKey }),
-    );
-    showToast(name, "Deleted from saved quotes");
-  }
+    const previous = quotes;
 
-  useEffect(() => {
-    function handleUpdate(e) {
-      if (e.detail === calcKey) {
-        setQuotes(getQuotes(calcKey));
-      }
+    // Optimistic remove
+    const optimistic = quotes.filter((q) => q.id !== selectedId);
+    const nextId =
+      optimistic.length > 0
+        ? (optimistic[Math.min(idx, optimistic.length - 1)]?.id ?? null)
+        : null;
+    setQuotes(optimistic);
+    setSelectedId(nextId);
+
+    try {
+      await deleteQuote(calcKey, selectedId);
+      window.dispatchEvent(
+        new CustomEvent("quotes-updated", { detail: calcKey }),
+      );
+      showToast(name, "Deleted from saved quotes");
+    } catch (err) {
+      console.error(`Failed to delete quote ${selectedId}`, err);
+      // Roll back
+      setQuotes(previous);
+      setSelectedId(selectedId);
+      showToast(name, "Couldn't delete — try again.");
     }
-    window.addEventListener("quotes-updated", handleUpdate);
-    return () => window.removeEventListener("quotes-updated", handleUpdate);
-  }, [calcKey]);
+  }
 
   const filtered = search.trim()
     ? quotes.filter((q) =>
@@ -112,28 +160,37 @@ export default function SavedQuotesView({
             </div>
           </div>
           <div className="flex-1 overflow-y-auto px-3 pb-3">
-            {groups.map((group) => (
-              <div key={group.label} className="mb-4 last:mb-0">
-                {/* Month label */}
-                <div className="flex items-center gap-2 mb-2 px-1">
-                  <span className="month-label">{group.label}</span>
-                  <div className="flex-1 h-px bg-separator" />
+            {loading ? (
+              <p className="text-label-2 text-sm px-1 py-4">
+                Loading saved quotes…
+              </p>
+            ) : error ? (
+              <p className="text-red-500 text-sm px-1 py-4">{error}</p>
+            ) : groups.length === 0 ? (
+              <p className="text-label-2 text-sm px-1 py-4">
+                No saved quotes yet.
+              </p>
+            ) : (
+              groups.map((group) => (
+                <div key={group.label} className="mb-4 last:mb-0">
+                  <div className="flex items-center gap-2 mb-2 px-1">
+                    <span className="month-label">{group.label}</span>
+                    <div className="flex-1 h-px bg-separator" />
+                  </div>
+                  <div>
+                    {group.items.map((q) => (
+                      <QuoteListItem
+                        key={q.id}
+                        quote={q}
+                        isActive={selectedId === q.id}
+                        onSelect={() => setSelectedId(q.id)}
+                        formatPrice={formatPrice}
+                      />
+                    ))}
+                  </div>
                 </div>
-
-                {/* Quote items */}
-                <div>
-                  {group.items.map((q) => (
-                    <QuoteListItem
-                      key={q.id}
-                      quote={q}
-                      isActive={selectedId === q.id}
-                      onSelect={() => setSelectedId(q.id)}
-                      formatPrice={formatPrice}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 

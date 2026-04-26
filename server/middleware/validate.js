@@ -8,6 +8,7 @@ import {
   VALID_COLOR_COUNTS,
   VALID_CUTTING_SIZES,
   VALID_FLEXO_CHARGE_RATE_KEYS,
+  VALID_QUOTE_CALC_KEYS,
 } from "../config/constants.js";
 
 /**
@@ -133,6 +134,59 @@ export function validateOptionType(req, res, next) {
   }
   if (!req.body.value || typeof req.body.value !== "string") {
     return res.status(400).json({ error: "value must be a non-empty string" });
+  }
+  next();
+}
+
+// ── Quotes ─────────────────────────────────────────────────────────────────
+
+export function validateQuoteCalcKey(req, res, next) {
+  if (!VALID_QUOTE_CALC_KEYS.includes(req.params.calcKey)) {
+    return res
+      .status(400)
+      .json({ error: `Quotes are not enabled for: ${req.params.calcKey}` });
+  }
+  next();
+}
+
+const MAX_QUOTE_NAME = 200;
+
+function isPlainObject(value) {
+  return (
+    value != null &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    Object.getPrototypeOf(value) === Object.prototype
+  );
+}
+
+export function validateQuotePayload(req, res, next) {
+  const { quoteName, pricePerKg, form, pouchSize } = req.body || {};
+
+  if (typeof quoteName !== "string" || !quoteName.trim()) {
+    return res
+      .status(400)
+      .json({ error: "quoteName must be a non-empty string" });
+  }
+  if (quoteName.trim().length > MAX_QUOTE_NAME) {
+    return res
+      .status(400)
+      .json({ error: `quoteName must be ≤ ${MAX_QUOTE_NAME} characters` });
+  }
+  if (
+    typeof pricePerKg !== "number" ||
+    !Number.isFinite(pricePerKg) ||
+    pricePerKg < 0
+  ) {
+    return res
+      .status(400)
+      .json({ error: "pricePerKg must be a non-negative number" });
+  }
+  if (!isPlainObject(form)) {
+    return res.status(400).json({ error: "form must be an object" });
+  }
+  if (pouchSize != null && typeof pouchSize !== "string") {
+    return res.status(400).json({ error: "pouchSize must be a string" });
   }
   next();
 }
