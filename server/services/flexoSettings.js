@@ -151,7 +151,9 @@ async function getPrintingAndGussetSettings() {
 }
 
 async function getConversionRatesForMaterial(material) {
-  const docs = await FlexoConversionRate.find({ material }).sort({ _id: 1 }).lean();
+  const docs = await FlexoConversionRate.find({ material })
+    .sort({ _id: 1 })
+    .lean();
   if (!docs.length) {
     const materialExists = await FlexoMaterial.exists({ _id: material });
     if (!materialExists) {
@@ -166,7 +168,9 @@ async function getConversionRatesForMaterial(material) {
 }
 
 async function getRollSizeRatesForMaterial(material) {
-  const docs = await FlexoRollSizeRate.find({ material }).sort({ _id: 1 }).lean();
+  const docs = await FlexoRollSizeRate.find({ material })
+    .sort({ _id: 1 })
+    .lean();
   if (!docs.length) {
     const materialExists = await FlexoMaterial.exists({ _id: material });
     if (!materialExists) {
@@ -294,8 +298,11 @@ export async function updateConversionRate(material, rollSize, rate) {
 /* ── Printing rates (coverSize × colorCount) ────────────────────────────── */
 
 export async function updatePrintingRate(coverSize, colorCount, rate) {
-  const updated = await FlexoPrintingRate.findByIdAndUpdate(
-    coverSize,
+  // Mongoose 8 schema casting drops fields when $push'ing through a
+  // numeric-keyed subschema path (colors.1.history). Use the raw collection
+  // driver to bypass casting, then re-fetch with .lean() for the response.
+  const result = await FlexoPrintingRate.collection.updateOne(
+    { _id: coverSize },
     {
       $push: {
         [`colors.${colorCount}.history`]: {
@@ -304,16 +311,13 @@ export async function updatePrintingRate(coverSize, colorCount, rate) {
         },
       },
     },
-    {
-      new: true,
-      lean: true,
-    },
   );
 
-  if (!updated) {
+  if (result.matchedCount === 0) {
     throw makeNotFoundError(`Cover size "${coverSize}" not found`);
   }
 
+  const updated = await FlexoPrintingRate.findById(coverSize).lean();
   return toPrintingRateResponse(updated);
 }
 
@@ -472,7 +476,9 @@ export async function updateRollSizeRate(material, rollSize, rate) {
   );
 
   if (!updated) {
-    throw makeNotFoundError(`Roll size "${rollSize}" not found for ${material}`);
+    throw makeNotFoundError(
+      `Roll size "${rollSize}" not found for ${material}`,
+    );
   }
 
   return getRollSizeRatesForMaterial(material);
@@ -512,7 +518,9 @@ export async function toggleRollSizeEnabled(material, rollSize, enabled) {
   );
 
   if (!updated) {
-    throw makeNotFoundError(`Roll size "${rollSize}" not found for ${material}`);
+    throw makeNotFoundError(
+      `Roll size "${rollSize}" not found for ${material}`,
+    );
   }
 
   return getRollSizeRatesForMaterial(material);
@@ -522,7 +530,9 @@ export async function deleteRollSizeRow(material, rollSize) {
   const id = `${material}:${rollSize}`;
   const deleted = await FlexoRollSizeRate.findByIdAndDelete(id);
   if (!deleted) {
-    throw makeNotFoundError(`Roll size "${rollSize}" not found for ${material}`);
+    throw makeNotFoundError(
+      `Roll size "${rollSize}" not found for ${material}`,
+    );
   }
 
   return getRollSizeRatesForMaterial(material);
