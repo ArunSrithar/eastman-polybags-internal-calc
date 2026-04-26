@@ -133,7 +133,9 @@ To stop, press `Ctrl + C` in the terminal.
 
 ## 4. Sample Data (optional)
 
-The app starts with an **empty database**. You can either enter your own rates from the in-app Settings panel, or load the built-in sample data:
+The app starts with **empty rate values** — material and charge rate rows exist but are blank, ready for you to enter your prices via the **Price Settings** panel in the app.
+
+If you'd rather start from a pre-filled set of example values:
 
 ```bash
 npm run seed-db

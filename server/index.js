@@ -8,6 +8,7 @@ import quotesRouter from "./routes/quotes.js";
 import { connectDB } from "./config/db.js";
 import { getServerConfig, makeCorsOriginChecker } from "./config/env.js";
 import { createMutationRateLimiter } from "./middleware/rateLimit.js";
+import { seedStructureIfMissing } from "./utils/seed.js";
 
 dotenv.config();
 
@@ -53,6 +54,7 @@ app.use((err, _req, res, _next) => {
 async function startServer() {
   try {
     await connectDB();
+    await seedStructureIfMissing();
 
     app.listen(port, () => {
       console.log(`Server running on http://localhost:${port}`);

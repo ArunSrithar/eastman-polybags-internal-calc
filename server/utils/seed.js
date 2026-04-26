@@ -268,6 +268,97 @@ export async function seedIfMissing() {
   }
 }
 
+/* ── Structural seed (auto-run on startup) ──────────────────────────────
+ * Creates empty material + charge rate documents whose IDs the UI expects.
+ * Each doc has an empty history so the user can add the first value via UI.
+ * Does NOT seed sample values, dynamic rows (pouches, printing/gusset/etc.).
+ */
+
+const GRAVURE_MATERIAL_STRUCTURE = [
+  { _id: "polyester", label: "Polyester" },
+  { _id: "silverPet", label: "Silver PET" },
+  { _id: "ldRoll", label: "L.D. Roll" },
+  { _id: "bopp", label: "B.O.P.P." },
+];
+
+const GRAVURE_CHARGE_RATE_STRUCTURE = [
+  { _id: "normalColorRate", label: "Normal Color Rate", unit: "₹/color" },
+  { _id: "metallicColorRate", label: "Metallic Color Rate", unit: "₹/color" },
+  { _id: "mattFinishRate", label: "Matt Finish Rate", unit: "₹/kg" },
+  { _id: "singleLamRate", label: "Single Lamination", unit: "₹/kg" },
+  { _id: "doubleLamRate", label: "Double Lamination", unit: "₹/kg" },
+  { _id: "slittingRate", label: "Slitting Charges", unit: "₹/kg" },
+];
+
+const FLEXO_MATERIAL_STRUCTURE = [
+  { _id: "PP", label: "P.P." },
+  { _id: "HM", label: "H.M." },
+  { _id: "LD", label: "L.D." },
+];
+
+const FLEXO_CHARGE_RATE_STRUCTURE = [
+  { _id: "punchingRate", label: "Punching", unit: "₹/unit" },
+  { _id: "opackRate", label: "Opack", unit: "₹/unit" },
+];
+
+async function ensureMaterialStubs(Model, structure, withOptions = false) {
+  const existingIds = new Set(
+    (await Model.find({}, { _id: 1 }).lean()).map((d) => d._id),
+  );
+
+  const missing = structure
+    .filter((row) => !existingIds.has(row._id))
+    .map((row) => ({
+      _id: row._id,
+      label: row.label,
+      priceHistory: [],
+      ...(withOptions ? { micronOptions: [], qtyOptions: [] } : {}),
+    }));
+
+  if (missing.length > 0) {
+    await Model.insertMany(missing);
+  }
+  return missing.length;
+}
+
+async function ensureChargeRateStubs(Model, structure) {
+  const existingIds = new Set(
+    (await Model.find({}, { _id: 1 }).lean()).map((d) => d._id),
+  );
+
+  const missing = structure
+    .filter((row) => !existingIds.has(row._id))
+    .map((row) => ({
+      _id: row._id,
+      label: row.label,
+      unit: row.unit,
+      history: [],
+    }));
+
+  if (missing.length > 0) {
+    await Model.insertMany(missing);
+  }
+  return missing.length;
+}
+
+export async function seedStructureIfMissing() {
+  const [gravureMaterials, gravureCharges, flexoMaterials, flexoCharges] =
+    await Promise.all([
+      ensureMaterialStubs(GravureMaterial, GRAVURE_MATERIAL_STRUCTURE, true),
+      ensureChargeRateStubs(GravureChargeRate, GRAVURE_CHARGE_RATE_STRUCTURE),
+      ensureMaterialStubs(FlexoMaterial, FLEXO_MATERIAL_STRUCTURE, false),
+      ensureChargeRateStubs(FlexoChargeRate, FLEXO_CHARGE_RATE_STRUCTURE),
+    ]);
+
+  const total =
+    gravureMaterials + gravureCharges + flexoMaterials + flexoCharges;
+  if (total > 0) {
+    console.log(
+      `Seeded structural stubs: ${gravureMaterials} gravure materials, ${gravureCharges} gravure charges, ${flexoMaterials} flexo materials, ${flexoCharges} flexo charges`,
+    );
+  }
+}
+
 /* ── Flexo defaults — built from client/src/constants/flexoRateCalc.js ──── */
 
 function makeConversionMaterial(label, ratesByRollSize, now = DEFAULT_SEED_DATE) {
