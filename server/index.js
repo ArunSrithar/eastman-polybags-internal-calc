@@ -11,7 +11,8 @@ import { createMutationRateLimiter } from "./middleware/rateLimit.js";
 dotenv.config();
 
 const app = express();
-const { port, clientOrigins, mutationRateLimitMax, trustProxy } = getServerConfig();
+const { port, clientOrigins, mutationRateLimitMax, trustProxy } =
+  getServerConfig();
 const mutationRateLimiter = createMutationRateLimiter(mutationRateLimitMax);
 
 app.set("trust proxy", trustProxy);

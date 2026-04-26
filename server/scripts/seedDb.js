@@ -26,7 +26,9 @@ function secureEquals(a, b) {
 }
 
 function isLocalMongoUri(uri) {
-  return /^mongodb(?:\+srv)?:\/\/(?:[^@/]+@)?(?:127\.0\.0\.1|localhost)/i.test(uri);
+  return /^mongodb(?:\+srv)?:\/\/(?:[^@/]+@)?(?:127\.0\.0\.1|localhost)/i.test(
+    uri,
+  );
 }
 
 function assertDeveloperAuthorization() {
