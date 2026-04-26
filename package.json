@@ -1,6 +1,6 @@
 {
   "name": "eastman-polybags-internal-calc",
-  "version": "0.1.0-beta",
+  "version": "0.1.1-beta",
   "private": true,
   "description": "Eastman Polybags internal quote calculator — beta build",
   "scripts": {
