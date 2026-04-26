@@ -305,7 +305,7 @@ FlexoRateCalculator/
 | -------------------- | ------------------------------------------------------------------------------------------------ |
 | **localStorage key** | `quotes-flexo-rate-calc`                                                                         |
 | **CALC_KEY**         | `"flexo-rate-calc"`                                                                              |
-| **Storage helpers**  | `getQuotes()`, `saveQuote()`, `deleteQuote()`, `getInitialQuotes()` from `utils/quoteStorage.js` |
+| **Storage helpers**  | `getQuotes()`, `saveQuote()`, `deleteQuote()` from `utils/quoteStorage.js` |
 
 ### Saved quote shape
 

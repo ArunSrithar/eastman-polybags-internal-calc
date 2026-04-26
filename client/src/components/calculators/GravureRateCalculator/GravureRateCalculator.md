@@ -242,7 +242,7 @@ GravureRateCalculator/
 | -------------------- | ------------------------------------------------------------------------------------------------ |
 | **localStorage key** | `quotes-gravure`                                                                                 |
 | **CALC_KEY**         | `"gravure"`                                                                                      |
-| **Storage helpers**  | `getQuotes()`, `saveQuote()`, `deleteQuote()`, `getInitialQuotes()` from `utils/quoteStorage.js` |
+| **Storage helpers**  | `getQuotes()`, `saveQuote()`, `deleteQuote()` from `utils/quoteStorage.js` |
 
 ### Saved quote shape
 
@@ -304,12 +304,6 @@ Save and delete actions dispatch `CustomEvent("quotes-updated")` on `window`. Li
 | `gravure-pouch-sizes`     | Custom pouch sizes added by user                    |
 | `gravure-microns`         | Custom micron values                                |
 | `gravure-wastage`         | Custom wastage percentages                          |
-
----
-
-## Sample Data
-
-20 sample quotes are defined in `constants/gravureRates.js` → `SAMPLE_QUOTES`. Seeded on first visit if localStorage is empty or contains only sample data. Spread across 4 months (Mar, Feb, Jan 2026, Dec 2025) for realistic grouping display.
 
 ---
 

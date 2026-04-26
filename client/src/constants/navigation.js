@@ -116,16 +116,6 @@ export const NAV_ITEMS = [
           description: "View and manage saved Job Cost quotes.",
         },
       },
-      {
-        id: "job-cost-settings",
-        label: "Price Settings",
-        icon: PriceSettingsIcon,
-        path: "/job-cost/settings/",
-        meta: {
-          title: "Job Cost — Price History",
-          description: "Track price changes for Job Cost material rates.",
-        },
-      },
     ],
   },
 ];

@@ -8,9 +8,7 @@ import useCalculator from "../../../hooks/useCalculator";
 
 const buildPayload = (name, form, calc) => ({
   quoteName: name,
-  costOfJob: calc.costOfJob,
-  totalAmount: calc.totalAmount,
-  dispatchWeight: calc.dispatchWeight,
+  pricePerKg: calc.costOfJob,
   form: { ...form, quoteName: name },
 });
 

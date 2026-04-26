@@ -1,11 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import CalculatorHeader from "../layout/CalculatorHeader";
 import { SearchIcon } from "../ui/Icons";
-import {
-  getQuotes,
-  deleteQuote,
-  getInitialQuotes,
-} from "../../utils/quoteStorage";
+import { getQuotes, deleteQuote } from "../../utils/quoteStorage";
 import { groupByMonth } from "../../utils/format";
 import QuoteListItem from "../ui/QuoteListItem";
 import { useToast } from "../ui/Toast";
@@ -20,7 +16,6 @@ import { useToast } from "../ui/Toast";
  * @param {string}    calcKey         — quote storage key ("gravure", "flexo-rate-calc", "job-cost")
  * @param {Component} icon            — calculator icon component
  * @param {string}    title           — page title
- * @param {Array}     [sampleQuotes]  — optional seed data (local-storage calcs only)
  * @param {Function}  calculateRate   — pure calculation function (form → result | null)
  * @param {Component} ResultComponent — breakdown card component
  * @param {Function}  [formatPrice]   — price formatter for QuoteListItem
@@ -29,7 +24,6 @@ export default function SavedQuotesView({
   calcKey,
   icon,
   title,
-  sampleQuotes,
   calculateRate,
   ResultComponent,
   formatPrice,
@@ -52,12 +46,12 @@ export default function SavedQuotesView({
     }
   }, [calcKey]);
 
-  // Initial load — uses getInitialQuotes so local calcs still get sample seeding.
+  // Initial load.
   useEffect(() => {
     let cancelled = false;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- need to reset loading flag on calcKey change before async fetch
     setLoading(true);
-    getInitialQuotes(calcKey, sampleQuotes)
+    getQuotes(calcKey)
       .then((list) => {
         if (cancelled) return;
         setQuotes(list);
@@ -74,7 +68,7 @@ export default function SavedQuotesView({
     return () => {
       cancelled = true;
     };
-  }, [calcKey, sampleQuotes]);
+  }, [calcKey]);
 
   // Cross-component sync (save / delete elsewhere triggers refetch).
   useEffect(() => {

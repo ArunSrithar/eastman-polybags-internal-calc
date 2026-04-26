@@ -1,7 +1,7 @@
 # Job Cost Calculator — Technical Reference
 
 > **Status**: ✅ Complete (UI Redesign Sprint 2)
-> **Storage key**: `quotes-job-cost`
+> **Storage**: MongoDB `quotes` collection, filtered by `calcKey: "job-cost"` (via `/api/quotes/job-cost`)
 
 ---
 
@@ -218,7 +218,7 @@ components/calculators/JobCostCalculator/
 
 Supporting files:
 
-- `constants/jobCost.js` — `LINE_ITEMS`, `DROPDOWN_SEEDS`, `SAMPLE_QUOTES`
+- `constants/jobCost.js` — `LINE_ITEMS`, `DROPDOWN_SEEDS`
 - `utils/calculators/jobCost.js` — `calculateJobCost()` pure function
 - `hooks/useCalculator.js` — shared calculator state + handlers hook
 - `constants/invoiceColors.js` — shared `SECTION_COLORS` for invoice sections
@@ -227,23 +227,33 @@ Supporting files:
 
 ## Quote Storage
 
-| Key               | Value                                                                        |
-| ----------------- | ---------------------------------------------------------------------------- |
-| `quotes-job-cost` | `[{ id, savedAt, quoteName, costOfJob, totalAmount, dispatchWeight, form }]` |
+Quotes are persisted server-side in the shared MongoDB `quotes` collection,
+routed through `/api/quotes/job-cost` (see [server/models/Quote.js](../../../../../server/models/Quote.js)).
+
+| Field        | Source                             |
+| ------------ | ---------------------------------- |
+| `calcKey`    | `"job-cost"` (set server-side)     |
+| `quoteName`  | Customer name (unique per calcKey) |
+| `pricePerKg` | `calc.costOfJob` (₹/kg)            |
+| `pouchSize`  | `null` (not used by Job Cost)      |
+| `form`       | Full form state                    |
+| `savedAt`    | Server timestamp                   |
 
 ### Saved Quote Shape
 
 ```js
 {
-  id: "uuid",
+  id: "q-xxxx",
   savedAt: "ISO-8601",
   quoteName: "Rajesh Traders — Feb",
-  costOfJob: 240.00,          // ₹/kg — used for formatPrice display
-  totalAmount: 14400,          // total ₹ — used for re-rendering result
-  dispatchWeight: 60,          // kg — used for annotation
+  pricePerKg: 240.00,          // ₹/kg — used for formatPrice display
+  pouchSize: null,
   form: { ...fullFormState }   // all metadata + items + weights
 }
 ```
+
+`totalAmount` and `dispatchWeight` are not persisted — they are recomputed by
+`calculateJobCost(form)` whenever a saved quote is rendered.
 
 ### Save Validation
 
@@ -278,6 +288,6 @@ Supporting files:
 | `ItemRow`              | ✅     | Extracted, supports qty + flat variants            |
 | `formConfig.js`        | ✅     | Factory + item groups + re-exports                 |
 | `calculateJobCost()`   | ✅     | Pure function in `utils/calculators/`              |
-| `constants/jobCost.js` | ✅     | LINE_ITEMS, DROPDOWN_SEEDS, SAMPLE_QUOTES          |
+| `constants/jobCost.js` | ✅     | LINE_ITEMS, DROPDOWN_SEEDS                         |
 | Print layout           | ✅     | `data-print-area` + `@media print`                 |
 | AppShell wiring        | ✅     | `job-cost` + `job-cost-quotes` in PERSISTENT_VIEWS |

@@ -200,7 +200,7 @@ client/src/
 │
 ├── utils/
 │   ├── format.js            ✅ fmt(), formatDate(), groupByMonth()
-│   ├── quoteStorage.js      ✅ getQuotes(), saveQuote(), deleteQuote(), getInitialQuotes()
+│   ├── quoteStorage.js      ✅ getQuotes(), saveQuote(), deleteQuote() — routes to API or localStorage
 │   └── calculators/
 │       ├── gravureRate.js   ✅ calculateGravureRate() pure function
 │       ├── flexoRateCalc.js ✅ calculateFlexoRate() pure function
@@ -438,7 +438,6 @@ import {
   getQuotes,
   saveQuote,
   deleteQuote,
-  getInitialQuotes,
 } from "../../../utils/quoteStorage";
 
 const CALC_KEY = "my-calc"; // unique per calculator, kebab-case

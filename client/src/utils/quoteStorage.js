@@ -11,7 +11,7 @@
 import * as quotesApi from "./quotesApi";
 
 // Calculators whose quotes are persisted server-side.
-const REMOTE_KEYS = new Set(["gravure", "flexo-rate-calc"]);
+const REMOTE_KEYS = new Set(["gravure", "flexo-rate-calc", "job-cost"]);
 
 function isRemote(calcKey) {
   return REMOTE_KEYS.has(calcKey);
@@ -72,24 +72,4 @@ export async function deleteQuote(calcKey, id) {
   }
   const updated = readLocal(calcKey).filter((q) => q.id !== id);
   writeLocal(calcKey, updated);
-}
-
-/**
- * Load quotes for a calculator, seeding with sample data on first visit.
- * Sample seeding only applies to local-storage calculators; remote
- * calculators always start from the server's actual list.
- */
-export async function getInitialQuotes(calcKey, sampleQuotes) {
-  if (isRemote(calcKey)) {
-    return quotesApi.listQuotes(calcKey);
-  }
-  const stored = readLocal(calcKey);
-  const allSamples =
-    stored.length > 0 &&
-    stored.every((q) => String(q.id).startsWith("sample-"));
-  if (sampleQuotes && (stored.length === 0 || allSamples)) {
-    writeLocal(calcKey, sampleQuotes);
-    return sampleQuotes;
-  }
-  return stored;
 }

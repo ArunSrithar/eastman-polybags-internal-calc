@@ -36,5 +36,4 @@ export const VALID_FLEXO_CHARGE_RATE_KEYS = ["punchingRate", "opackRate"];
 
 // ── Quotes ─────────────────────────────────────────────────────────────────
 // Allow-list of calcKeys whose quotes are persisted via /api/quotes/:calcKey.
-// Add "job-cost" here once that calculator migrates.
-export const VALID_QUOTE_CALC_KEYS = ["gravure", "flexo-rate-calc"];
+export const VALID_QUOTE_CALC_KEYS = ["gravure", "flexo-rate-calc", "job-cost"];

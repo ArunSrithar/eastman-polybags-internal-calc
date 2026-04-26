@@ -66,24 +66,3 @@ export const DROPDOWN_SEEDS = {
   colours: ["1 Colour", "2 Colour", "3 Colour", "4 Colour", "Multicolour"],
 };
 
-// ── Sample quotes (seed data — replace with DB fetch when backend is ready) ──
-export const SAMPLE_QUOTES = [
-  {
-    id: "sample-1",
-    savedAt: "2026-02-24T10:00:00.000Z",
-    quoteName: "Rajesh Traders — Feb",
-    costOfJob: 218.5,
-    totalAmount: 13110,
-    dispatchWeight: 60,
-    form: null,
-  },
-  {
-    id: "sample-2",
-    savedAt: "2026-02-20T14:00:00.000Z",
-    quoteName: "Metro Snacks Batch",
-    costOfJob: 199.75,
-    totalAmount: 9987.5,
-    dispatchWeight: 50,
-    form: null,
-  },
-];
