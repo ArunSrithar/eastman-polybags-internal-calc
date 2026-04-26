@@ -1,0 +1,18 @@
+{
+  "name": "eastman-polybags-internal-calc",
+  "version": "0.1.0-beta",
+  "private": true,
+  "description": "Eastman Polybags internal quote calculator — beta build",
+  "scripts": {
+    "install:all": "npm install && npm install --prefix server && npm install --prefix client",
+    "start": "concurrently -k -n server,client -c blue,magenta \"npm run start:server\" \"npm run start:client\"",
+    "start:server": "npm run start --prefix server",
+    "start:client": "npm run dev --prefix client",
+    "build:client": "npm run build --prefix client",
+    "preview:client": "npm run preview --prefix client",
+    "reset-db": "npm run dev:reset-db --prefix server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

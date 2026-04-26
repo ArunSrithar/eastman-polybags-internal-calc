@@ -5,3 +5,9 @@ node_modules
 
 # Server runtime data (seeded on first start)
 server/data/
+
+# Client production build
+client/dist/
+
+# Beta distribution archives
+eastman-polybags-beta-*.zip

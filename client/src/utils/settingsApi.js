@@ -1,5 +1,8 @@
-const API_BASE = "http://localhost:3001/api/gravure";
-const FLEXO_API_BASE = "http://localhost:3001/api/flexo";
+const API_ROOT = (
+  import.meta.env.VITE_API_BASE || "http://localhost:3001"
+).replace(/\/+$/, "");
+const API_BASE = `${API_ROOT}/api/gravure`;
+const FLEXO_API_BASE = `${API_ROOT}/api/flexo`;
 
 async function request(url, options = {}) {
   const res = await fetch(url, {
