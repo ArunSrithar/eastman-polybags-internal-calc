@@ -12,8 +12,8 @@ import {
 
 const buildPayload = (name, form, calc) => ({
   quoteName: name,
-  totalRate: calc.totalRate,
-  coverSize: form.coverSize,
+  pouchSize: form.coverSize,
+  pricePerKg: calc.totalRate,
   form: { ...form, quoteName: name },
 });
 

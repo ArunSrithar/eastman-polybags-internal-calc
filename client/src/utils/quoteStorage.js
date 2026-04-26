@@ -11,7 +11,7 @@
 import * as quotesApi from "./quotesApi";
 
 // Calculators whose quotes are persisted server-side.
-const REMOTE_KEYS = new Set(["gravure"]);
+const REMOTE_KEYS = new Set(["gravure", "flexo-rate-calc"]);
 
 function isRemote(calcKey) {
   return REMOTE_KEYS.has(calcKey);
