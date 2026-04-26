@@ -7,7 +7,6 @@ import flexoSettingsRouter from "./routes/flexoSettings.js";
 import { connectDB } from "./config/db.js";
 import { getServerConfig, makeCorsOriginChecker } from "./config/env.js";
 import { createMutationRateLimiter } from "./middleware/rateLimit.js";
-import { seedIfMissing } from "./utils/seed.js";
 
 dotenv.config();
 
@@ -51,9 +50,6 @@ app.use((err, _req, res, _next) => {
 async function startServer() {
   try {
     await connectDB();
-
-    // Seed data files if missing, then start
-    await seedIfMissing();
 
     app.listen(port, () => {
       console.log(`Server running on http://localhost:${port}`);

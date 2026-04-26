@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
+    "dev:seed-db": "node scripts/seedDb.js",
     "dev:reset-db": "node scripts/resetDb.js --scope all",
     "dev:reset-db:gravure": "node scripts/resetDb.js --scope gravure",
     "dev:reset-db:flexo": "node scripts/resetDb.js --scope flexo",

@@ -10,6 +10,7 @@
     "start:client": "npm run dev --prefix client",
     "build:client": "npm run build --prefix client",
     "preview:client": "npm run preview --prefix client",
+    "seed-db": "npm run dev:seed-db --prefix server",
     "reset-db": "npm run dev:reset-db --prefix server"
   },
   "devDependencies": {

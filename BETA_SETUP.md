@@ -10,10 +10,10 @@ This is a beta build of the Eastman Polybags Internal Quote Calculator. Follow t
 
 Install these once:
 
-| Software    | Version  | Download                                          |
-| ----------- | -------- | ------------------------------------------------- |
+| Software    | Version     | Download                                       |
+| ----------- | ----------- | ---------------------------------------------- |
 | **Node.js** | 18 or newer | https://nodejs.org/                            |
-| **MongoDB** | 6 or newer | https://www.mongodb.com/try/download/community |
+| **MongoDB** | 6 or newer  | https://www.mongodb.com/try/download/community |
 
 To verify after install, open a terminal and run:
 
@@ -131,34 +131,54 @@ To stop, press `Ctrl + C` in the terminal.
 
 ---
 
-## 4. Reset the Database (optional)
+## 4. Sample Data (optional)
 
-If you want to wipe all your saved data and restore the default rates:
+The app starts with an **empty database**. You can either enter your own rates from the in-app Settings panel, or load the built-in sample data:
+
+```bash
+npm run seed-db
+```
+
+Sample data is added only if the corresponding collection is empty — running it again is safe and will not duplicate entries.
+
+> Requires `DEV_RESET_DB_KEY` to be set in `server/.env` and passed via `--key`. For example:
+>
+> ```bash
+> npm run seed-db -- --key your-key-here
+> ```
+
+---
+
+## 5. Reset the Database (optional)
+
+If you want to wipe all your saved data and start from scratch:
 
 ```bash
 npm run reset-db
 ```
 
-You will need to set `DEV_RESET_DB_KEY` in `server/.env` to a value of your choice and pass it as documented in the prompt.
+This clears all rate history and removes added rows. To repopulate with sample data afterwards, run `npm run seed-db`.
+
+You will need to set `DEV_RESET_DB_KEY` in `server/.env` to a value of your choice and pass it as `--key your-key-here`.
 
 ---
 
-## 5. Troubleshooting
+## 6. Troubleshooting
 
-| Problem | Likely cause | Fix |
-| --- | --- | --- |
-| `MongoNetworkError` on startup | MongoDB is not running, or `MONGODB_URI` is wrong | Start MongoDB (`brew services start mongodb-community` on macOS) or fix the URI in `server/.env` |
-| Browser shows "Failed to fetch" or settings won't load | API server not running, or wrong `VITE_API_BASE` | Make sure the server terminal is up; check `client/.env.local` |
-| Port 3001 already in use | Another app is using the port | Change `PORT` in `server/.env` and update `VITE_API_BASE` accordingly |
-| Port 8000 already in use | Another app is using the port | Stop the other app, or change `port` in `client/vite.config.js` |
-| Quotes saved earlier disappeared | Quotes are saved in your browser's `localStorage` per browser | Use the same browser/profile to see your saved quotes |
-| **Windows:** "running scripts is disabled on this system" in PowerShell | PowerShell execution policy blocks npm scripts | Open PowerShell as Administrator and run: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, then restart the terminal |
-| **Windows:** `'cp' is not recognized` | Used a macOS/Linux command in Windows terminal | Use the Windows `copy` (cmd) or `Copy-Item` (PowerShell) commands shown above |
-| **Windows:** MongoDB doesn't start | Service not installed or not running | Open `services.msc`, find `MongoDB Server`, right-click → Start. Or reinstall MongoDB and tick "Install as a Service" |
+| Problem                                                                 | Likely cause                                                  | Fix                                                                                                                        |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `MongoNetworkError` on startup                                          | MongoDB is not running, or `MONGODB_URI` is wrong             | Start MongoDB (`brew services start mongodb-community` on macOS) or fix the URI in `server/.env`                           |
+| Browser shows "Failed to fetch" or settings won't load                  | API server not running, or wrong `VITE_API_BASE`              | Make sure the server terminal is up; check `client/.env.local`                                                             |
+| Port 3001 already in use                                                | Another app is using the port                                 | Change `PORT` in `server/.env` and update `VITE_API_BASE` accordingly                                                      |
+| Port 8000 already in use                                                | Another app is using the port                                 | Stop the other app, or change `port` in `client/vite.config.js`                                                            |
+| Quotes saved earlier disappeared                                        | Quotes are saved in your browser's `localStorage` per browser | Use the same browser/profile to see your saved quotes                                                                      |
+| **Windows:** "running scripts is disabled on this system" in PowerShell | PowerShell execution policy blocks npm scripts                | Open PowerShell as Administrator and run: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, then restart the terminal |
+| **Windows:** `'cp' is not recognized`                                   | Used a macOS/Linux command in Windows terminal                | Use the Windows `copy` (cmd) or `Copy-Item` (PowerShell) commands shown above                                              |
+| **Windows:** MongoDB doesn't start                                      | Service not installed or not running                          | Open `services.msc`, find `MongoDB Server`, right-click → Start. Or reinstall MongoDB and tick "Install as a Service"      |
 
 ---
 
-## 6. Sharing Feedback
+## 7. Sharing Feedback
 
 We'll go through your feedback in person during our review meeting. Please note:
 
