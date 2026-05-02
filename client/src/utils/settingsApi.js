@@ -1,14 +1,31 @@
+import { refreshApi } from "./authApi";
+
 const API_ROOT = (
   import.meta.env.VITE_API_BASE || "http://localhost:3001"
 ).replace(/\/+$/, "");
 const API_BASE = `${API_ROOT}/api/gravure`;
 const FLEXO_API_BASE = `${API_ROOT}/api/flexo`;
 
-async function request(url, options = {}) {
+async function request(url, options = {}, retry = true) {
   const res = await fetch(url, {
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     ...options,
   });
+
+  // Auto-refresh on 401 — attempt once, then give up.
+  if (res.status === 401 && retry) {
+    try {
+      await refreshApi();
+      return request(url, options, false);
+    } catch {
+      window.dispatchEvent(new CustomEvent("auth:logout"));
+      const err = new Error("Session expired — please log in again");
+      err.status = 401;
+      throw err;
+    }
+  }
+
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error || `Request failed: ${res.status}`);

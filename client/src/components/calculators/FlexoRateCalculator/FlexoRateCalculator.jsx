@@ -5,6 +5,7 @@ import FlexoResult from "./FlexoResult";
 import { makeInitialForm } from "./formConfig";
 import { calculateFlexoRate } from "../../../utils/calculators/flexoRateCalc";
 import useCalculator from "../../../hooks/useCalculator";
+import { useAuth } from "../../../context/AuthContext";
 import {
   useFlexoSettings,
   buildFlexoRatesFromSettings,
@@ -20,6 +21,7 @@ const buildPayload = (name, form, calc) => ({
 export default function FlexoRateCalculator() {
   const { settings, loading } = useFlexoSettings();
   const rates = settings ? buildFlexoRatesFromSettings(settings) : undefined;
+  const { canSaveQuote } = useAuth();
 
   const {
     form,
@@ -54,7 +56,7 @@ export default function FlexoRateCalculator() {
         icon={FlexoIcon}
         title="Flexo Rate Calculator"
         subtitle="Calculate rates for flexo printing jobs"
-        onSave={handleSave}
+        onSave={canSaveQuote("flexo-rate-calc") ? handleSave : null}
         onPrint={handlePrint}
         onReset={handleReset}
       />

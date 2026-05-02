@@ -5,6 +5,7 @@ import JobCostResult from "./JobCostResult";
 import { makeInitialForm } from "./formConfig";
 import { calculateJobCost } from "../../../utils/calculators/jobCost";
 import useCalculator from "../../../hooks/useCalculator";
+import { useAuth } from "../../../context/AuthContext";
 
 const buildPayload = (name, form, calc) => ({
   quoteName: name,
@@ -13,6 +14,7 @@ const buildPayload = (name, form, calc) => ({
 });
 
 export default function JobCostCalculator() {
+  const { canSaveQuote } = useAuth();
   const {
     form,
     result,
@@ -38,7 +40,7 @@ export default function JobCostCalculator() {
         icon={JobCostIcon}
         title="Job Cost Calculator"
         subtitle="Calculate total job cost and cost per kg"
-        onSave={handleSave}
+        onSave={canSaveQuote("job-cost") ? handleSave : null}
         onPrint={handlePrint}
         onReset={handleReset}
       />

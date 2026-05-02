@@ -5,6 +5,7 @@ import GravureResult from "./GravureResult";
 import { makeInitialForm } from "./formConfig";
 import { calculateGravureRate } from "../../../utils/calculators/gravureRate";
 import useCalculator from "../../../hooks/useCalculator";
+import { useAuth } from "../../../context/AuthContext";
 import {
   useGravureSettings,
   buildRatesFromSettings,
@@ -20,6 +21,7 @@ const buildPayload = (name, form, calc) => ({
 function GravureRateCalculatorInner() {
   const { settings, loading } = useGravureSettings();
   const rates = settings ? buildRatesFromSettings(settings) : undefined;
+  const { canSaveQuote } = useAuth();
 
   const {
     form,
@@ -54,7 +56,7 @@ function GravureRateCalculatorInner() {
         icon={GravureIcon}
         title="Gravure Rate Calculator"
         subtitle="Calculate printing rates for gravure jobs"
-        onSave={handleSave}
+        onSave={canSaveQuote("gravure") ? handleSave : null}
         onPrint={handlePrint}
         onReset={handleReset}
       />

@@ -250,6 +250,14 @@ body {
   .current-row td:last-child {
     border-radius: 0 9999px 9999px 0;
   }
+
+  /* Form error message (login, change password, user form) */
+  .form-error {
+    @apply text-xs text-red-500 dark:text-red-400
+           bg-red-50 dark:bg-red-500/10
+           border border-red-200 dark:border-red-500/20
+           rounded-lg px-3 py-2;
+  }
 }
 
 /* ─── Print Styles ────────────────────────────────────────────────────────── */

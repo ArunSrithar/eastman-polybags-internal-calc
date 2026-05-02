@@ -27,13 +27,21 @@ function parseTrustProxy(value) {
 }
 
 export function getServerConfig() {
-  const origins = parseCsv(process.env.CLIENT_ORIGIN || "http://localhost:8000");
+  const origins = parseCsv(
+    process.env.CLIENT_ORIGIN || "http://localhost:8000",
+  );
 
   return {
     port: Number(process.env.PORT) || 3001,
     clientOrigins: origins,
     mutationRateLimitMax: Number(process.env.MUTATION_RATE_LIMIT_MAX) || 120,
     trustProxy: parseTrustProxy(process.env.TRUST_PROXY),
+    jwtSecret: process.env.JWT_SECRET || "dev-jwt-secret-change-in-production",
+    jwtExpiresIn: process.env.JWT_EXPIRES_IN || "15m",
+    refreshSecret:
+      process.env.REFRESH_SECRET || "dev-refresh-secret-change-in-production",
+    refreshExpiresIn: process.env.REFRESH_EXPIRES_IN || "7d",
+    adminEmail: process.env.ADMIN_EMAIL || "admin@eastman.com",
   };
 }
 

@@ -12,6 +12,7 @@ import JobCostCalculator from "../calculators/JobCostCalculator/JobCostCalculato
 import JobCostSavedQuotes from "../calculators/JobCostCalculator/JobCostSavedQuotes";
 import GravurePriceSettings from "../RateSettings/GravurePriceSettings";
 import FlexoPriceSettings from "../RateSettings/FlexoPriceSettings";
+import UserManagement from "../admin/UserManagement";
 
 // Persistent views — stay mounted to preserve state across navigation.
 const PERSISTENT_VIEWS = {
@@ -23,6 +24,7 @@ const PERSISTENT_VIEWS = {
   "flexo-settings": FlexoPriceSettings,
   "job-cost": JobCostCalculator,
   "job-cost-quotes": JobCostSavedQuotes,
+  users: UserManagement,
 };
 
 export default function AppShell() {

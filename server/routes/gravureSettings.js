@@ -7,15 +7,21 @@ import {
   validateString,
   validateOptionType,
 } from "../middleware/validate.js";
+import { requirePermission } from "../middleware/authorize.js";
+
+// Reusable permission middlewares for this fixed-calc router
+const needCalculate = requirePermission("gravure.calculate");
+const needEditPrices = requirePermission("gravure.editPrices");
 
 const router = Router();
 
 // Settings
-router.get("/settings", ctrl.getSettings);
+router.get("/settings", needCalculate, ctrl.getSettings);
 
 // Material prices
 router.put(
   "/materials/:materialKey/price",
+  needEditPrices,
   validateMaterial,
   validateNumber("price"),
   ctrl.updateMaterialPrice,
@@ -24,6 +30,7 @@ router.put(
 // Material options (micron / qty)
 router.post(
   "/materials/:materialKey/options",
+  needEditPrices,
   validateMaterial,
   validateOptionType,
   ctrl.addMaterialOption,
@@ -32,19 +39,21 @@ router.post(
 // Pouches
 router.post(
   "/pouches",
+  needEditPrices,
   validateString("length"),
   validateString("breadth"),
   validateNumber("rate"),
   ctrl.createPouch,
 );
 
-router.put("/pouches/:id", ctrl.updatePouch);
+router.put("/pouches/:id", needEditPrices, ctrl.updatePouch);
 
-router.delete("/pouches/:id", ctrl.deletePouch);
+router.delete("/pouches/:id", needEditPrices, ctrl.deletePouch);
 
 // Charge rates
 router.put(
   "/charge-rates/:rateKey",
+  needEditPrices,
   validateRateKey,
   validateNumber("rate"),
   ctrl.updateChargeRate,

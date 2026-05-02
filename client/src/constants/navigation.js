@@ -6,6 +6,7 @@ import {
   CalculatorSubIcon,
   QuotesIcon,
   PriceSettingsIcon,
+  UsersIcon,
 } from "../components/ui/Icons";
 
 /**
@@ -118,6 +119,18 @@ export const NAV_ITEMS = [
       },
     ],
   },
+  {
+    id: "users",
+    label: "Users",
+    icon: UsersIcon,
+    path: "/users/",
+    requiredPermission: "manageUsers",
+    meta: {
+      title: "User Management",
+      description: "Manage app users and their permissions.",
+    },
+    subItems: null,
+  },
 ];
 
 /**
@@ -153,3 +166,23 @@ export const PATH_TO_VIEW = Object.fromEntries(
 export const VIEW_META = viewMeta;
 
 export const QUOTE_STORAGE_KEYS = quoteKeys;
+
+/**
+ * Per-view permission requirements.
+ * Used by SidebarNav (filter) and useRouting (redirect guard).
+ *
+ * type:
+ *   "calculate" | "viewQuotes" | "editPrices"  → checked against user.permissions[calcKey][type]
+ *   "manageUsers"                               → checked against canManageUsers()
+ */
+export const VIEW_PERMISSIONS = {
+  gravure: { type: "calculate", calcKey: "gravure" },
+  "gravure-quotes": { type: "viewQuotes", calcKey: "gravure" },
+  "gravure-settings": { type: "editPrices", calcKey: "gravure" },
+  flexo: { type: "calculate", calcKey: "flexo" },
+  "flexo-quotes": { type: "viewQuotes", calcKey: "flexo" },
+  "flexo-settings": { type: "editPrices", calcKey: "flexo" },
+  "job-cost": { type: "calculate", calcKey: "job-cost" },
+  "job-cost-quotes": { type: "viewQuotes", calcKey: "job-cost" },
+  users: { type: "manageUsers" },
+};
