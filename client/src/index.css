@@ -242,7 +242,13 @@ body {
 
   /* Current (top) history row — single gradient across the full <tr> */
   .current-row {
-    background: linear-gradient(to right, oklch(0.65 0.15 290 / 0.15), oklch(0.62 0.14 270 / 0.08), oklch(0.62 0.15 250 / 0.05), transparent);
+    background: linear-gradient(
+      to right,
+      oklch(0.65 0.15 290 / 0.15),
+      oklch(0.62 0.14 270 / 0.08),
+      oklch(0.62 0.15 250 / 0.05),
+      transparent
+    );
   }
   .current-row td:first-child {
     border-radius: 9999px 0 0 9999px;

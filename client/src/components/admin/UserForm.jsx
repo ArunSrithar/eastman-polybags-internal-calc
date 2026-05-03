@@ -345,9 +345,7 @@ export default function UserForm({
         </div>
 
         {/* ── Error ──────────────────────────────────────────────────── */}
-        {saveError ? (
-          <p className="form-error">{saveError}</p>
-        ) : null}
+        {saveError ? <p className="form-error">{saveError}</p> : null}
 
         {/* ── Actions ────────────────────────────────────────────────── */}
         <div className="flex items-center gap-2">

@@ -9,10 +9,12 @@ export default function LoginPage() {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError]       = useState(null);
-  const [loading, setLoading]   = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  function clearError() { setError(null); }
+  function clearError() {
+    setError(null);
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -53,7 +55,9 @@ export default function LoginPage() {
       <div className="card overflow-visible shadow-lg">
         <div className="card-section pb-1">
           <h2 className="text-base font-semibold text-label">Sign in</h2>
-          <p className="text-xs text-label-3 mt-0.5">Enter your credentials to continue</p>
+          <p className="text-xs text-label-3 mt-0.5">
+            Enter your credentials to continue
+          </p>
         </div>
 
         <div className="divider mx-4" />
@@ -73,7 +77,10 @@ export default function LoginPage() {
                   id="username"
                   type="text"
                   value={username}
-                  onChange={(e) => { setUsername(e.target.value); clearError(); }}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    clearError();
+                  }}
                   placeholder="Enter username"
                   autoComplete="username"
                   autoFocus
@@ -88,7 +95,10 @@ export default function LoginPage() {
               id="login-password"
               label="Password"
               value={password}
-              onChange={(e) => { setPassword(e.target.value); clearError(); }}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                clearError();
+              }}
               placeholder="Enter password"
               autoComplete="current-password"
             />
