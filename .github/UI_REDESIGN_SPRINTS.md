@@ -9,7 +9,7 @@
 
 ## Product Context
 
-Eastman Polybags Internal Quote Calculator — an internal tool for staff to generate quotes for customers based on daily fluctuating rates. Three calculators (Gravure, Flexo, Job Cost) with saved quotes and live calculation results.
+Eastman Colour Printers Internal Quote Calculator — an internal tool for staff to generate quotes for customers based on daily fluctuating rates. Three calculators (Gravure, Flexo, Job Cost) with saved quotes and live calculation results.
 
 **Goal of redesign**: Transform from the current calculator-owns-sidebar layout into a left sidebar navigation architecture — glass island sidebar with expandable calculator menus, grid background pattern, and a spacious main workspace for calculator forms and results.
 

@@ -1,4 +1,4 @@
-# Eastman Polybags — Internal Quote Calculator
+# Eastman Colour Printers — Internal Quote Calculator
 
 > ## ⛔ STOP — READ BEFORE WRITING ANY CODE
 >
@@ -127,7 +127,7 @@ client/src/
 │   │   ├── CreatableSelect.jsx  ✅ Dropdown with custom option creation + localStorage persistence
 │   │   ├── MetaRow.jsx          ✅ Labeled metadata field (label + value)
 │   │   ├── Toast.jsx            ✅ macOS-style self-dismissing notification + useToast() hook
-│   │   └── Icons.jsx            ✅ 22 icons: Close, Trash, ChevronDown, Dashboard, Gravure, Flexo, JobCost, Sun, Moon, Calculator, Quotes, History, User, Logout, Save, Pdf, Print, Reset, Delete, Export, Search, PriceSettings
+│   │   └── Icons.jsx            ✅ 23 icons: Close, Trash, ChevronDown, Dashboard, Gravure, Flexo, JobCost, Sun, Moon, Calculator, Quotes, History, User, Logout, Save, Pdf, Print, Reset, Delete, Export, Search, PriceSettings, Home
 │   │
 │   ├── form/                        ✅ Reusable compound form components (composition pattern)
 │   │   ├── FormStack.jsx            ✅ Outer wrapper, flex col gap-4
@@ -299,6 +299,13 @@ Prefer `@layer components` classes from `index.css` over repeating utility strin
 | `.item-row-label`         | item row label text styling                           |
 | `.item-row-inputs`        | item row input grid container                         |
 | `.item-row-inputs-off`    | disabled state for item row inputs                    |
+| `.auth-field-label`       | login form field label (uppercase, xs, tracking)      |
+| `.auth-input`             | login page text input with focus ring                 |
+| `.auth-submit-btn`        | login page full-width submit button                   |
+| `.auth-login-card`        | login card glass surface (distinct light/dark)        |
+| `.auth-page-bg`           | login page gradient background (light/dark adaptive)  |
+| `.auth-outline-text`      | outlined headline text with theme-adaptive stroke     |
+| `.auth-line`              | staggered appear/disappear headline animation         |
 
 ```jsx
 // ✅ Preferred
@@ -434,11 +441,7 @@ The hook encapsulates: form state, result calculation, save validation (empty na
 Use `utils/quoteStorage.js` helpers — never write to `localStorage` directly for quote data:
 
 ```js
-import {
-  getQuotes,
-  saveQuote,
-  deleteQuote,
-} from "../../../utils/quoteStorage";
+import { getQuotes, saveQuote, deleteQuote } from "../../../utils/quoteStorage";
 
 const CALC_KEY = "my-calc"; // unique per calculator, kebab-case
 ```
@@ -488,7 +491,7 @@ Use existing primitives from `components/ui/` — do not re-implement them:
 | `CreatableSelect` | Dropdown with custom option creation + localStorage persistence |
 | `MetaRow`         | Labeled metadata field (label + value)                          |
 | `Toast`           | macOS-style self-dismissing notification + `useToast()` hook    |
-| `Icons.jsx`       | 22 SVG icons (nav, actions, theme, account, search, export)     |
+| `Icons.jsx`       | 23 SVG icons (nav, actions, theme, account, search, export, home) |
 
 ---
 

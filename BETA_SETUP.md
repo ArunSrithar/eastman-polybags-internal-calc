@@ -1,6 +1,6 @@
-# Eastman Polybags — Beta Setup Guide
+# Eastman Colour Printers — Beta Setup Guide
 
-This is a beta build of the Eastman Polybags Internal Quote Calculator. Follow these steps to run it on your local machine.
+This is a beta build of the Eastman Colour Printers Internal Quote Calculator. Follow these steps to run it on your local machine.
 
 > **Beta version:** `v0.1.0-beta` — please share feedback during our review meeting.
 

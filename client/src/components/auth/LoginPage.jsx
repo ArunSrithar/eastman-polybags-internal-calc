@@ -1,20 +1,15 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { UserIcon } from "../ui/Icons";
-import PasswordInput from "../ui/PasswordInput";
-import AuthPageLayout from "./AuthPageLayout";
+import { UserIcon, LockIcon, EyeIcon, EyeOffIcon, HomeIcon } from "../ui/Icons";
 
 export default function LoginPage() {
   const { login } = useAuth();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [visible, setVisible] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  function clearError() {
-    setError(null);
-  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -30,96 +25,156 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthPageLayout>
-      {/* Branding */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-tint/10 mb-4">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="size-7 text-tint"
-          >
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
-        </div>
-        <h1 className="text-xl font-semibold text-label">Eastman Polybags</h1>
-        <p className="text-sm text-label-3 mt-1">Internal Calculator</p>
-      </div>
+    <div className="min-h-screen w-full flex flex-col overflow-hidden relative auth-page-bg">
+      {/* Box grid overlay */}
+      <div className="auth-grid-overlay absolute inset-0 pointer-events-none" />
 
-      {/* Card */}
-      <div className="card overflow-visible shadow-lg">
-        <div className="card-section pb-1">
-          <h2 className="text-base font-semibold text-label">Sign in</h2>
-          <p className="text-xs text-label-3 mt-0.5">
-            Enter your credentials to continue
-          </p>
-        </div>
+      {/* Glow blobs — theme-aware via CSS classes */}
+      <div className="auth-blob-1 absolute -top-40 -left-20 w-[700px] h-[700px] rounded-full pointer-events-none" />
+      <div className="auth-blob-2 absolute -bottom-48 left-[10%] w-[600px] h-[600px] rounded-full pointer-events-none" />
 
-        <div className="divider mx-4" />
-
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="card-section space-y-3">
-            {/* Username */}
-            <div>
-              <label htmlFor="username" className="field-label mb-1.5 block">
-                Username
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-label-3 pointer-events-none">
-                  <UserIcon className="size-4" />
-                </span>
-                <input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => {
-                    setUsername(e.target.value);
-                    clearError();
-                  }}
-                  placeholder="Enter username"
-                  autoComplete="username"
-                  autoFocus
-                  className="input-base pl-9"
-                  required
-                />
+      {/* Full-screen two-column layout */}
+      <div className="relative w-full flex-1 self-stretch grid grid-cols-2">
+        {/* Left: branding panel — content right-aligned, hugging center */}
+        <div className="hidden lg:flex items-center justify-end pr-6 pl-16 relative z-10">
+          <div className="space-y-10 max-w-md text-right">
+            {/* Logo / wordmark — swap svg for <img> when a logo asset is available */}
+            <div className="flex items-center gap-3 justify-end">
+              <span className="text-label font-semibold text-base tracking-tight">
+                Eastman Colour Printers
+              </span>
+              <div className="size-9 rounded-xl ring-1 ring-tint/40 bg-tint/15 flex items-center justify-center flex-shrink-0">
+                <HomeIcon className="size-4.5 text-tint" />
               </div>
             </div>
 
-            {/* Password */}
-            <PasswordInput
-              id="login-password"
-              label="Password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                clearError();
-              }}
-              placeholder="Enter password"
-              autoComplete="current-password"
-            />
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 bg-tint/15 border border-tint/25 rounded-full px-3 py-1">
+                <p className="text-tint text-[11px] font-semibold uppercase tracking-[0.2em]">
+                  Internal Calculator
+                </p>
+                <span className="size-1.5 rounded-full bg-tint" />
+              </div>
+              <h1 className="text-6xl xl:text-7xl font-black leading-[0.9] tracking-tight text-label">
+                <span className="block auth-line auth-line-1">CALCULATE</span>
+                <span className="block auth-line auth-line-2">WITH</span>
+                <span className="block auth-outline-text auth-line auth-line-3">PRECISION.</span>
+              </h1>
+              <p className="text-label-3 text-sm leading-relaxed max-w-xs ml-auto">
+                Daily rate calculations, quote generation, and cost breakdowns
+                — all in one place.
+              </p>
+            </div>
+          </div>
+        </div>
 
-            {/* Error */}
-            {error ? <p className="form-error">{error}</p> : null}
+        {/* Right: form panel — card left-aligned, hugging center */}
+        <div className="flex items-center justify-start pl-6 pr-16 relative z-10">
+          {/* Mobile-only wordmark */}
+          <div className="lg:hidden absolute top-8 left-1/2 -translate-x-1/2 flex items-center gap-2">
+            <div className="size-7 rounded-lg bg-tint/10 flex items-center justify-center">
+              <HomeIcon className="size-4 text-tint" />
+            </div>
+            <span className="text-label font-semibold text-sm">
+              Eastman Colour Printers
+            </span>
           </div>
 
-          <div className="divider mx-4" />
+          {/* Glass card — custom material tuned for dark context */}
+          <div className="w-full max-w-sm auth-login-card flex flex-col justify-center px-10 py-16">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-label mb-2">
+                Welcome back
+              </h2>
+              <p className="text-label-3 text-sm">
+                Sign in to access the calculator
+              </p>
+            </div>
 
-          <div className="card-section pt-3">
-            <button
-              type="submit"
-              disabled={loading || !username || !password}
-              className="btn-primary btn-pill w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? "Signing in…" : "Sign in"}
-            </button>
+            <form onSubmit={handleSubmit} noValidate className="space-y-4">
+              <div>
+                <label
+                  htmlFor="username"
+                  className="auth-field-label"
+                >
+                  Username
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-label-3 pointer-events-none">
+                    <UserIcon className="size-4" />
+                  </span>
+                  <input
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      setError(null);
+                    }}
+                    placeholder="Enter your username"
+                    autoComplete="username"
+                    autoFocus
+                    className="auth-input pl-9"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="login-password"
+                  className="auth-field-label"
+                >
+                  Password
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-label-3 pointer-events-none">
+                    <LockIcon className="size-4" />
+                  </span>
+                  <input
+                    id="login-password"
+                    type={visible ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setError(null);
+                    }}
+                    placeholder="Enter your password"
+                    autoComplete="current-password"
+                    className="auth-input pl-9 pr-10"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setVisible((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-label-3 hover:text-label-2 transition-colors"
+                    aria-label={visible ? "Hide password" : "Show password"}
+                  >
+                    {visible ? <EyeOffIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+              </div>
+
+              {error ? <p className="form-error">{error}</p> : null}
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={loading || !username || !password}
+                  className="auth-submit-btn"
+                >
+                  {loading ? "Signing in…" : "Sign in"}
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       </div>
-    </AuthPageLayout>
+      {/* end centered wrapper */}
+
+      <p className="absolute bottom-5 left-1/2 -translate-x-1/2 text-label-4 text-xs whitespace-nowrap">
+        &copy; {new Date().getFullYear()} Eastman Colour Printers
+      </p>
+    </div>
   );
 }

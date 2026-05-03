@@ -2,7 +2,7 @@
   "name": "eastman-polybags-internal-calc",
   "version": "0.1.1-beta",
   "private": true,
-  "description": "Eastman Polybags internal quote calculator — beta build",
+  "description": "Eastman Colour Printers internal quote calculator — beta build",
   "scripts": {
     "install:all": "npm install && npm install --prefix server && npm install --prefix client",
     "start": "concurrently -k -n server,client -c blue,magenta \"npm run start:server\" \"npm run start:client\"",
