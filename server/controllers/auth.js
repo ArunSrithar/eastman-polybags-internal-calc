@@ -112,17 +112,15 @@ export async function putChangePassword(req, res, next) {
   try {
     const { oldPassword, newPassword } = req.body ?? {};
 
-    if (!oldPassword || !newPassword) {
-      return res
-        .status(400)
-        .json({ error: "oldPassword and newPassword are required" });
+    if (!newPassword) {
+      return res.status(400).json({ error: "newPassword is required" });
     }
 
     const user = await service.changePassword(
       req.user.userId,
-      String(oldPassword),
       String(newPassword),
       req.cookies?.refreshToken,
+      oldPassword ? String(oldPassword) : undefined,
     );
 
     res.json({ user });

@@ -1,4 +1,8 @@
 import User from "../models/User.js";
+import {
+  resolveEffectivePermissions,
+  hasDotPermission,
+} from "../services/permissionResolver.js";
 
 // ── calcKey mapping ────────────────────────────────────────────────────────
 // Translates app-level calcKeys (kebab-case) to permission keys (camelCase).
@@ -8,6 +12,24 @@ export const CALC_KEY_TO_PERMISSION = {
   "flexo-rate-calc": "flexo",
   "job-cost": "jobCost",
 };
+
+async function loadEffectivePermissions(req, res) {
+  const user = await User.findById(req.user.userId)
+    .populate("roles", "permissions")
+    .lean();
+
+  if (!user) {
+    res.status(401).json({ error: "User not found" });
+    return null;
+  }
+
+  if (user.isActive === false) {
+    res.status(403).json({ error: "Account is disabled" });
+    return null;
+  }
+
+  return resolveEffectivePermissions(user);
+}
 
 /**
  * requireRole(...roles)
@@ -41,14 +63,10 @@ export function requirePermission(permKey) {
     if (req.user.role === "admin") return next();
 
     try {
-      const user = await User.findById(req.user.userId).lean();
-      if (!user) return res.status(401).json({ error: "User not found" });
+      const permissions = await loadEffectivePermissions(req, res);
+      if (!permissions) return;
 
-      const keys = permKey.split(".");
-      let val = user.permissions;
-      for (const k of keys) val = val?.[k];
-
-      if (val) return next();
+      if (hasDotPermission(permissions, permKey)) return next();
       return res.status(403).json({ error: "Insufficient permissions" });
     } catch (err) {
       next(err);
@@ -78,10 +96,10 @@ export function requireCalcPermission(permType) {
     }
 
     try {
-      const user = await User.findById(req.user.userId).lean();
-      if (!user) return res.status(401).json({ error: "User not found" });
+      const permissions = await loadEffectivePermissions(req, res);
+      if (!permissions) return;
 
-      const allowed = user.permissions?.[permKey]?.[permType];
+      const allowed = permissions?.[permKey]?.[permType];
       if (allowed) return next();
       return res.status(403).json({ error: "Insufficient permissions" });
     } catch (err) {

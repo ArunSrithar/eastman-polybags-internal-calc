@@ -1,27 +1,8 @@
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
+import { permissionsSchema, makePermissions } from "./permissionsSchema.js";
 
 const BCRYPT_ROUNDS = 12;
-
-const calcPermissionSchema = new mongoose.Schema(
-  {
-    calculate: { type: Boolean, default: false },
-    saveQuote: { type: Boolean, default: false },
-    viewQuotes: { type: Boolean, default: false },
-    editPrices: { type: Boolean, default: false },
-  },
-  { _id: false },
-);
-
-const permissionsSchema = new mongoose.Schema(
-  {
-    gravure: { type: calcPermissionSchema, default: () => ({}) },
-    flexo: { type: calcPermissionSchema, default: () => ({}) },
-    jobCost: { type: calcPermissionSchema, default: () => ({}) },
-    manageUsers: { type: Boolean, default: false },
-  },
-  { _id: false },
-);
 
 const userSchema = new mongoose.Schema(
   {
@@ -33,17 +14,30 @@ const userSchema = new mongoose.Schema(
       trim: true,
       maxlength: 50,
     },
+    fullName: {
+      type: String,
+      trim: true,
+      maxlength: 100,
+    },
+    displayName: {
+      type: String,
+      trim: true,
+      maxlength: 50,
+    },
     email: {
       type: String,
-      required: true,
+      required: false,
       unique: true,
+      sparse: true,
       lowercase: true,
       trim: true,
       maxlength: 200,
     },
     passwordHash: { type: String, required: true },
+    isActive: { type: Boolean, default: true },
     role: { type: String, enum: ["admin", "user"], default: "user" },
     mustChangePassword: { type: Boolean, default: true },
+    roles: [{ type: mongoose.Schema.Types.ObjectId, ref: "Role" }],
     permissions: { type: permissionsSchema, default: () => ({}) },
   },
   {
@@ -77,18 +71,7 @@ userSchema.statics.hashPassword = function (plain) {
 
 // Return all permissions set to true (used when seeding admin).
 userSchema.statics.allPermissions = function () {
-  const full = {
-    calculate: true,
-    saveQuote: true,
-    viewQuotes: true,
-    editPrices: true,
-  };
-  return {
-    gravure: { ...full },
-    flexo: { ...full },
-    jobCost: { ...full },
-    manageUsers: true,
-  };
+  return makePermissions(true);
 };
 
 const User = mongoose.model("User", userSchema);

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requirePermission, requireRole } from "../middleware/authorize.js";
+import { requirePermission } from "../middleware/authorize.js";
 import {
   getUsers,
   postUser,
@@ -20,8 +20,8 @@ router.post("/", requirePermission("manageUsers"), postUser);
 // PUT /api/users/:id — update user (manageUsers or admin)
 router.put("/:id", requirePermission("manageUsers"), putUser);
 
-// DELETE /api/users/:id — delete user (admin only)
-router.delete("/:id", requireRole("admin"), deleteUser);
+// DELETE /api/users/:id — delete user (manageUsers or admin)
+router.delete("/:id", requirePermission("manageUsers"), deleteUser);
 
 // POST /api/users/:id/reset-password — reset to username (manageUsers or admin)
 router.post(

@@ -8,6 +8,7 @@ import flexoSettingsRouter from "./routes/flexoSettings.js";
 import quotesRouter from "./routes/quotes.js";
 import authRouter from "./routes/auth.js";
 import usersRouter from "./routes/users.js";
+import rolesRouter from "./routes/roles.js";
 import { connectDB } from "./config/db.js";
 import { getServerConfig, makeCorsOriginChecker } from "./config/env.js";
 import { createMutationRateLimiter } from "./middleware/rateLimit.js";
@@ -43,6 +44,7 @@ app.use("/api/gravure", requireAuth, gravureSettingsRouter);
 app.use("/api/flexo", requireAuth, flexoSettingsRouter);
 app.use("/api/quotes", requireAuth, quotesRouter);
 app.use("/api/users", requireAuth, usersRouter);
+app.use("/api/roles", requireAuth, rolesRouter);
 
 // Health check
 app.get("/health", (_req, res) => {
@@ -67,14 +69,16 @@ async function seedAdminIfEmpty() {
   if (count > 0) return;
 
   const { adminEmail } = getServerConfig();
+  const passwordHash = await User.hashPassword("admin");
   const admin = new User({
     username: "admin",
     email: adminEmail,
+    passwordHash,
     role: "admin",
     mustChangePassword: true,
+    roles: [],
     permissions: User.allPermissions(),
   });
-  admin.password = "admin"; // virtual triggers bcrypt pre-save hook
   await admin.save();
   console.log(
     "Default admin account created — username: admin, password: admin",
@@ -82,9 +86,26 @@ async function seedAdminIfEmpty() {
   console.log("⚠️  Log in and change the password immediately.");
 }
 
+async function ensureUserEmailSparseUniqueIndex() {
+  const indexes = await User.collection.indexes();
+  const emailIndex = indexes.find((idx) => idx.name === "email_1");
+
+  // Old deployments may have a non-sparse unique email index,
+  // which rejects multiple users with empty/undefined email.
+  if (emailIndex && !emailIndex.sparse) {
+    await User.collection.dropIndex("email_1");
+    await User.collection.createIndex(
+      { email: 1 },
+      { name: "email_1", unique: true, sparse: true, background: true },
+    );
+    console.log("Updated users.email index to unique+sparse");
+  }
+}
+
 async function startServer() {
   try {
     await connectDB();
+    await ensureUserEmailSparseUniqueIndex();
     await seedStructureIfMissing();
     await seedAdminIfEmpty();
 

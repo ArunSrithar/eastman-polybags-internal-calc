@@ -1,5 +1,8 @@
 import User from "../models/User.js";
 import RefreshToken from "../models/RefreshToken.js";
+import Role from "../models/Role.js";
+import { normalizePermissions } from "../models/permissionsSchema.js";
+import { resolveEffectivePermissions } from "./permissionResolver.js";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -17,17 +20,68 @@ function sanitisePermissions(permissions, requestingRole) {
   return sanitised;
 }
 
+async function resolveRoleIds(input) {
+  if (input === undefined) return undefined;
+  const ids = Array.isArray(input) ? input.map(String).filter(Boolean) : [];
+  if (ids.length === 0) return [];
+
+  let roles;
+  try {
+    roles = await Role.find({ _id: { $in: ids } }).select("_id").lean();
+  } catch {
+    const err = new Error("Invalid role id in roles[]");
+    err.status = 400;
+    throw err;
+  }
+
+  if (roles.length !== new Set(ids).size) {
+    const err = new Error("One or more roles do not exist");
+    err.status = 400;
+    throw err;
+  }
+
+  return roles.map((r) => r._id);
+}
+
+function firstWord(str) {
+  return (str || "").trim().split(/\s+/)[0] || "";
+}
+
+function mapDuplicateKeyError(err) {
+  if (err?.code !== 11000) return err;
+
+  const field = Object.keys(err?.keyPattern || {})[0] || "field";
+  const value = err?.keyValue?.[field];
+  const conflict = new Error(
+    value ? `${field} "${value}" already exists` : `${field} already exists`,
+  );
+  conflict.status = 409;
+  return conflict;
+}
+
 /**
  * Map a Mongoose User document to a safe response object (no passwordHash).
  */
 function toUserResponse(user) {
+  const effectivePermissions = resolveEffectivePermissions(user);
+  const roles = (user.roles || []).map((role) => ({
+    id: role?._id || role?.id,
+    name: role?.name,
+  }));
+
   return {
     id: user._id,
     username: user.username,
+    fullName: user.fullName,
+    displayName: user.displayName,
     email: user.email,
+    isActive: user.isActive ?? true,
     role: user.role,
     mustChangePassword: user.mustChangePassword,
-    permissions: user.permissions,
+    roles,
+    permissions: effectivePermissions,
+    effectivePermissions,
+    legacyPermissions: normalizePermissions(user.permissions),
     createdAt: user.createdAt,
   };
 }
@@ -47,7 +101,10 @@ async function invalidateSessions(userId) {
  * Returns all users as safe response objects, sorted by createdAt ascending.
  */
 export async function listUsers() {
-  const users = await User.find({}).sort({ createdAt: 1 }).lean();
+  const users = await User.find({})
+    .sort({ createdAt: 1 })
+    .populate("roles", "name permissions")
+    .lean();
   return users.map(toUserResponse);
 }
 
@@ -56,7 +113,7 @@ export async function listUsers() {
  * Returns a single user or null.
  */
 export async function getUser(id) {
-  const user = await User.findById(id).lean();
+  const user = await User.findById(id).populate("roles", "name permissions").lean();
   return user ? toUserResponse(user) : null;
 }
 
@@ -69,7 +126,7 @@ export async function getUser(id) {
  * requestingUser: { userId, role }
  */
 export async function createUser(data, requestingUser) {
-  const { username, email, role, permissions } = data;
+  const { username, email, fullName, displayName, role, permissions, roles } = data;
 
   if (!username || typeof username !== "string") {
     const err = new Error("username is required");
@@ -82,20 +139,37 @@ export async function createUser(data, requestingUser) {
     requestingUser.role !== "admin" ? "user" : (role ?? "user");
 
   const sanitisedPerms = sanitisePermissions(permissions, requestingUser.role);
+  const roleIds = await resolveRoleIds(roles);
+
+  const defaultPassword = username.trim().toLowerCase();
+  const passwordHash = await User.hashPassword(defaultPassword);
+
+  const trimmedFullName = fullName?.trim() || undefined;
+  const resolvedDisplayName =
+    displayName?.trim() || firstWord(trimmedFullName) || undefined;
 
   const user = new User({
     username: username.trim().toLowerCase(),
-    email: email?.trim().toLowerCase(),
+    fullName: trimmedFullName,
+    displayName: resolvedDisplayName,
+    email: email?.trim().toLowerCase() || undefined,
     role: assignedRole,
     mustChangePassword: true,
+    roles: roleIds || [],
     permissions: sanitisedPerms,
+    passwordHash,
   });
 
-  // Default password is the username (must change on first login)
-  user.password = username.trim().toLowerCase();
+  try {
+    await user.save();
+  } catch (err) {
+    throw mapDuplicateKeyError(err);
+  }
 
-  await user.save();
-  return toUserResponse(user);
+  const hydrated = await User.findById(user._id)
+    .populate("roles", "name permissions")
+    .lean();
+  return toUserResponse(hydrated);
 }
 
 /**
@@ -118,7 +192,12 @@ export async function updateUser(id, data, requestingUser) {
 
   // Block self-modification of role / permissions
   const isSelf = String(target._id) === String(requestingUser.userId);
-  if (isSelf && (data.role !== undefined || data.permissions !== undefined)) {
+  if (
+    isSelf &&
+    (data.role !== undefined ||
+      data.permissions !== undefined ||
+      data.roles !== undefined)
+  ) {
     const err = new Error("You cannot change your own role or permissions");
     err.status = 403;
     throw err;
@@ -133,8 +212,20 @@ export async function updateUser(id, data, requestingUser) {
 
   let sessionsInvalidated = false;
 
+  if (data.fullName !== undefined) {
+    target.fullName = data.fullName?.trim() || undefined;
+  }
+  if (data.displayName !== undefined) {
+    target.displayName = data.displayName?.trim() || undefined;
+  }
+  if (data.isActive !== undefined && !isSelf) {
+    target.isActive = Boolean(data.isActive);
+    // Disabled users should lose all active sessions immediately
+    if (!target.isActive) sessionsInvalidated = true;
+  }
   if (data.email !== undefined) {
-    target.email = data.email.trim().toLowerCase();
+    const normalizedEmail = data.email?.trim().toLowerCase();
+    target.email = normalizedEmail || undefined;
   }
   if (data.mustChangePassword !== undefined) {
     target.mustChangePassword = Boolean(data.mustChangePassword);
@@ -151,15 +242,27 @@ export async function updateUser(id, data, requestingUser) {
     target.permissions = sanitised ?? target.permissions;
     sessionsInvalidated = true;
   }
+  if (data.roles !== undefined) {
+    const roleIds = await resolveRoleIds(data.roles);
+    target.roles = roleIds;
+    sessionsInvalidated = true;
+  }
 
-  await target.save();
+  try {
+    await target.save();
+  } catch (err) {
+    throw mapDuplicateKeyError(err);
+  }
 
   // Force re-login on role/permission changes so stale JWTs are cleared
   if (sessionsInvalidated) {
     await invalidateSessions(target._id);
   }
 
-  return toUserResponse(target);
+  const hydrated = await User.findById(target._id)
+    .populate("roles", "name permissions")
+    .lean();
+  return toUserResponse(hydrated);
 }
 
 /**
@@ -223,5 +326,8 @@ export async function resetPassword(id, requestingUser) {
   await target.save();
 
   await invalidateSessions(target._id);
-  return toUserResponse(target);
+  const hydrated = await User.findById(target._id)
+    .populate("roles", "name permissions")
+    .lean();
+  return toUserResponse(hydrated);
 }

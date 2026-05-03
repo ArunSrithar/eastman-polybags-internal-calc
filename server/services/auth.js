@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import RefreshToken from "../models/RefreshToken.js";
 import { getServerConfig } from "../config/env.js";
+import { resolveEffectivePermissions } from "./permissionResolver.js";
 
 // Grace window (ms) — a rotated token used within this period is treated as a
 // concurrent request rather than theft (e.g. two browser tabs refreshing at
@@ -16,16 +17,27 @@ function makeError(status, message) {
 }
 
 function toUserResponse(user) {
+  const effectivePermissions = resolveEffectivePermissions(user);
   return {
     id: user._id.toString(),
     username: user.username,
+    fullName: user.fullName,
+    displayName: user.displayName,
     email: user.email,
+    isActive: user.isActive ?? true,
     role: user.role,
     mustChangePassword: user.mustChangePassword,
-    permissions: user.permissions.toObject
-      ? user.permissions.toObject()
-      : user.permissions,
+    roles: (user.roles || []).map((role) => ({
+      id: role?._id || role?.id,
+      name: role?.name,
+    })),
+    permissions: effectivePermissions,
+    effectivePermissions,
   };
+}
+
+async function loadUserWithRoles(query) {
+  return User.findOne(query).populate("roles", "name permissions");
 }
 
 function signAccessToken(userId, role) {
@@ -60,11 +72,18 @@ export async function login(username, password) {
     .toLowerCase();
 
   // Fetch user — use a generic error to avoid username enumeration.
-  const user = await User.findOne({ username: normalized });
+  const user = await loadUserWithRoles({ username: normalized });
   const isValid = user ? await user.comparePassword(password) : false;
 
   if (!isValid) {
     throw makeError(401, "Invalid username or password");
+  }
+
+  if (!user.isActive) {
+    throw makeError(
+      403,
+      "This account has been disabled. Contact your administrator.",
+    );
   }
 
   const accessToken = signAccessToken(user._id, user.role);
@@ -112,7 +131,7 @@ export async function refresh(refreshToken) {
   }
 
   // Fetch user.
-  const user = await User.findById(stored.userId);
+  const user = await loadUserWithRoles({ _id: stored.userId });
   if (!user) {
     await RefreshToken.deleteMany({ family: stored.family });
     throw makeError(401, "User not found");
@@ -152,9 +171,9 @@ export async function logout(refreshToken) {
 
 export async function changePassword(
   userId,
-  oldPassword,
   newPassword,
   currentRefreshToken,
+  oldPassword,
 ) {
   if (!newPassword || newPassword.length < 8 || newPassword.length > 72) {
     throw makeError(400, "Password must be between 8 and 72 characters");
@@ -163,8 +182,16 @@ export async function changePassword(
   const user = await User.findById(userId);
   if (!user) throw makeError(404, "User not found");
 
-  const isValid = await user.comparePassword(oldPassword);
-  if (!isValid) throw makeError(401, "Current password is incorrect");
+  // First-login reset flow (mustChangePassword=true) can proceed without old password.
+  if (!user.mustChangePassword) {
+    if (!oldPassword) {
+      throw makeError(400, "oldPassword is required");
+    }
+    const isValid = await user.comparePassword(oldPassword);
+    if (!isValid) {
+      throw makeError(401, "Current password is incorrect");
+    }
+  }
 
   user.password = newPassword; // triggers pre-save hash via virtual
   user.mustChangePassword = false;
@@ -177,13 +204,14 @@ export async function changePassword(
   }
   await RefreshToken.deleteMany(query);
 
-  return toUserResponse(user);
+  const refreshed = await loadUserWithRoles({ _id: user._id });
+  return toUserResponse(refreshed);
 }
 
 // ── getMe ──────────────────────────────────────────────────────────────────
 
 export async function getMe(userId) {
-  const user = await User.findById(userId);
+  const user = await loadUserWithRoles({ _id: userId });
   if (!user) throw makeError(404, "User not found");
   return toUserResponse(user);
 }

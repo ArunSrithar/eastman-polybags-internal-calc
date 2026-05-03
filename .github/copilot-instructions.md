@@ -482,15 +482,15 @@ formatDate(isoString); // → "26 Feb 2026, 09:15 am"
 
 Use existing primitives from `components/ui/` — do not re-implement them:
 
-| Component         | Use for                                                         |
-| ----------------- | --------------------------------------------------------------- |
-| `IOSToggle`       | Boolean toggle switches (`on` + `onToggle` props)               |
-| `Badge`           | Count pill display (sidebar quote counts, notification dots)    |
-| `GlassSeparator`  | Glass-style inset separator line (`role="separator"`)           |
-| `SectionLabel`    | Uppercase tracking label for sidebar/form sections              |
-| `CreatableSelect` | Dropdown with custom option creation + localStorage persistence |
-| `MetaRow`         | Labeled metadata field (label + value)                          |
-| `Toast`           | macOS-style self-dismissing notification + `useToast()` hook    |
+| Component         | Use for                                                           |
+| ----------------- | ----------------------------------------------------------------- |
+| `IOSToggle`       | Boolean toggle switches (`on` + `onToggle` props)                 |
+| `Badge`           | Count pill display (sidebar quote counts, notification dots)      |
+| `GlassSeparator`  | Glass-style inset separator line (`role="separator"`)             |
+| `SectionLabel`    | Uppercase tracking label for sidebar/form sections                |
+| `CreatableSelect` | Dropdown with custom option creation + localStorage persistence   |
+| `MetaRow`         | Labeled metadata field (label + value)                            |
+| `Toast`           | macOS-style self-dismissing notification + `useToast()` hook      |
 | `Icons.jsx`       | 23 SVG icons (nav, actions, theme, account, search, export, home) |
 
 ---
