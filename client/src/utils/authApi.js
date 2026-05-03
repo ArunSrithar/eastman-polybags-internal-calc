@@ -45,9 +45,9 @@ export function getMeApi() {
   return request(`${AUTH_BASE}/me`);
 }
 
-export function changePasswordApi(oldPassword, newPassword) {
+export function changePasswordApi(newPassword) {
   return request(`${AUTH_BASE}/change-password`, {
     method: "PUT",
-    body: JSON.stringify({ oldPassword, newPassword }),
+    body: JSON.stringify({ newPassword }),
   });
 }

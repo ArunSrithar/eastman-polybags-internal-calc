@@ -9,7 +9,7 @@ import SubNavItem from "./SubNavItem";
  *   isActive    boolean   this item or one of its children is the active view
  *   isExpanded  boolean   sub-items are visible
  *   activeView  string    current active view id
- *   quoteCounts object    { [badgeKey]: count }
+ *   badgeCounts object    { [badgeKey]: count }
  *   onTopClick  fn(item)  handle top-level click
  *   onNavigate  fn(id)    navigate to a sub-item view
  */
@@ -18,7 +18,7 @@ export default function NavItem({
   isActive,
   isExpanded,
   activeView,
-  quoteCounts,
+  badgeCounts,
   onTopClick,
   onNavigate,
 }) {
@@ -62,7 +62,7 @@ export default function NavItem({
                 label={sub.label}
                 icon={sub.icon}
                 isActive={activeView === sub.id}
-                badgeCount={sub.badgeKey ? quoteCounts[sub.badgeKey] : 0}
+                badgeCount={sub.badgeKey ? badgeCounts[sub.badgeKey] : 0}
                 onNavigate={onNavigate}
               />
             ))}

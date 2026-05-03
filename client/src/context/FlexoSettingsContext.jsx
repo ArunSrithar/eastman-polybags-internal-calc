@@ -72,6 +72,7 @@ function buildFallbackSettings() {
   }
 
   return {
+    materials: {},
     conversionRates,
     printingRates,
     gussetRates,
@@ -138,12 +139,13 @@ export function buildFlexoRatesFromSettings(settings) {
 }
 
 // ── Provider ───────────────────────────────────────────────────────────────
-export function FlexoSettingsProvider({ children }) {
+export function FlexoSettingsProvider({ children, skip = false }) {
   const [settings, setSettings] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!skip);
   const [error, setError] = useState(null);
 
   const refresh = useCallback(async () => {
+    if (skip) return;
     try {
       const data = await fetchFlexoSettings();
       setSettings(data);
@@ -155,11 +157,11 @@ export function FlexoSettingsProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [skip]);
 
   useEffect(() => {
-    refresh();
-  }, [refresh]);
+    if (!skip) refresh();
+  }, [refresh, skip]);
 
   const updateMaterialPrice = useCallback(async (material, price) => {
     const updated = await apiUpdateMaterialPrice(material, price);

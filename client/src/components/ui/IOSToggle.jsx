@@ -9,13 +9,15 @@ export default function IOSToggle({
   on,
   onToggle,
   activeColor = "bg-green-500",
+  disabled = false,
 }) {
   return (
     <button
       type="button"
       onClick={onToggle}
+      disabled={disabled}
       aria-pressed={on}
-      className="shrink-0 cursor-pointer"
+      className={`shrink-0 ${disabled ? "opacity-70 cursor-not-allowed" : "cursor-pointer"}`}
     >
       <span
         className={`relative inline-flex h-6 w-10 rounded-full transition-colors duration-200 ${

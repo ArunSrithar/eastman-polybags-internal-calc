@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import IOSToggle from "../ui/IOSToggle";
-import { TrashIcon, ResetIcon } from "../ui/Icons";
+import { TrashIcon, ResetIcon, SaveIcon } from "../ui/Icons";
 
 // ── Permission matrix config ───────────────────────────────────────────────
 
@@ -35,45 +35,64 @@ function makeInitialForm(user) {
     return {
       username: "",
       email: "",
-      role: "user",
-      permissions: makeEmptyPermissions(),
+      isActive: true,
+      roles: [],
     };
   }
   return {
     username: user.username,
     email: user.email ?? "",
-    role: user.role,
-    permissions: {
-      manageUsers: Boolean(user.permissions?.manageUsers),
-      gravure: {
-        ...makeEmptyPermissions().gravure,
-        ...user.permissions?.gravure,
-      },
-      flexo: { ...makeEmptyPermissions().flexo, ...user.permissions?.flexo },
-      jobCost: {
-        ...makeEmptyPermissions().jobCost,
-        ...user.permissions?.jobCost,
-      },
-    },
+    isActive: user.isActive ?? true,
+    roles: (user.roles || []).map((r) => String(r.id || r._id)),
+  };
+}
+
+function mergeRolePermissions(selectedRoleIds, availableRoles) {
+  const merged = makeEmptyPermissions();
+  const roleMap = new Map(availableRoles.map((r) => [String(r.id), r]));
+
+  for (const roleId of selectedRoleIds) {
+    const role = roleMap.get(String(roleId));
+    const perms = role?.permissions;
+    if (!perms) continue;
+
+    for (const { key } of CALC_ROWS) {
+      merged[key].calculate ||= Boolean(perms[key]?.calculate);
+      merged[key].saveQuote ||= Boolean(perms[key]?.saveQuote);
+      merged[key].viewQuotes ||= Boolean(perms[key]?.viewQuotes);
+      merged[key].editPrices ||= Boolean(perms[key]?.editPrices);
+    }
+    merged.manageUsers ||= Boolean(perms.manageUsers);
+  }
+
+  return merged;
+}
+
+function normalizeRoleIds(roleIds) {
+  return [...roleIds].map(String).sort();
+}
+
+function makeComparableCreateForm(form) {
+  return {
+    username: form.username.trim().toLowerCase(),
+    email: form.email.trim(),
+    roles: normalizeRoleIds(form.roles),
+  };
+}
+
+function makeComparableEditForm(form) {
+  return {
+    email: form.email.trim(),
+    isActive: Boolean(form.isActive),
+    roles: normalizeRoleIds(form.roles),
   };
 }
 
 // ── Component ─────────────────────────────────────────────────────────────
 
-/**
- * UserForm — create or edit a user with a permissions matrix.
- *
- * Props:
- *   user            object|null  null → create mode; object → edit mode
- *   currentUser     object       logged-in user (from useAuth)
- *   onSave          fn(data)     called with { username, email, role, permissions }
- *   onDelete        fn()|null    shown only when admin + not self
- *   onResetPassword fn()|null    reset password to username
- *   saving          boolean      disables the save button
- *   saveError       string|null  inline error message
- */
 export default function UserForm({
   user = null,
+  availableRoles = [],
   currentUser,
   onSave,
   onDelete = null,
@@ -83,67 +102,77 @@ export default function UserForm({
 }) {
   const isCreate = user === null;
   const isSelf = !isCreate && String(user.id) === String(currentUser?.id);
-  const isAdmin = currentUser?.role === "admin";
+  const canEditPerms = !isSelf;
+  const usernameInputRef = useRef(null);
+  const initialForm = useMemo(() => makeInitialForm(user), [user]);
 
   const [form, setForm] = useState(() => makeInitialForm(user));
+  useEffect(() => {
+    setForm(initialForm);
+  }, [initialForm]);
 
-  // Cannot change role/permissions for yourself
-  const canEditRolePerms = !isSelf;
-  // Non-admins cannot grant manageUsers or set role=admin
-  const canGrantAdmin = isAdmin;
-  const canGrantManageUsers = isAdmin;
+  useEffect(() => {
+    if (!isCreate) return;
+    const raf = window.requestAnimationFrame(() => {
+      usernameInputRef.current?.focus();
+    });
+    return () => window.cancelAnimationFrame(raf);
+  }, [isCreate, user]);
+
+  const effectivePermissions = useMemo(
+    () => mergeRolePermissions(form.roles, availableRoles),
+    [form.roles, availableRoles],
+  );
 
   function setField(key, val) {
     setForm((prev) => ({ ...prev, [key]: val }));
   }
 
-  function setPermCalc(calcKey, permKey, val) {
+  function toggleRole(roleId) {
     setForm((prev) => ({
       ...prev,
-      permissions: {
-        ...prev.permissions,
-        [calcKey]: { ...prev.permissions[calcKey], [permKey]: val },
-      },
-    }));
-  }
-
-  function setPermTop(key, val) {
-    setForm((prev) => ({
-      ...prev,
-      permissions: { ...prev.permissions, [key]: val },
-    }));
-  }
-
-  // Toggle an entire calculator row on/off at once
-  function toggleCalcRow(calcKey, newVal) {
-    const updated = {};
-    for (const { key } of PERM_COLS) updated[key] = newVal;
-    setForm((prev) => ({
-      ...prev,
-      permissions: {
-        ...prev.permissions,
-        [calcKey]: updated,
-      },
+      roles: prev.roles.includes(roleId)
+        ? prev.roles.filter((id) => id !== roleId)
+        : [...prev.roles, roleId],
     }));
   }
 
   function handleSubmit(e) {
     e.preventDefault();
-    onSave(
-      isCreate
-        ? {
-            username: form.username.trim(),
-            email: form.email.trim(),
-            role: form.role,
-            permissions: form.permissions,
-          }
-        : {
-            email: form.email.trim(),
-            role: form.role,
-            permissions: form.permissions,
-          },
-    );
+    const effectiveUsername = form.username.trim().toLowerCase();
+    if (isCreate) {
+      onSave({
+        username: effectiveUsername,
+        email: form.email.trim() || undefined,
+        roles: form.roles,
+      });
+    } else {
+      onSave({
+        email: form.email.trim() || undefined,
+        isActive: form.isActive,
+        roles: form.roles,
+      });
+    }
   }
+
+  const hasChanges = useMemo(() => {
+    if (isCreate) {
+      return (
+        JSON.stringify(makeComparableCreateForm(form)) !==
+        JSON.stringify(makeComparableCreateForm(initialForm))
+      );
+    }
+
+    return (
+      JSON.stringify(makeComparableEditForm(form)) !==
+      JSON.stringify(makeComparableEditForm(initialForm))
+    );
+  }, [form, initialForm, isCreate]);
+
+  const submitDisabled =
+    saving ||
+    (isCreate && !form.username.trim()) ||
+    !hasChanges;
 
   return (
     <form onSubmit={handleSubmit} noValidate>
@@ -165,6 +194,7 @@ export default function UserForm({
               {isCreate ? (
                 <input
                   id="uf-username"
+                  ref={usernameInputRef}
                   type="text"
                   value={form.username}
                   onChange={(e) => setField("username", e.target.value)}
@@ -202,51 +232,54 @@ export default function UserForm({
                 className="input-base"
               />
             </div>
-
-            {/* Role — admin only */}
-            {isAdmin ? (
-              <div>
-                <p className="field-label mb-1.5">Role</p>
-                <div
-                  className={`flex gap-2 ${!canEditRolePerms ? "opacity-50 pointer-events-none" : ""}`}
-                >
-                  {["user", "admin"].map((r) => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => setField("role", r)}
-                      className={
-                        form.role === r
-                          ? "radio-pill radio-pill-active"
-                          : "radio-pill radio-pill-inactive"
-                      }
-                    >
-                      {r === "admin" ? "Admin" : "User"}
-                    </button>
-                  ))}
-                </div>
-                {isSelf ? (
-                  <p className="text-xs text-label-4 mt-1.5">
-                    You cannot change your own role.
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
           </div>
         </div>
 
-        {/* ── Permissions matrix ─────────────────────────────────────── */}
+        {/* ── Role Assignment ────────────────────────────────────────── */}
+        <div className={`card ${!canEditPerms ? "opacity-50 pointer-events-none" : ""}`}>
+          <div className="card-section pb-1">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-label">Assigned Roles</h3>
+              {isSelf ? (
+                <span className="text-xs text-label-4">Read-only for your own account</span>
+              ) : null}
+            </div>
+          </div>
+          <div className="divider mx-4" />
+          <div className="card-section">
+            {availableRoles.length === 0 ? (
+              <p className="text-xs text-label-3">
+                No roles found. Create roles in Roles (Permissions) first.
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {availableRoles.map((role) => {
+                  const id = String(role.id);
+                  const active = form.roles.includes(id);
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => toggleRole(id)}
+                      className={active ? "radio-pill radio-pill-active" : "radio-pill radio-pill-inactive"}
+                    >
+                      {role.name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Effective Permissions (Read-only) ─────────────────────── */}
         <div
-          className={`card ${!canEditRolePerms ? "opacity-50 pointer-events-none" : ""}`}
+          className="card"
         >
           <div className="card-section pb-1">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-label">Permissions</h3>
-              {isSelf ? (
-                <span className="text-xs text-label-4">
-                  Read-only for your own account
-                </span>
-              ) : null}
+              <h3 className="text-sm font-semibold text-label">Effective Permissions</h3>
+              <span className="text-xs text-label-4">Read-only (derived from roles)</span>
             </div>
           </div>
           <div className="divider mx-4" />
@@ -268,30 +301,20 @@ export default function UserForm({
 
           {/* Calculator rows */}
           {CALC_ROWS.map(({ key, label }, idx) => {
-            const rowPerms = form.permissions[key];
-            const allOn = PERM_COLS.every(({ key: pk }) => rowPerms[pk]);
+            const rowPerms = effectivePermissions[key];
             return (
               <div key={key}>
                 {idx > 0 ? <div className="divider mx-4" /> : null}
                 <div className="px-4 py-2">
                   <div className="grid grid-cols-[minmax(80px,1fr)_repeat(4,44px)] gap-1 items-center">
-                    {/* Row label — click to toggle all */}
-                    <button
-                      type="button"
-                      onClick={() => toggleCalcRow(key, !allOn)}
-                      className="text-left text-xs font-medium text-label hover:text-tint transition-colors"
-                      title="Toggle all"
-                    >
+                    <span className="text-left text-xs font-medium text-label">
                       {label}
-                    </button>
+                    </span>
                     {PERM_COLS.map(({ key: pk }) => (
                       <span key={pk} className="flex justify-center">
-                        <button
-                          type="button"
-                          onClick={() => setPermCalc(key, pk, !rowPerms[pk])}
-                          aria-pressed={rowPerms[pk]}
+                        <span
                           aria-label={`${label} ${pk}`}
-                          className={`size-6 rounded-md border transition-colors ${
+                          className={`size-6 rounded-md border flex items-center justify-center ${
                             rowPerms[pk]
                               ? "bg-tint border-tint/30 text-white"
                               : "bg-fill-3 border-separator text-transparent"
@@ -308,7 +331,7 @@ export default function UserForm({
                           >
                             <polyline points="1.5 5 4 7.5 8.5 2.5" />
                           </svg>
-                        </button>
+                        </span>
                       </span>
                     ))}
                   </div>
@@ -316,47 +339,54 @@ export default function UserForm({
               </div>
             );
           })}
-
-          {/* Manage Users — admin only */}
-          {canGrantManageUsers ? (
-            <>
-              <div className="divider mx-4" />
-              <div className="card-section">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-label">
-                      Manage Users
-                    </p>
-                    <p className="text-xs text-label-3 mt-0.5">
-                      Can add, edit, and reset passwords for other users.
-                    </p>
-                  </div>
-                  <IOSToggle
-                    on={form.permissions.manageUsers}
-                    onToggle={() =>
-                      setPermTop("manageUsers", !form.permissions.manageUsers)
-                    }
-                    activeColor="bg-tint"
-                  />
-                </div>
+          <div className="divider mx-4" />
+          <div className="card-section">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-medium text-label">Manage Users</p>
+                <p className="text-xs text-label-3 mt-0.5">
+                  Access to Users and Roles management views.
+                </p>
               </div>
-            </>
-          ) : null}
+              <IOSToggle
+                on={effectivePermissions.manageUsers}
+                onToggle={() => {}}
+                disabled
+              />
+            </div>
+          </div>
         </div>
 
         {/* ── Error ──────────────────────────────────────────────────── */}
         {saveError ? <p className="form-error">{saveError}</p> : null}
 
+        {/* ── Account Status ─────────────────────────────────────────── */}
+        {!isCreate && !isSelf ? (
+          <div className="card">
+            <div className="card-section">
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-label">
+                    Account Status
+                  </p>
+                  <p className="text-xs text-label-3 mt-0.5">
+                    {form.isActive
+                      ? "Active — user can log in."
+                      : "Disabled — user cannot log in."}
+                  </p>
+                </div>
+                <IOSToggle
+                  on={form.isActive}
+                  onToggle={() => setField("isActive", !form.isActive)}
+                  activeColor="bg-tint"
+                />
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         {/* ── Actions ────────────────────────────────────────────────── */}
         <div className="flex items-center gap-2">
-          <button
-            type="submit"
-            disabled={saving || (isCreate && !form.username.trim())}
-            className="btn-primary btn-pill disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {saving ? "Saving…" : isCreate ? "Create User" : "Save Changes"}
-          </button>
-
           {onResetPassword ? (
             <button
               type="button"
@@ -369,16 +399,27 @@ export default function UserForm({
             </button>
           ) : null}
 
-          {onDelete ? (
+          <div className="ml-auto flex items-center gap-2">
+            {onDelete ? (
+              <button
+                type="button"
+                onClick={onDelete}
+                className="btn-danger btn-pill"
+              >
+                <TrashIcon />
+                <span>Delete</span>
+              </button>
+            ) : null}
+
             <button
-              type="button"
-              onClick={onDelete}
-              className="btn-danger btn-pill ml-auto"
+              type="submit"
+              disabled={submitDisabled}
+              className="btn-primary btn-pill disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <TrashIcon />
-              <span>Delete</span>
+              {!isCreate ? <SaveIcon className="size-4" /> : null}
+              {saving ? "Saving…" : isCreate ? "Create User" : "Save"}
             </button>
-          ) : null}
+          </div>
         </div>
       </div>
     </form>

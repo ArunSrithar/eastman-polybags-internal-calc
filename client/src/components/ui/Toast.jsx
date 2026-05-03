@@ -57,8 +57,8 @@ function Toast({ title, message, variant = "success", onDone }) {
       className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-2xl w-80
         bg-background/60 dark:bg-background-2/60 backdrop-blur-2xl backdrop-saturate-200
         border border-separator/30 dark:border-white/10 shadow-lg
-        flex items-center gap-3
-        transition-all duration-400 ease-out
+        flex items-start gap-3
+        transition-all duration-300 ease-out
         ${translateX} ${phase === "exit" ? "opacity-0" : "opacity-100"}`}
     >
       <span
@@ -66,9 +66,9 @@ function Toast({ title, message, variant = "success", onDone }) {
       >
         <Icon className="size-4" />
       </span>
-      <div className="min-w-0">
-        <p className="text-sm font-semibold text-label truncate">{title}</p>
-        <p className="text-xs text-label-2 mt-0.5 leading-snug">{message}</p>
+      <div className="min-w-0 pt-0.5">
+        <p className="text-sm font-semibold text-label leading-tight">{title}</p>
+        <p className="text-xs text-label-2 mt-1 leading-snug">{message}</p>
       </div>
     </div>
   );

@@ -124,12 +124,13 @@ export function buildRatesFromSettings(settings) {
 }
 
 // ── Provider ───────────────────────────────────────────────────────────────
-export function GravureSettingsProvider({ children }) {
+export function GravureSettingsProvider({ children, skip = false }) {
   const [settings, setSettings] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!skip);
   const [error, setError] = useState(null);
 
   const refresh = useCallback(async () => {
+    if (skip) return;
     try {
       const data = await fetchGravureSettings();
       setSettings(data);
@@ -141,11 +142,11 @@ export function GravureSettingsProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [skip]);
 
   useEffect(() => {
-    refresh();
-  }, [refresh]);
+    if (!skip) refresh();
+  }, [refresh, skip]);
 
   const updateMaterialPrice = useCallback(async (materialKey, price) => {
     const updated = await apiUpdateMaterialPrice(materialKey, price);

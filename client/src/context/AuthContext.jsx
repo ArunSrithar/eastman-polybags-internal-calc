@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import {
   createContext,
   useCallback,
@@ -38,13 +39,14 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const lastActivityRef = useRef(Date.now());
+  const lastActivityRef = useRef(0);
   const refreshTimerRef = useRef(null);
   const channelRef = useRef(null);
 
   // ── Activity tracking ────────────────────────────────────────────────────
 
   useEffect(() => {
+    lastActivityRef.current = Date.now();
     let lastUpdate = 0;
 
     function handleActivity() {
@@ -84,7 +86,9 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  logoutRef.current = logout;
+  useEffect(() => {
+    logoutRef.current = logout;
+  }, [logout]);
 
   // ── Auto-refresh with inactivity guard ───────────────────────────────────
 
@@ -178,15 +182,16 @@ export function AuthProvider({ children }) {
   // ── Permission helpers ────────────────────────────────────────────────────
 
   const isAdmin = user?.role === "admin";
+  const activePermissions = user?.effectivePermissions || user?.permissions;
 
   const canCalculate = useCallback(
     (calcKey) => {
       if (!user) return false;
       if (isAdmin) return true;
       const key = CALC_PERMISSION_KEYS[calcKey];
-      return Boolean(key && user.permissions?.[key]?.calculate);
+      return Boolean(key && activePermissions?.[key]?.calculate);
     },
-    [user, isAdmin],
+    [user, isAdmin, activePermissions],
   );
 
   const canSaveQuote = useCallback(
@@ -194,9 +199,9 @@ export function AuthProvider({ children }) {
       if (!user) return false;
       if (isAdmin) return true;
       const key = CALC_PERMISSION_KEYS[calcKey];
-      return Boolean(key && user.permissions?.[key]?.saveQuote);
+      return Boolean(key && activePermissions?.[key]?.saveQuote);
     },
-    [user, isAdmin],
+    [user, isAdmin, activePermissions],
   );
 
   const canViewQuotes = useCallback(
@@ -204,9 +209,9 @@ export function AuthProvider({ children }) {
       if (!user) return false;
       if (isAdmin) return true;
       const key = CALC_PERMISSION_KEYS[calcKey];
-      return Boolean(key && user.permissions?.[key]?.viewQuotes);
+      return Boolean(key && activePermissions?.[key]?.viewQuotes);
     },
-    [user, isAdmin],
+    [user, isAdmin, activePermissions],
   );
 
   const canEditPrices = useCallback(
@@ -214,15 +219,15 @@ export function AuthProvider({ children }) {
       if (!user) return false;
       if (isAdmin) return true;
       const key = CALC_PERMISSION_KEYS[calcKey];
-      return Boolean(key && user.permissions?.[key]?.editPrices);
+      return Boolean(key && activePermissions?.[key]?.editPrices);
     },
-    [user, isAdmin],
+    [user, isAdmin, activePermissions],
   );
 
   const canManageUsers = useCallback(() => {
     if (!user) return false;
-    return isAdmin || Boolean(user.permissions?.manageUsers);
-  }, [user, isAdmin]);
+    return isAdmin || Boolean(activePermissions?.manageUsers);
+  }, [user, isAdmin, activePermissions]);
 
   // ── refreshUser ───────────────────────────────────────────────────────────
   // Re-fetches the current user from the server and updates state.

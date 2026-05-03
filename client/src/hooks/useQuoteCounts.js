@@ -1,29 +1,40 @@
 import { useState, useEffect } from "react";
 import { getQuoteCount } from "../utils/quoteStorage";
 import { QUOTE_STORAGE_KEYS } from "../constants/navigation";
+import { useAuth } from "../context/AuthContext";
 
-const KEYS = Object.values(QUOTE_STORAGE_KEYS);
+// Maps storage key → calcKey used by canViewQuotes()
+const STORAGE_KEY_TO_CALC = {
+  gravure: "gravure",
+  "flexo-rate-calc": "flexo",
+  "job-cost": "job-cost",
+};
+
+const ALL_KEYS = Object.values(QUOTE_STORAGE_KEYS);
 
 /**
- * useQuoteCounts — returns an object with quote counts for all calculators.
- *
- * Counts are loaded asynchronously (some calculators are server-backed).
- * Re-fetches on `quotes-updated` (in-tab) and `storage` (cross-tab) events.
- * On fetch failure, the previous count is preserved.
- *
- * Returns: { gravure: number, "flexo-rate-calc": number, "job-cost": number }
+ * useQuoteCounts — returns an object with quote counts for all calculators
+ * the current user has viewQuotes permission for.
  */
 export function useQuoteCounts() {
+  const auth = useAuth();
   const [counts, setCounts] = useState(() =>
-    Object.fromEntries(KEYS.map((k) => [k, 0])),
+    Object.fromEntries(ALL_KEYS.map((k) => [k, 0])),
   );
 
   useEffect(() => {
     let cancelled = false;
 
+    // Only fetch counts for calcs the user can view quotes for
+    const allowedKeys = ALL_KEYS.filter((key) => {
+      const calcKey = STORAGE_KEY_TO_CALC[key];
+      return calcKey ? auth.canViewQuotes(calcKey) : false;
+    });
+
     async function refresh() {
+      if (allowedKeys.length === 0) return;
       const results = await Promise.all(
-        KEYS.map((key) =>
+        allowedKeys.map((key) =>
           getQuoteCount(key).then(
             (n) => [key, n],
             (err) => {
@@ -51,7 +62,7 @@ export function useQuoteCounts() {
       window.removeEventListener("storage", refresh);
       window.removeEventListener("quotes-updated", refresh);
     };
-  }, []);
+  }, [auth]);
 
   return counts;
 }

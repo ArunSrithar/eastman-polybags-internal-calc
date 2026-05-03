@@ -1,44 +1,56 @@
-import { UserIcon } from "../ui/Icons";
-
-/**
- * UserListItem — presentational row for the user list.
- *
- * Props:
- *   user      object    { id, username, email, role }
- *   isActive  boolean   selected state
- *   onClick   fn()
- */
 export default function UserListItem({ user, isActive, onClick }) {
+  const primaryName = user.displayName || user.fullName || user.username;
+  const showUsername = primaryName !== user.username;
+  const enabled = user.isActive ?? true;
+
   return (
     <button
       type="button"
       onClick={onClick}
-      className={isActive ? "quote-list-item-active" : "quote-list-item"}
+      className={`quote-list-item ${isActive ? "quote-list-item-active" : "hover:bg-fill"}`}
     >
-      <span className="shrink-0 size-8 flex items-center justify-center rounded-full bg-tint/10 text-tint">
-        <UserIcon className="size-4" />
-      </span>
-
-      <span className="flex-1 min-w-0 text-left">
-        <span className="block text-sm font-medium text-label truncate">
-          {user.username}
+      <div className="flex items-start justify-between gap-2">
+        <span
+          className={`text-sm font-medium truncate ${isActive ? "text-tint" : enabled ? "text-label" : "text-label-3"}`}
+        >
+          {primaryName}
         </span>
-        {user.email ? (
-          <span className="block text-xs text-label-3 truncate mt-0.5">
-            {user.email}
-          </span>
-        ) : null}
-      </span>
+        <span
+          className={`text-[11px] font-semibold whitespace-nowrap px-2 py-0.5 rounded-full border ${
+            enabled
+              ? "bg-green-500/20 text-green-400 border-green-500/30"
+              : "bg-red-500/20 text-red-400 border-red-500/30"
+          }`}
+        >
+          {enabled ? "Active" : "Deactivated"}
+        </span>
+      </div>
 
-      <span
-        className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${
-          user.role === "admin"
-            ? "bg-tint/12 text-tint"
-            : "bg-fill-2 text-label-3"
-        }`}
-      >
-        {user.role}
-      </span>
+      <div className="flex items-center gap-2 mt-0.5">
+        {showUsername ? (
+          <span className="text-[11px] text-label-3 truncate">@{user.username}</span>
+        ) : null}
+        {showUsername && user.email ? (
+          <span className="text-[11px] text-label-3">·</span>
+        ) : null}
+        {user.email ? (
+          <span className="text-[11px] text-label-3 truncate">{user.email}</span>
+        ) : (
+          <span className="text-[11px] text-label-4 truncate">No email</span>
+        )}
+        {!showUsername ? (
+          <>
+            <span className="text-[11px] text-label-3">·</span>
+            <span className="text-[11px] text-label-3 truncate">@{user.username}</span>
+          </>
+        ) : null}
+      </div>
+
+      {!enabled ? (
+        <span className="sr-only">
+          User is disabled
+        </span>
+      ) : null}
     </button>
   );
 }

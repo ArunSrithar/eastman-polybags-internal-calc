@@ -7,6 +7,7 @@ import {
   QuotesIcon,
   PriceSettingsIcon,
   UsersIcon,
+  ShieldIcon,
 } from "../components/ui/Icons";
 
 /**
@@ -120,16 +121,33 @@ export const NAV_ITEMS = [
     ],
   },
   {
-    id: "users",
-    label: "Users",
+    id: "users-management",
+    label: "Users Management",
     icon: UsersIcon,
-    path: "/users/",
-    requiredPermission: "manageUsers",
-    meta: {
-      title: "User Management",
-      description: "Manage app users and their permissions.",
-    },
-    subItems: null,
+    subItems: [
+      {
+        id: "roles",
+        label: "Roles",
+        icon: ShieldIcon,
+        badgeKey: "roles",
+        path: "/users/roles/",
+        meta: {
+          title: "Roles & Permissions",
+          description: "Create reusable permission roles and assign them to users.",
+        },
+      },
+      {
+        id: "users",
+        label: "Users",
+        icon: UsersIcon,
+        badgeKey: "users",
+        path: "/users/",
+        meta: {
+          title: "User Management",
+          description: "Manage app users and attach permission roles.",
+        },
+      },
+    ],
   },
 ];
 
@@ -184,5 +202,6 @@ export const VIEW_PERMISSIONS = {
   "flexo-settings": { type: "editPrices", calcKey: "flexo" },
   "job-cost": { type: "calculate", calcKey: "job-cost" },
   "job-cost-quotes": { type: "viewQuotes", calcKey: "job-cost" },
+  roles: { type: "manageUsers" },
   users: { type: "manageUsers" },
 };

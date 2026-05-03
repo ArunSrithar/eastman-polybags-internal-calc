@@ -1,4 +1,5 @@
-import { useRouting } from "../../hooks/useRouting";
+import { useRouting, canAccessView } from "../../hooks/useRouting";
+import { useAuth } from "../../context/AuthContext";
 import Sidebar from "./Sidebar/Sidebar";
 import PlaceholderView from "./PlaceholderView";
 import { MAIN_MARGIN_LEFT } from "../../constants/layout";
@@ -13,6 +14,7 @@ import JobCostSavedQuotes from "../calculators/JobCostCalculator/JobCostSavedQuo
 import GravurePriceSettings from "../RateSettings/GravurePriceSettings";
 import FlexoPriceSettings from "../RateSettings/FlexoPriceSettings";
 import UserManagement from "../admin/UserManagement";
+import RolesManagement from "../admin/RolesManagement";
 
 // Persistent views — stay mounted to preserve state across navigation.
 const PERSISTENT_VIEWS = {
@@ -24,11 +26,13 @@ const PERSISTENT_VIEWS = {
   "flexo-settings": FlexoPriceSettings,
   "job-cost": JobCostCalculator,
   "job-cost-quotes": JobCostSavedQuotes,
+  roles: RolesManagement,
   users: UserManagement,
 };
 
 export default function AppShell() {
   const [activeView, navigate] = useRouting();
+  const auth = useAuth();
 
   function renderFallback() {
     return <PlaceholderView viewId={activeView} />;
@@ -41,18 +45,21 @@ export default function AppShell() {
       <Sidebar activeView={activeView} onNavigate={navigate} />
 
       <main className="h-dvh p-3" style={{ marginLeft: MAIN_MARGIN_LEFT }}>
-        <GravureSettingsProvider>
-          <FlexoSettingsProvider>
-            {/* Persistent views — always mounted, hidden via CSS */}
-            {Object.entries(PERSISTENT_VIEWS).map(([viewId, Component]) => (
-              <div
-                key={viewId}
-                className="h-full"
-                style={{ display: activeView === viewId ? "block" : "none" }}
-              >
-                <Component />
-              </div>
-            ))}
+        <GravureSettingsProvider skip={!auth.canCalculate("gravure")}>
+          <FlexoSettingsProvider skip={!auth.canCalculate("flexo")}>
+            {/* Persistent views — mounted only when accessible, hidden via CSS */}
+            {Object.entries(PERSISTENT_VIEWS).map(([viewId, Component]) => {
+              if (!canAccessView(viewId, auth)) return null;
+              return (
+                <div
+                  key={viewId}
+                  className="h-full"
+                  style={{ display: activeView === viewId ? "block" : "none" }}
+                >
+                  <Component />
+                </div>
+              );
+            })}
           </FlexoSettingsProvider>
         </GravureSettingsProvider>
 

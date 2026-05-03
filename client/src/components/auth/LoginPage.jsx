@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { UserIcon, LockIcon, EyeIcon, EyeOffIcon, HomeIcon } from "../ui/Icons";
+import TaglineHeadline from "./TaglineHeadline";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -34,7 +35,7 @@ export default function LoginPage() {
       <div className="auth-blob-2 absolute -bottom-48 left-[10%] w-[600px] h-[600px] rounded-full pointer-events-none" />
 
       {/* Full-screen two-column layout */}
-      <div className="relative w-full flex-1 self-stretch grid grid-cols-2">
+      <div className="relative w-full flex-1 self-stretch grid grid-cols-1 lg:grid-cols-2">
         {/* Left: branding panel — content right-aligned, hugging center */}
         <div className="hidden lg:flex items-center justify-end pr-6 pl-16 relative z-10">
           <div className="space-y-10 max-w-md text-right">
@@ -55,21 +56,17 @@ export default function LoginPage() {
                 </p>
                 <span className="size-1.5 rounded-full bg-tint" />
               </div>
-              <h1 className="text-6xl xl:text-7xl font-black leading-[0.9] tracking-tight text-label">
-                <span className="block auth-line auth-line-1">CALCULATE</span>
-                <span className="block auth-line auth-line-2">WITH</span>
-                <span className="block auth-outline-text auth-line auth-line-3">PRECISION.</span>
-              </h1>
+              <TaglineHeadline />
               <p className="text-label-3 text-sm leading-relaxed max-w-xs ml-auto">
-                Daily rate calculations, quote generation, and cost breakdowns
-                — all in one place.
+                Daily rate calculations, quote generation, and cost breakdowns —
+                all in one place.
               </p>
             </div>
           </div>
         </div>
 
         {/* Right: form panel — card left-aligned, hugging center */}
-        <div className="flex items-center justify-start pl-6 pr-16 relative z-10">
+        <div className="flex items-center justify-center lg:justify-start px-4 lg:pl-6 lg:pr-16 relative z-10">
           {/* Mobile-only wordmark */}
           <div className="lg:hidden absolute top-8 left-1/2 -translate-x-1/2 flex items-center gap-2">
             <div className="size-7 rounded-lg bg-tint/10 flex items-center justify-center">
@@ -81,7 +78,7 @@ export default function LoginPage() {
           </div>
 
           {/* Glass card — custom material tuned for dark context */}
-          <div className="w-full max-w-sm auth-login-card flex flex-col justify-center px-10 py-16">
+          <div className="w-full max-w-sm auth-login-card auth-card-swap-enter flex flex-col justify-center px-8 lg:px-10 py-14 lg:py-16">
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-label mb-2">
                 Welcome back
@@ -93,10 +90,7 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} noValidate className="space-y-4">
               <div>
-                <label
-                  htmlFor="username"
-                  className="auth-field-label"
-                >
+                <label htmlFor="username" className="auth-field-label">
                   Username
                 </label>
                 <div className="relative">
@@ -114,6 +108,9 @@ export default function LoginPage() {
                     placeholder="Enter your username"
                     autoComplete="username"
                     autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSubmit(e);
+                    }}
                     className="auth-input pl-9"
                     required
                   />
@@ -121,10 +118,7 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <label
-                  htmlFor="login-password"
-                  className="auth-field-label"
-                >
+                <label htmlFor="login-password" className="auth-field-label">
                   Password
                 </label>
                 <div className="relative">
@@ -141,6 +135,9 @@ export default function LoginPage() {
                     }}
                     placeholder="Enter your password"
                     autoComplete="current-password"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSubmit(e);
+                    }}
                     className="auth-input pl-9 pr-10"
                     required
                   />

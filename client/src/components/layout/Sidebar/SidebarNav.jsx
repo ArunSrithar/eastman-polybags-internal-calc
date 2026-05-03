@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuoteCounts } from "../../../hooks/useQuoteCounts";
+import { useSidebarBadgeCounts } from "../../../hooks/useSidebarBadgeCounts";
 import { NAV_ITEMS } from "../../../constants/navigation";
 import { useAuth } from "../../../context/AuthContext";
 import { canAccessView } from "../../../hooks/useRouting";
@@ -10,7 +10,7 @@ import NavItem from "./NavItem";
 // We alias it here for clarity since we're filtering by item ID, not by view navigation.
 
 export default function SidebarNav({ activeView, onNavigate }) {
-  const quoteCounts = useQuoteCounts();
+  const badgeCounts = useSidebarBadgeCounts();
   const auth = useAuth();
 
   // Filter nav items: hide items the user has no permission to access.
@@ -42,7 +42,7 @@ export default function SidebarNav({ activeView, onNavigate }) {
       const wasExpanded = expanded[item.id];
       setExpanded((prev) => ({ ...prev, [item.id]: !prev[item.id] }));
       if (!wasExpanded) {
-        onNavigate(item.id);
+        onNavigate(item.subItems[0]?.id || item.id);
       }
     } else {
       onNavigate(item.id);
@@ -69,7 +69,7 @@ export default function SidebarNav({ activeView, onNavigate }) {
             isActive={isTopActive(item)}
             isExpanded={!!expanded[item.id]}
             activeView={activeView}
-            quoteCounts={quoteCounts}
+            badgeCounts={badgeCounts}
             onTopClick={handleTopClick}
             onNavigate={onNavigate}
           />
