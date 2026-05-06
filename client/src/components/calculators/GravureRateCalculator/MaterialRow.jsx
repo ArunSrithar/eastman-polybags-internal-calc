@@ -25,6 +25,7 @@ export default function MaterialRow({
   onToggle,
   onChange,
   onNewOption,
+  qtyDisabled = false,
 }) {
   function handleMicronChange(v) {
     onChange("micron", v);
@@ -54,13 +55,19 @@ export default function MaterialRow({
         className={`grid grid-cols-3 item-row-inputs ${m.enabled ? "" : "item-row-inputs-off"}`}
       >
         <div>
-          <p className="field-label mb-1">Price (₹/kg)</p>
-          <input
-            type="text"
-            value={currentPrice ? `₹${currentPrice}` : "—"}
-            disabled
-            className="input-base opacity-60 cursor-not-allowed"
-          />
+          <p className="field-label mb-1">Price</p>
+          <div className="flex items-center input-base p-0 overflow-hidden opacity-60 cursor-not-allowed">
+            <span className="px-3 text-label-3 text-sm border-r border-separator shrink-0">
+              ₹
+            </span>
+            <input
+              type="text"
+              value={currentPrice ? String(currentPrice) : "—"}
+              disabled
+              className="flex-1 min-w-0 bg-transparent px-3 py-2 text-sm outline-none"
+            />
+            <span className="px-3 text-label-3 text-xs shrink-0">per kg</span>
+          </div>
         </div>
         <div>
           <p className="field-label mb-1">Micron</p>
@@ -74,13 +81,25 @@ export default function MaterialRow({
         </div>
         <div>
           <p className="field-label mb-1">Qty (kg)</p>
-          <CreatableSelect
-            storageKey={`gravure-qty-${materialKey}`}
-            defaultOptions={qtyOptions}
-            value={m.qty}
-            onChange={handleQtyChange}
-            placeholder="0.000"
-          />
+          {qtyDisabled ? (
+            <div className="flex items-center input-base p-0 overflow-hidden opacity-60 cursor-not-allowed">
+              <input
+                type="text"
+                value={m.qty || ""}
+                disabled
+                placeholder="Auto"
+                className="flex-1 bg-transparent px-3 py-2 text-sm outline-none w-0"
+              />
+            </div>
+          ) : (
+            <CreatableSelect
+              storageKey={`gravure-qty-${materialKey}`}
+              defaultOptions={qtyOptions}
+              value={m.qty}
+              onChange={handleQtyChange}
+              placeholder="0.000"
+            />
+          )}
         </div>
       </div>
     </div>

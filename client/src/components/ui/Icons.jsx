@@ -558,3 +558,20 @@ export function ShieldIcon({ className = "size-5" }) {
     </svg>
   );
 }
+
+export function CalendarIcon({ className = "size-4" }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <rect x="1" y="2.5" width="14" height="12" rx="2" />
+      <path d="M1 6h14M5 1v3M11 1v3" />
+    </svg>
+  );
+}

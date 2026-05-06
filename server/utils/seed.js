@@ -26,7 +26,9 @@ function makeHistoryCell(rate, now = DEFAULT_SEED_DATE) {
 function makeMaterial(label, price, microns, qtys, now = DEFAULT_SEED_DATE) {
   return {
     label,
-    priceHistory: price ? [{ price, changedBy: "Admin", changedAt: asIso(now) }] : [],
+    priceHistory: price
+      ? [{ price, changedBy: "Admin", changedAt: asIso(now) }]
+      : [],
     micronOptions: microns.map((v) => ({ value: v, createdAt: asIso(now) })),
     qtyOptions: qtys.map((v) => ({ value: v, createdAt: asIso(now) })),
   };
@@ -161,13 +163,17 @@ function buildGravureDefaults(now) {
 function buildFlexoDefaults(now) {
   const defaults = buildDefaultFlexoSettings(now);
 
-  const materialDocs = Object.entries(defaults.materials).map(([key, value]) => ({
-    _id: key,
-    ...value,
-  }));
+  const materialDocs = Object.entries(defaults.materials).map(
+    ([key, value]) => ({
+      _id: key,
+      ...value,
+    }),
+  );
 
   const conversionRateDocs = [];
-  for (const [material, materialData] of Object.entries(defaults.conversionRates)) {
+  for (const [material, materialData] of Object.entries(
+    defaults.conversionRates,
+  )) {
     for (const [rollSize, rateData] of Object.entries(materialData.rates)) {
       conversionRateDocs.push({
         _id: `${material}:${rollSize}`,
@@ -197,10 +203,12 @@ function buildFlexoDefaults(now) {
     }),
   );
 
-  const cuttingRateDocs = Object.entries(defaults.cuttingRates).map(([size, value]) => ({
-    _id: size,
-    ...value,
-  }));
+  const cuttingRateDocs = Object.entries(defaults.cuttingRates).map(
+    ([coverSize, value]) => ({
+      _id: coverSize,
+      ...value,
+    }),
+  );
 
   const chargeRateDocs = ["punchingRate", "opackRate"].map((key) => ({
     _id: key,
@@ -208,7 +216,9 @@ function buildFlexoDefaults(now) {
   }));
 
   const rollSizeRateDocs = [];
-  for (const [material, rateByRollSize] of Object.entries(defaults.rollSizeRates)) {
+  for (const [material, rateByRollSize] of Object.entries(
+    defaults.rollSizeRates,
+  )) {
     for (const [rollSize, value] of Object.entries(rateByRollSize)) {
       rollSizeRateDocs.push({
         _id: `${material}:${rollSize}`,
@@ -234,7 +244,8 @@ export async function seedIfMissing() {
   const gravureCount = await GravureMaterial.countDocuments();
   if (gravureCount === 0) {
     const now = new Date();
-    const { materialDocs, pouchDocs, chargeRateDocs } = buildGravureDefaults(now);
+    const { materialDocs, pouchDocs, chargeRateDocs } =
+      buildGravureDefaults(now);
 
     await GravureMaterial.insertMany(materialDocs);
     await GravurePouch.insertMany(pouchDocs);
@@ -361,7 +372,11 @@ export async function seedStructureIfMissing() {
 
 /* ── Flexo defaults — built from client/src/constants/flexoRateCalc.js ──── */
 
-function makeConversionMaterial(label, ratesByRollSize, now = DEFAULT_SEED_DATE) {
+function makeConversionMaterial(
+  label,
+  ratesByRollSize,
+  now = DEFAULT_SEED_DATE,
+) {
   const rates = {};
   for (const [rollSize, rate] of Object.entries(ratesByRollSize)) {
     rates[rollSize] = makeHistoryCell(rate, now);
@@ -491,16 +506,12 @@ function buildDefaultFlexoSettings(now = DEFAULT_SEED_DATE) {
       "18x20": { enabled: true, ...makeHistoryCell(60, now) },
     },
     cuttingRates: {
-      4: makeHistoryCell(5, now),
-      5: makeHistoryCell(6.5, now),
-      6: makeHistoryCell(8, now),
-      7: makeHistoryCell(9.5, now),
-      8: makeHistoryCell(11, now),
-      9: makeHistoryCell(12.5, now),
-      10: makeHistoryCell(14, now),
-      11: makeHistoryCell(15.5, now),
-      12: makeHistoryCell(17, now),
-      14: makeHistoryCell(20, now),
+      "8x10": { enabled: true, ...makeHistoryCell(0, now) },
+      "10x12": { enabled: true, ...makeHistoryCell(0, now) },
+      "12x14": { enabled: true, ...makeHistoryCell(0, now) },
+      "14x16": { enabled: true, ...makeHistoryCell(0, now) },
+      "16x18": { enabled: true, ...makeHistoryCell(0, now) },
+      "18x20": { enabled: true, ...makeHistoryCell(0, now) },
     },
     punchingRate: {
       label: "Punching",

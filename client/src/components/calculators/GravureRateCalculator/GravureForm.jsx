@@ -13,7 +13,15 @@ import ToggleField from "../../form/ToggleField";
 import RadioField from "../../form/RadioField";
 import SelectField from "../../form/SelectField";
 import MaterialRow from "./MaterialRow";
-import { MATERIALS, storeMaterialField, makeInitialForm } from "./formConfig";
+import {
+  MATERIALS,
+  storeMaterialField,
+  makeInitialForm,
+  calculateLdRollQtyFromMicron,
+  calculateBoppQtyFromMicron,
+} from "./formConfig";
+import { fmt } from "../../../utils/format";
+import { POUCH_RATE_BY_SIZE } from "../../../constants/gravureRates";
 import {
   useGravureSettings,
   getCurrentPrice,
@@ -42,6 +50,13 @@ export default forwardRef(function GravureForm(
     "6 x 8",
     "7 x 10",
   ];
+
+  const pouchRateBySize =
+    settings?.pouches?.reduce((acc, p) => {
+      if (p.enabled === false) return acc;
+      acc[`${p.length} x ${p.breadth}`] = p.rate;
+      return acc;
+    }, {}) ?? POUCH_RATE_BY_SIZE;
 
   // Sync material prices from settings into form state
   const didSyncPrices = useRef(false);
@@ -96,12 +111,29 @@ export default forwardRef(function GravureForm(
   }
 
   function setMaterial(key, field, val) {
+    if ((key === "ldRoll" || key === "bopp") && field === "qty") return;
+
+    const nextMaterial = {
+      ...form.materials[key],
+      [field]: val,
+    };
+
+    if (key === "ldRoll" && field === "micron") {
+      nextMaterial.qty = calculateLdRollQtyFromMicron(val);
+      storeMaterialField(key, "qty", nextMaterial.qty);
+    }
+
+    if (key === "bopp" && field === "micron") {
+      nextMaterial.qty = calculateBoppQtyFromMicron(val);
+      storeMaterialField(key, "qty", nextMaterial.qty);
+    }
+
     storeMaterialField(key, field, val);
     const next = {
       ...form,
       materials: {
         ...form.materials,
-        [key]: { ...form.materials[key], [field]: val },
+        [key]: nextMaterial,
       },
     };
     setForm(next);
@@ -152,20 +184,10 @@ export default forwardRef(function GravureForm(
               onToggle={() => toggleMaterial(mat.key)}
               onChange={(field, val) => setMaterial(mat.key, field, val)}
               onNewOption={addMaterialOption}
+              qtyDisabled={mat.key === "ldRoll" || mat.key === "bopp"}
             />
           );
         })}
-      </FormSection>
-
-      <FormSection>
-        <SelectField
-          label="Pouch Size"
-          placeholder="e.g. 4x6"
-          storageKey="gravure-pouch-sizes"
-          defaultOptions={pouchSizeOptions}
-          value={form.pouchSize}
-          onChange={(v) => setField("pouchSize", v)}
-        />
       </FormSection>
 
       <FormSection title="Printing Charges">
@@ -204,6 +226,28 @@ export default forwardRef(function GravureForm(
           label="Slitting Charges"
           on={form.slitting}
           onToggle={() => setField("slitting", !form.slitting)}
+        />
+      </FormSection>
+
+      <FormSection>
+        <SelectField
+          label="Pouch Size"
+          placeholder="e.g. 4x6"
+          storageKey="gravure-pouch-sizes"
+          defaultOptions={pouchSizeOptions}
+          value={form.pouchSize}
+          onChange={(v) => setField("pouchSize", v)}
+          renderOption={(size) => {
+            const rate = pouchRateBySize[size];
+            return (
+              <span className="flex items-center justify-between gap-4">
+                <span>{size}</span>
+                <span className="text-xs text-label-3 tabular-nums">
+                  {rate != null ? `₹${fmt(rate)}` : "Custom"}
+                </span>
+              </span>
+            );
+          }}
         />
       </FormSection>
 

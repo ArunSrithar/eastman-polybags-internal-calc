@@ -35,7 +35,7 @@ export default function NewPouchRow({ onConfirm, onCancel }) {
             value={length}
             onChange={(e) => setLength(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="L"
+            placeholder="W"
             className="input-base py-1.5 text-sm w-12 text-right"
           />
           <span className="text-label-3">×</span>
@@ -44,7 +44,7 @@ export default function NewPouchRow({ onConfirm, onCancel }) {
             value={breadth}
             onChange={(e) => setBreadth(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="B"
+            placeholder="H"
             className="input-base py-1.5 text-sm w-12 text-left"
           />
         </div>

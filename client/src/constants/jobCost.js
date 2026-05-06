@@ -50,12 +50,17 @@ export const LINE_ITEMS = [
     defaultPrice: 20,
   },
   {
+    key: "packingCharges",
+    label: "Packing Charges",
+    hasQty: false,
+    defaultPrice: 0,
+  },
+  {
     key: "transportCharge",
     label: "Transport Charge",
     hasQty: false,
     defaultPrice: 500,
   },
-  { key: "wastages", label: "Wastages", hasQty: false, defaultPrice: 300 },
 ];
 
 // ── CreatableCombobox seed options ────────────────────────────────────────
@@ -65,4 +70,3 @@ export const DROPDOWN_SEEDS = {
   microns: ["12", "15", "20", "25", "30", "40", "50"],
   colours: ["1 Colour", "2 Colour", "3 Colour", "4 Colour", "Multicolour"],
 };
-

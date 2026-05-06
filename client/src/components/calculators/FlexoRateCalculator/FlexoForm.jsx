@@ -8,7 +8,6 @@ import RadioField from "../../form/RadioField";
 import SelectField from "../../form/SelectField";
 import {
   makeInitialForm,
-  CUTTING_SIZE_OPTIONS,
   WASTAGE_OPTIONS,
   CONVERSION_MATERIAL_TYPES,
   PRINTING_COLORS_OPTIONS,
@@ -42,7 +41,7 @@ export default forwardRef(function FlexoForm(
     .map(([key]) => key)
     .sort((a, b) => parseFloat(a) - parseFloat(b));
 
-  // Derive cover size options from live printingRates (sorted L then B), filtered to enabled only
+  // Derive cover size options from live printingRates (sorted W then H), filtered to enabled only
   const liveCoverSizeOptions = Object.entries(settings?.printingRates ?? {})
     .filter(([, entry]) => entry.enabled !== false)
     .map(([key]) => key)
@@ -108,6 +107,7 @@ export default forwardRef(function FlexoForm(
           onChange={(v) => setField("materialPrice", v)}
           min={0}
           unit="₹"
+          width="w-48"
           disabled
         />
         <SelectField
@@ -149,6 +149,11 @@ export default forwardRef(function FlexoForm(
           onToggle={() => setField("gusset", !form.gusset)}
         />
         <ToggleField
+          label="Cutting"
+          on={form.cutting}
+          onToggle={() => setField("cutting", !form.cutting)}
+        />
+        <ToggleField
           label="Punching"
           on={form.punching}
           onToggle={() => setField("punching", !form.punching)}
@@ -157,19 +162,6 @@ export default forwardRef(function FlexoForm(
           label="Opack"
           on={form.opack}
           onToggle={() => setField("opack", !form.opack)}
-        />
-      </FormSection>
-
-      {/* ── Cutting ── */}
-      <FormSection>
-        <SelectField
-          label="Cutting Size"
-          placeholder="Select"
-          inline
-          storageKey="flexo-cutting-sizes"
-          defaultOptions={CUTTING_SIZE_OPTIONS}
-          value={form.cuttingSize}
-          onChange={(v) => setField("cuttingSize", v)}
         />
       </FormSection>
 

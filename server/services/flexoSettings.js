@@ -49,7 +49,11 @@ function toChargeRateResponse(doc) {
 function toPrintingRateResponse(doc) {
   if (!doc) return null;
 
-  const response = { enabled: !!doc.enabled };
+  const response = {
+    enabled: !!doc.enabled,
+    createdBy: doc.createdBy ?? "Admin",
+    createdAt: doc.createdAt ?? null,
+  };
   for (const colorCount of COLOR_COUNTS) {
     response[colorCount] = doc.colors?.[colorCount] ?? { history: [] };
   }
@@ -107,6 +111,7 @@ function buildCuttingRates(docs) {
   const cuttingRates = {};
   for (const doc of docs) {
     cuttingRates[doc._id] = {
+      enabled: !!doc.enabled,
       history: doc.history ?? [],
     };
   }
@@ -138,15 +143,17 @@ function buildRollSizeRates(docs) {
   return rollSizeRates;
 }
 
-async function getPrintingAndGussetSettings() {
-  const [printingDocs, gussetDocs] = await Promise.all([
+async function getPrintingRelatedSettings() {
+  const [printingDocs, gussetDocs, cuttingDocs] = await Promise.all([
     FlexoPrintingRate.find().sort({ _id: 1 }).lean(),
     FlexoGussetRate.find().sort({ _id: 1 }).lean(),
+    FlexoCuttingRate.find().sort({ _id: 1 }).lean(),
   ]);
 
   return {
     printingRates: buildPrintingRates(printingDocs),
     gussetRates: buildGussetRates(gussetDocs),
+    cuttingRates: buildCuttingRates(cuttingDocs),
   };
 }
 
@@ -327,9 +334,12 @@ export async function addPrintingCoverSize(coverSize) {
     throw makeBadRequestError(`Cover size "${coverSize}" already exists`);
   }
 
+  const now = new Date();
   await FlexoPrintingRate.create({
     _id: coverSize,
     enabled: true,
+    createdBy: CHANGED_BY,
+    createdAt: now,
     colors: makeDefaultPrintingColors(),
   });
 
@@ -342,7 +352,16 @@ export async function addPrintingCoverSize(coverSize) {
     });
   }
 
-  return getPrintingAndGussetSettings();
+  const cuttingExists = await FlexoCuttingRate.exists({ _id: coverSize });
+  if (!cuttingExists) {
+    await FlexoCuttingRate.create({
+      _id: coverSize,
+      enabled: true,
+      history: [makeRateEntry(0)],
+    });
+  }
+
+  return getPrintingRelatedSettings();
 }
 
 export async function togglePrintingCoverSize(coverSize, enabled) {
@@ -362,8 +381,9 @@ export async function togglePrintingCoverSize(coverSize, enabled) {
   }
 
   await FlexoGussetRate.findByIdAndUpdate(coverSize, { enabled: !!enabled });
+  await FlexoCuttingRate.findByIdAndUpdate(coverSize, { enabled: !!enabled });
 
-  return getPrintingAndGussetSettings();
+  return getPrintingRelatedSettings();
 }
 
 export async function deletePrintingCoverSize(coverSize) {
@@ -373,8 +393,9 @@ export async function deletePrintingCoverSize(coverSize) {
   }
 
   await FlexoGussetRate.findByIdAndDelete(coverSize);
+  await FlexoCuttingRate.findByIdAndDelete(coverSize);
 
-  return getPrintingAndGussetSettings();
+  return getPrintingRelatedSettings();
 }
 
 /* ── Gusset rates (coverSize) ───────────────────────────────────────────── */
@@ -403,11 +424,11 @@ export async function updateGussetRate(coverSize, rate) {
   return getAllGussetRates();
 }
 
-/* ── Cutting rates (size) ───────────────────────────────────────────────── */
+/* ── Cutting rates (coverSize) ──────────────────────────────────────────── */
 
-export async function updateCuttingRate(size, rate) {
+export async function updateCuttingRate(coverSize, rate) {
   const updated = await FlexoCuttingRate.findByIdAndUpdate(
-    size,
+    coverSize,
     {
       $push: {
         history: {
@@ -423,7 +444,7 @@ export async function updateCuttingRate(size, rate) {
   );
 
   if (!updated) {
-    throw makeNotFoundError(`Cutting size "${size}" not found`);
+    throw makeNotFoundError(`Cover size "${coverSize}" not found`);
   }
 
   return getAllCuttingRates();

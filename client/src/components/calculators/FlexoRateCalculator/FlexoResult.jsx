@@ -34,7 +34,6 @@ export default function FlexoResult({ result, form, status, date }) {
     gussetRate,
     punchingRate,
     opackRate,
-    cuttingSize,
     cuttingSizeRate,
     subtotal,
     wastagePercent,
@@ -138,24 +137,21 @@ export default function FlexoResult({ result, form, status, date }) {
               amount={gussetRate}
             />
           ) : null}
-          {punchingRate > 0 ? (
-            <ItemRow label="Punching" amount={punchingRate} />
-          ) : null}
-          {opackRate > 0 ? <ItemRow label="Opack" amount={opackRate} /> : null}
           {cuttingSizeRate > 0 ? (
             <ItemRow
               label={
                 <>
                   Cutting
-                  <span className="text-label-3 italic">
-                    {" "}
-                    · size {cuttingSize}
-                  </span>
+                  <span className="text-label-3 italic"> · {coverSize}</span>
                 </>
               }
               amount={cuttingSizeRate}
             />
           ) : null}
+          {punchingRate > 0 ? (
+            <ItemRow label="Punching" amount={punchingRate} />
+          ) : null}
+          {opackRate > 0 ? <ItemRow label="Opack" amount={opackRate} /> : null}
           <SectionSubtotal
             label="Additional subtotal"
             amount={additionalTotal}

@@ -22,6 +22,7 @@ export default function CreatableSelect({
   placeholder = "Select or type…",
   className = "",
   formatLabel,
+  renderOption,
 }) {
   const [options, setOptions] = useState(() => {
     try {
@@ -40,6 +41,7 @@ export default function CreatableSelect({
 
   const [inputVal, setInputVal] = useState(value);
   const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const [dropPos, setDropPos] = useState({
     top: 0,
     bottom: 0,
@@ -49,6 +51,7 @@ export default function CreatableSelect({
   });
   const wrapRef = useRef(null);
   const inputRef = useRef(null);
+  const optionRefs = useRef([]);
 
   useEffect(() => {
     setInputVal(value);
@@ -74,6 +77,23 @@ export default function CreatableSelect({
     setOpen(true);
   }
 
+  useEffect(() => {
+    if (!open) return;
+
+    function closeDropdown() {
+      setOpen(false);
+    }
+
+    // Close on any parent/window scroll to avoid a detached floating menu.
+    window.addEventListener("scroll", closeDropdown, true);
+    window.addEventListener("resize", closeDropdown);
+
+    return () => {
+      window.removeEventListener("scroll", closeDropdown, true);
+      window.removeEventListener("resize", closeDropdown);
+    };
+  }, [open]);
+
   function commitValue(val) {
     const trimmed = val.trim();
     // Only persist and notify if the value actually changed
@@ -97,9 +117,43 @@ export default function CreatableSelect({
     setOpen(false);
   }
 
+  function moveActive(direction, total) {
+    if (total === 0) return;
+    if (activeIndex < 0) {
+      setActiveIndex(direction > 0 ? 0 : total - 1);
+      return;
+    }
+    const next = (activeIndex + direction + total) % total;
+    setActiveIndex(next);
+  }
+
   function handleKeyDown(e) {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (!open) {
+        openDropdown();
+        return;
+      }
+      moveActive(1, filtered.length);
+      return;
+    }
+
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!open) {
+        openDropdown();
+        return;
+      }
+      moveActive(-1, filtered.length);
+      return;
+    }
+
     if (e.key === "Enter") {
       e.preventDefault();
+      if (open && activeIndex >= 0 && filtered[activeIndex]) {
+        handleSelect(filtered[activeIndex]);
+        return;
+      }
       commitValue(inputVal);
     }
     if (e.key === "Escape") {
@@ -117,6 +171,23 @@ export default function CreatableSelect({
   const filtered = options.filter((o) =>
     o.toLowerCase().includes(inputVal.toLowerCase()),
   );
+
+  useEffect(() => {
+    if (!open) {
+      setActiveIndex(-1);
+      return;
+    }
+
+    const selectedIndex = filtered.findIndex((opt) => opt === value);
+    setActiveIndex(
+      selectedIndex >= 0 ? selectedIndex : filtered.length > 0 ? 0 : -1,
+    );
+  }, [open, filtered, value]);
+
+  useEffect(() => {
+    if (!open || activeIndex < 0) return;
+    optionRefs.current[activeIndex]?.scrollIntoView({ block: "nearest" });
+  }, [open, activeIndex]);
 
   return (
     <div ref={wrapRef} className={`relative ${className}`}>
@@ -143,7 +214,9 @@ export default function CreatableSelect({
         className="input-base pr-7"
       />
       <span
-        className="absolute right-2 top-1/2 -translate-y-1/2 text-label-3 pointer-events-none"
+        className={`absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none transition-all duration-150 ${
+          open ? "text-tint rotate-180" : "text-label-3 rotate-0"
+        }`}
         aria-hidden="true"
       >
         <ChevronDownIcon className="size-3" />
@@ -152,7 +225,9 @@ export default function CreatableSelect({
       {open && filtered.length > 0
         ? createPortal(
             <ul
-              className="dropdown-menu"
+              className={`dropdown-menu ${
+                dropPos.openAbove ? "dropdown-menu-up" : "dropdown-menu-down"
+              }`}
               style={{
                 top: dropPos.top,
                 bottom: dropPos.bottom,
@@ -160,21 +235,31 @@ export default function CreatableSelect({
                 width: dropPos.width,
               }}
             >
-              {filtered.map((opt) => (
+              {filtered.map((opt, idx) => (
                 <li key={opt}>
                   <button
+                    ref={(node) => {
+                      optionRefs.current[idx] = node;
+                    }}
                     type="button"
                     onMouseDown={(e) => {
                       e.preventDefault();
                       handleSelect(opt);
                     }}
+                    onMouseEnter={() => setActiveIndex(idx)}
                     className={`dropdown-option ${
-                      opt === value
-                        ? "text-tint font-medium bg-tint/5"
-                        : "text-label hover:bg-fill-3"
+                      idx === activeIndex
+                        ? "dropdown-option-active"
+                        : opt === value
+                          ? "text-tint font-medium"
+                          : "text-label"
                     }`}
                   >
-                    {formatLabel ? formatLabel(opt) : opt}
+                    {renderOption
+                      ? renderOption(opt)
+                      : formatLabel
+                        ? formatLabel(opt)
+                        : opt}
                   </button>
                 </li>
               ))}

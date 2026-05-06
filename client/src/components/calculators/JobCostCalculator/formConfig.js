@@ -32,6 +32,7 @@ export function makeInitialForm() {
     micron: "",
     noOfColours: "",
     items,
+    wastage: "2",
     finishedWeight: "",
     dispatchWeight: "",
   };

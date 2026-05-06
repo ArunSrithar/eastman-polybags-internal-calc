@@ -14,7 +14,10 @@ import {
   resetUserPassword,
 } from "../../utils/usersApi";
 import { getRoles } from "../../utils/rolesApi";
-import { ROLES_UPDATED_EVENT, USERS_UPDATED_EVENT } from "../../constants/events";
+import {
+  ROLES_UPDATED_EVENT,
+  USERS_UPDATED_EVENT,
+} from "../../constants/events";
 
 // ── Main view ───────────────────────────────────────────────────────────────
 
@@ -34,7 +37,10 @@ export default function UserManagement() {
 
   const fetchUsers = useCallback(async () => {
     try {
-      const [usersData, rolesData] = await Promise.all([getUsers(), getRoles()]);
+      const [usersData, rolesData] = await Promise.all([
+        getUsers(),
+        getRoles(),
+      ]);
       setUsers(usersData);
       setRoles(rolesData);
       window.dispatchEvent(
@@ -257,7 +263,7 @@ export default function UserManagement() {
         {/* ── Right: form panel ───────────────────────────────────── */}
         <div className="calc-column">
           {selectedId === null ? (
-            <EmptyFormState onAdd={handleAddNew} canAdd={canAdd} />
+            <EmptyFormState />
           ) : (
             <UserForm
               user={isCreating ? null : selectedUser}

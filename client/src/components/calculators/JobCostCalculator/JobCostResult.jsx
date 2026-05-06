@@ -7,6 +7,7 @@ import TableHeader from "../../invoice/TableHeader";
 import ItemRow from "../../invoice/ItemRow";
 import SectionLabel from "../../invoice/SectionLabel";
 import SectionSubtotal from "../../invoice/SectionSubtotal";
+import WastageRow from "../../invoice/WastageRow";
 import { SECTION_COLORS } from "../../../constants/invoiceColors";
 
 /* ─── Helpers ─────────────────────────────────────────────────────────────── */
@@ -42,6 +43,8 @@ export default function JobCostResult({ result, form, status, date }) {
 
   const {
     enabledItems,
+    wastagePercent,
+    wastageAmount,
     totalAmount,
     finishedWeight,
     dispatchWeight,
@@ -118,7 +121,15 @@ export default function JobCostResult({ result, form, status, date }) {
         </>
       ) : null}
 
-      {/* ── Other (flat charges) ───────────────────────────────────────── */}
+      {wastagePercent > 0 ? (
+        <WastageRow
+          percent={wastagePercent}
+          base={materialTotal + chargeTotal}
+          amount={wastageAmount}
+        />
+      ) : null}
+
+      {/* ── Other (packing + transport) ────────────────────────────── */}
       {other.length > 0 ? (
         <>
           <SectionLabel color={SECTION_COLORS.orange} label="Other" />

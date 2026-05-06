@@ -6,9 +6,17 @@ import { useToast } from "../ui/Toast";
 import RoleListItem from "./RoleListItem";
 import RoleForm from "./RoleForm";
 import EmptyRoleState from "./EmptyRoleState";
-import { getRoles, createRole, updateRole, deleteRole } from "../../utils/rolesApi";
+import {
+  getRoles,
+  createRole,
+  updateRole,
+  deleteRole,
+} from "../../utils/rolesApi";
 import { getUsers } from "../../utils/usersApi";
-import { ROLES_UPDATED_EVENT, USERS_UPDATED_EVENT } from "../../constants/events";
+import {
+  ROLES_UPDATED_EVENT,
+  USERS_UPDATED_EVENT,
+} from "../../constants/events";
 
 export default function RolesManagement() {
   const { canManageUsers } = useAuth();
@@ -85,7 +93,9 @@ export default function RolesManagement() {
     if (!selectedRole) return [];
     const selectedRoleId = String(selectedRole.id);
     return users.filter((user) =>
-      (user.roles || []).some((role) => String(role.id || role._id) === selectedRoleId),
+      (user.roles || []).some(
+        (role) => String(role.id || role._id) === selectedRoleId,
+      ),
     );
   }, [users, selectedRole]);
 
@@ -207,7 +217,9 @@ export default function RolesManagement() {
               </p>
             ) : filtered.length === 0 ? (
               <p className="text-sm text-label-3 px-3 py-4 text-center">
-                {search.trim() ? "No roles match your search." : "No roles yet."}
+                {search.trim()
+                  ? "No roles match your search."
+                  : "No roles yet."}
               </p>
             ) : (
               <ul className="space-y-0.5">
@@ -227,7 +239,7 @@ export default function RolesManagement() {
 
         <div className="calc-column">
           {selectedId === null ? (
-            <EmptyRoleState onAdd={handleAddNew} canAdd={canAdd} />
+            <EmptyRoleState />
           ) : (
             <RoleForm
               role={isCreating ? null : selectedRole}

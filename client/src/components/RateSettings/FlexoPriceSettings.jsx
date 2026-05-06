@@ -8,6 +8,7 @@ import MaterialPriceTable from "./MaterialPriceTable";
 import RateLookupTable from "./RateLookupTable";
 import RateMatrixTable from "./RateMatrixTable";
 import ChargeRateTable from "./ChargeRateTable";
+import CoverSizeTable from "./CoverSizeTable";
 
 export default function FlexoPriceSettings() {
   const {
@@ -78,40 +79,40 @@ export default function FlexoPriceSettings() {
     }
   }
 
-  async function handleUpdateCutting(size, rate) {
+  async function handleUpdateCutting(coverSize, rate) {
     try {
-      await updateCuttingRate(size, rate);
-      showToast("Rate Updated", `Cutting size ${size} rate set to ₹${rate}`);
+      await updateCuttingRate(coverSize, rate);
+      showToast("Rate Updated", `Cutting ${coverSize} rate set to ₹${rate}`);
     } catch (err) {
       showToast("Update Failed", err.message, "error");
     }
   }
 
-  async function handleAddPrintingCoverSize(coverSize) {
+  async function handleAddCoverSize(coverSize) {
     try {
       await addPrintingCoverSize(coverSize);
       showToast(
         "Cover Size Added",
-        `New cover size "${coverSize}" added to printing rates`,
+        `"${coverSize}" added — printing, gusset & cutting rows created`,
       );
     } catch (err) {
       showToast("Failed to Add", err.message, "error");
     }
   }
 
-  async function handleDeletePrintingCoverSize(coverSize) {
+  async function handleDeleteCoverSize(coverSize) {
     try {
       await deletePrintingCoverSize(coverSize);
       showToast(
         "Cover Size Deleted",
-        `"${coverSize}" removed from printing rates`,
+        `"${coverSize}" removed from all charge tables`,
       );
     } catch (err) {
       showToast("Delete Failed", err.message, "error");
     }
   }
 
-  async function handleTogglePrintingCoverSize(coverSize, enabled) {
+  async function handleToggleCoverSize(coverSize, enabled) {
     try {
       await togglePrintingCoverSize(coverSize, enabled);
     } catch (err) {
@@ -185,6 +186,15 @@ export default function FlexoPriceSettings() {
             onAddStart={() => setAdding(true)}
           />
         );
+      case "coverSizes":
+        return (
+          <CoverSizeTable
+            printingRates={settings.printingRates}
+            onAdd={handleAddCoverSize}
+            onDelete={handleDeleteCoverSize}
+            onToggle={handleToggleCoverSize}
+          />
+        );
       case "matrix":
         return (
           <RateMatrixTable
@@ -194,9 +204,6 @@ export default function FlexoPriceSettings() {
             rowLabel="Cover Size"
             colLabel="Colors"
             onUpdate={handleUpdatePrinting}
-            onAddRow={handleAddPrintingCoverSize}
-            onDeleteRow={handleDeletePrintingCoverSize}
-            onToggleRow={handleTogglePrintingCoverSize}
           />
         );
       case "lookup":

@@ -23,7 +23,7 @@ export const ALL_TABS = [...MATERIAL_TABS, POUCH_TAB, ...RATE_TABS];
 /* Pouch table column definitions */
 export const POUCH_COLUMNS = [
   { key: "sno", label: "S.No", className: "w-14" },
-  { key: "size", label: "Size (L × B)", className: "w-36" },
+  { key: "size", label: "Size (W × H)", className: "w-36" },
   { key: "rate", label: "Rate (₹/kg)" },
   { key: "createdBy", label: "Created By" },
   { key: "createdAt", label: "Created At" },

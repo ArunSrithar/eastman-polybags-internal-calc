@@ -244,7 +244,7 @@ export default function RateMatrixTable({
                       value={newLength}
                       onChange={(e) => setNewLength(e.target.value)}
                       onKeyDown={handleAddKeyDown}
-                      placeholder="L"
+                      placeholder="W"
                       className="input-base py-1.5 text-sm w-12 text-right"
                     />
                     <span className="text-label-3 text-xs">×</span>
@@ -253,7 +253,7 @@ export default function RateMatrixTable({
                       value={newBreadth}
                       onChange={(e) => setNewBreadth(e.target.value)}
                       onKeyDown={handleAddKeyDown}
-                      placeholder="B"
+                      placeholder="H"
                       className="input-base py-1.5 text-sm w-12"
                     />
                   </div>

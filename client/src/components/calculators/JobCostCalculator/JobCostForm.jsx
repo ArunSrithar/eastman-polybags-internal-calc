@@ -4,6 +4,7 @@ import FormSection from "../../form/FormSection";
 import TextField from "../../form/TextField";
 import NumberField from "../../form/NumberField";
 import SelectField from "../../form/SelectField";
+import DateField from "../../form/DateField";
 import ItemRow from "./ItemRow";
 import {
   makeInitialForm,
@@ -78,21 +79,20 @@ export default forwardRef(function JobCostForm(
         <TextField
           label="Job Card No"
           placeholder="e.g. JC-001"
+          inline
           value={form.jobCardNo}
           onChange={(v) => setField("jobCardNo", v)}
         />
-        <div className="card-section">
-          <p className="field-label mb-1.5">Job Card Date</p>
-          <input
-            type="date"
-            value={form.jobCardDate}
-            onChange={(e) => setField("jobCardDate", e.target.value)}
-            className="input-base"
-          />
-        </div>
+        <DateField
+          label="Job Card Date"
+          value={form.jobCardDate}
+          onChange={(v) => setField("jobCardDate", v)}
+        />
         <SelectField
           label="Job Work Company"
           placeholder="Select or type"
+          inline
+          width="flex-1"
           storageKey="job-cost-companies"
           defaultOptions={DROPDOWN_SEEDS.jobWorkCompanies}
           value={form.jobWorkCompany}
@@ -101,30 +101,31 @@ export default forwardRef(function JobCostForm(
         <TextField
           label="Billing No"
           placeholder="e.g. B-001"
+          inline
           value={form.billingNo}
           onChange={(v) => setField("billingNo", v)}
         />
-        <div className="card-section">
-          <p className="field-label mb-1.5">Billing Date</p>
-          <input
-            type="date"
-            value={form.billingDate}
-            onChange={(e) => setField("billingDate", e.target.value)}
-            className="input-base"
-          />
-        </div>
+        <DateField
+          label="Billing Date"
+          value={form.billingDate}
+          onChange={(v) => setField("billingDate", v)}
+        />
         <NumberField
           label="Billing Rate"
+          unit="₹"
+          width="w-40"
           value={form.billingRate}
           onChange={(v) => setField("billingRate", v)}
           min={0}
-          unit="₹"
+          placeholder="0.00"
         />
         <NumberField
           label="No. of Bundles"
+          width="w-40"
           value={form.noOfBundles}
           onChange={(v) => setField("noOfBundles", v)}
           min={0}
+          placeholder="0"
         />
       </FormSection>
 
@@ -133,6 +134,7 @@ export default forwardRef(function JobCostForm(
         <TextField
           label="Film"
           placeholder="e.g. PET / BOPP"
+          inline
           value={form.film}
           onChange={(v) => setField("film", v)}
         />
@@ -140,6 +142,7 @@ export default forwardRef(function JobCostForm(
           label="Micron"
           placeholder="Select"
           inline
+          width="w-40"
           storageKey="job-cost-microns"
           defaultOptions={DROPDOWN_SEEDS.microns}
           value={form.micron}
@@ -149,6 +152,7 @@ export default forwardRef(function JobCostForm(
           label="No. of Colours"
           placeholder="Select"
           inline
+          width="w-40"
           storageKey="job-cost-colours"
           defaultOptions={DROPDOWN_SEEDS.colours}
           value={form.noOfColours}
@@ -182,7 +186,21 @@ export default forwardRef(function JobCostForm(
         ))}
       </FormSection>
 
-      {/* ── Flat Charges (items 8–9) ── */}
+      {/* ── Wastage ── */}
+      <FormSection>
+        <SelectField
+          label="Wastage"
+          placeholder="0"
+          inline
+          unit="%"
+          storageKey="job-cost-wastage"
+          defaultOptions={["0", "1", "2", "3", "4", "5", "8", "10"]}
+          value={form.wastage}
+          onChange={(v) => setField("wastage", v)}
+        />
+      </FormSection>
+
+      {/* ── Flat Charges (packing + transport) ── */}
       <FormSection title="Other Charges">
         {FLAT_ITEMS.map((def) => (
           <ItemRow
@@ -203,6 +221,8 @@ export default forwardRef(function JobCostForm(
           onChange={(v) => setField("finishedWeight", v)}
           min={0}
           unit="kg"
+          width="w-48"
+          placeholder="0.00"
         />
         <NumberField
           label="Despatch Weight"
@@ -210,6 +230,8 @@ export default forwardRef(function JobCostForm(
           onChange={(v) => setField("dispatchWeight", v)}
           min={0}
           unit="kg"
+          width="w-48"
+          placeholder="0.00"
         />
       </FormSection>
     </FormStack>

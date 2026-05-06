@@ -12,6 +12,7 @@ const rateEntrySchema = new mongoose.Schema(
 const flexoCuttingRateSchema = new mongoose.Schema(
   {
     _id: { type: String, required: true, trim: true },
+    enabled: { type: Boolean, default: true },
     history: {
       type: [rateEntrySchema],
       default: [],
@@ -23,6 +24,9 @@ const flexoCuttingRateSchema = new mongoose.Schema(
   },
 );
 
-const FlexoCuttingRate = mongoose.model("FlexoCuttingRate", flexoCuttingRateSchema);
+const FlexoCuttingRate = mongoose.model(
+  "FlexoCuttingRate",
+  flexoCuttingRateSchema,
+);
 
 export default FlexoCuttingRate;

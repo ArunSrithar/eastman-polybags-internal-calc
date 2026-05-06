@@ -80,7 +80,10 @@ export async function updateGussetRate(req, res, next) {
 
 export async function updateCuttingRate(req, res, next) {
   try {
-    const result = await service.updateCuttingRate(req.params.size, req.body.rate);
+    const result = await service.updateCuttingRate(
+      req.params.coverSize,
+      req.body.rate,
+    );
     res.json(result);
   } catch (err) {
     next(err);
@@ -89,7 +92,10 @@ export async function updateCuttingRate(req, res, next) {
 
 export async function updateChargeRate(req, res, next) {
   try {
-    const result = await service.updateChargeRate(req.params.rateKey, req.body.rate);
+    const result = await service.updateChargeRate(
+      req.params.rateKey,
+      req.body.rate,
+    );
     res.json(result);
   } catch (err) {
     next(err);

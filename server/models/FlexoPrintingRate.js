@@ -37,6 +37,8 @@ const flexoPrintingRateSchema = new mongoose.Schema(
   {
     _id: { type: String, required: true, trim: true },
     enabled: { type: Boolean, default: true },
+    createdBy: { type: String, default: "Admin" },
+    createdAt: { type: Date, default: Date.now },
     colors: { type: colorRatesSchema, required: true },
   },
   {

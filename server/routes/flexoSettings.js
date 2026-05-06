@@ -5,7 +5,6 @@ import {
   validateConversionMaterial,
   validateRollSize,
   validateColorCount,
-  validateCuttingSize,
   validateFlexoRateKey,
   validateNumber,
   validateString,
@@ -79,11 +78,10 @@ router.put(
   ctrl.updateGussetRate,
 );
 
-// Cutting rates (size)
+// Cutting rates (coverSize)
 router.put(
-  "/cutting-rates/:size",
+  "/cutting-rates/:coverSize",
   needEditPrices,
-  validateCuttingSize,
   validateNumber("rate"),
   ctrl.updateCuttingRate,
 );

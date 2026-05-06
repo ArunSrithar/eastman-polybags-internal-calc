@@ -72,20 +72,15 @@ export const COVER_SIZE_OPTIONS = [
   "18x20",
 ];
 
-// ── Cutting size → rate lookup (₹) ──────────────────────────────────────
-export const CUTTING_SIZE_RATES = {
-  4: 5.0,
-  5: 6.5,
-  6: 8.0,
-  7: 9.5,
-  8: 11.0,
-  9: 12.5,
-  10: 14.0,
-  11: 15.5,
-  12: 17.0,
-  14: 20.0,
+// ── Cutting rate → per cover size (same keys as GUSSET_RATES) ──────────────────
+export const CUTTING_RATES = {
+  "8x10": 0,
+  "10x12": 0,
+  "12x14": 0,
+  "14x16": 0,
+  "16x18": 0,
+  "18x20": 0,
 };
 
 // ── Wastage preset options ───────────────────────────────────────────────
 export const WASTAGE_OPTIONS = ["0", "1", "2", "3", "4", "5"];
-

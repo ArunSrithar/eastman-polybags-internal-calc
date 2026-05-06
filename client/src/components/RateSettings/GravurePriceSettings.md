@@ -66,7 +66,7 @@ Each pouch stores:
 }
 ```
 
-- **Display:** `PouchTable` → `PouchRow` for each entry, with S.No, Size (L × B), Rate, Created/Modified metadata, Enable toggle, Edit/Delete actions
+- **Display:** `PouchTable` → `PouchRow` for each entry, with S.No, Size (W × H), Rate, Created/Modified metadata, Enable toggle, Edit/Delete actions
 - **Inline edit:** Click Edit → rate field becomes editable (size is read-only), Enter/Escape, Check/X buttons
 - **Enable/disable:** `IOSToggle` — disabled pouches get `opacity-40` and are filtered out of the calculator form's dropdown
 - **Add:** `NewPouchRow` — length + breadth + rate inputs, auto-focused
@@ -122,7 +122,7 @@ client/src/
 │   ├── HistoryRow.jsx              ← Shared: single history entry (★ gradient for current)
 │   ├── NewValueRow.jsx             ← Shared: inline add row for prices/rates
 │   ├── PouchRow.jsx                ← Display + inline edit mode for a single pouch
-│   └── NewPouchRow.jsx             ← Inline add row for new pouch (L + B + rate)
+│   └── NewPouchRow.jsx             ← Inline add row for new pouch (W + H + rate)
 │
 ├── context/
 │   └── GravureSettingsContext.jsx   ← Provider: fetch, CRUD methods, fallback data, buildRatesFromSettings()
@@ -185,7 +185,7 @@ User action (add/edit/delete)
 `GravureForm.jsx` consumes settings via `useGravureSettings()`:
 
 1. **Material prices** — auto-synced from `settings.materials[key].priceHistory[0].price` into form state. Input fields are disabled (read-only from settings).
-2. **Pouch dropdown** — filtered to `settings.pouches.filter(p => p.enabled !== false)`, displayed as `"L x B"` format.
+2. **Pouch dropdown** — filtered to `settings.pouches.filter(p => p.enabled !== false)`, displayed as `"W x H"` format.
 3. **Charge rates** — `buildRatesFromSettings(settings)` extracts current values from `history[0]` for all 6 rates + enabled pouch rate map. Passed to `calculateGravureRate()`.
 
 ### Fallback Behavior
@@ -267,21 +267,21 @@ Created by `server/utils/seed.js` on first server start if Gravure collections a
 | `ChargeRateTable`    | `rateKey, settings, adding, onAdd, onCancelAdd`          | Charge rate history table                   |
 | `PouchTable`         | `settings, onEdit, onDelete, adding, onAdd, onCancelAdd` | Pouch CRUD table                            |
 | `PouchRow`           | `pouch, index, onEdit, onDelete`                         | Display + inline edit mode for single pouch |
-| `NewPouchRow`        | `onConfirm, onCancel`                                    | Inline add form (L + B + rate)              |
+| `NewPouchRow`        | `onConfirm, onCancel`                                    | Inline add form (W + H + rate)              |
 
 ### CSS Classes Used
 
-| Class                    | Where Used                                         |
-| ------------------------ | -------------------------------------------------- |
-| `.table-header-cell`     | `TableShell` header `<th>`                         |
-| `.table-cell`            | `HistoryRow`, `PouchRow` display mode              |
-| `.table-cell-compact`    | `PouchRow` edit mode, `NewValueRow`, `NewPouchRow` |
-| `.table-action-btn`      | Edit/Delete/Check/X buttons                        |
-| `.input-no-spinner`      | Number inputs (hides arrows)                       |
-| `.current-row`          | HistoryRow gradient (applied on `<tr>`, rounds first/last `<td>`) |
-| `.calc-shell`            | Page wrapper                                       |
-| `.glass-panel`           | Tab + table container                              |
-| `.btn-primary .btn-pill` | "Add New" button                                   |
+| Class                    | Where Used                                                        |
+| ------------------------ | ----------------------------------------------------------------- |
+| `.table-header-cell`     | `TableShell` header `<th>`                                        |
+| `.table-cell`            | `HistoryRow`, `PouchRow` display mode                             |
+| `.table-cell-compact`    | `PouchRow` edit mode, `NewValueRow`, `NewPouchRow`                |
+| `.table-action-btn`      | Edit/Delete/Check/X buttons                                       |
+| `.input-no-spinner`      | Number inputs (hides arrows)                                      |
+| `.current-row`           | HistoryRow gradient (applied on `<tr>`, rounds first/last `<td>`) |
+| `.calc-shell`            | Page wrapper                                                      |
+| `.glass-panel`           | Tab + table container                                             |
+| `.btn-primary .btn-pill` | "Add New" button                                                  |
 
 ---
 
@@ -333,7 +333,7 @@ The following are **fully reusable** without modification:
 - `HistoryRow` — works with any `{ changedBy, changedAt, [valueKey] }` entry shape
 - `NewValueRow` — works for any single-number inline add
 
-Only create new components if the calculator has a unique data type (like Gravure's pouches with L×B + enable/disable).
+Only create new components if the calculator has a unique data type (like Gravure's pouches with W×H + enable/disable).
 
 ### 7. Calculator Integration
 

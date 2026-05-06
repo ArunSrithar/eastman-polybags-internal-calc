@@ -8,7 +8,7 @@
  *   min       number    (optional)
  *   max       number    (optional)
  *   width     string    Tailwind width class (default "w-20")
- *   unit      string    suffix label, e.g. "%" (optional)
+ *   unit      string    trailing unit badge inside the field, e.g. "kg" (optional)
  */
 export default function NumberField({
   label,
@@ -19,8 +19,32 @@ export default function NumberField({
   width = "w-20",
   unit,
   disabled,
+  placeholder,
 }) {
-  const input = (
+  const input = unit ? (
+    <div
+      className={`flex items-center input-base p-0 overflow-hidden ${width} ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
+    >
+      {unit === "₹" ? (
+        <span className="px-3 text-label-3 text-sm border-r border-separator shrink-0">
+          ₹
+        </span>
+      ) : null}
+      <input
+        type="number"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        placeholder={placeholder}
+        className="flex-1 bg-transparent px-3 py-2 text-sm text-center outline-none input-no-spinner w-0"
+      />
+      {unit !== "₹" ? (
+        <span className="px-2 text-label-3 text-xs shrink-0">{unit}</span>
+      ) : null}
+    </div>
+  ) : (
     <input
       type="number"
       min={min}
@@ -28,7 +52,8 @@ export default function NumberField({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
-      className={`input-base ${width} text-center ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
+      placeholder={placeholder}
+      className={`input-base ${width} text-center input-no-spinner ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
     />
   );
 
@@ -36,14 +61,7 @@ export default function NumberField({
     <div className="card-section">
       <div className="form-row">
         <p className="form-row-label">{label}</p>
-        {unit ? (
-          <div className="flex items-center gap-2">
-            {input}
-            <span className="text-sm font-medium text-label-2">{unit}</span>
-          </div>
-        ) : (
-          input
-        )}
+        {input}
       </div>
     </div>
   );

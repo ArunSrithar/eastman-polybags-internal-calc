@@ -4,7 +4,7 @@ import {
   GUSSET_RATES as DEFAULT_GUSSET_RATES,
   PUNCHING_RATE as DEFAULT_PUNCHING_RATE,
   OPACK_RATE as DEFAULT_OPACK_RATE,
-  CUTTING_SIZE_RATES as DEFAULT_CUTTING_SIZE_RATES,
+  CUTTING_RATES as DEFAULT_CUTTING_RATES,
 } from "../../constants/flexoRateCalc";
 
 /**
@@ -32,7 +32,7 @@ export function calculateFlexoRate(form, rates) {
   const GUSSET_RATES = rates?.gussetRates ?? DEFAULT_GUSSET_RATES;
   const PUNCHING_RATE = rates?.punchingRate ?? DEFAULT_PUNCHING_RATE;
   const OPACK_RATE = rates?.opackRate ?? DEFAULT_OPACK_RATE;
-  const CUTTING_SIZE_RATES = rates?.cuttingRates ?? DEFAULT_CUTTING_SIZE_RATES;
+  const CUTTING_RATES = rates?.cuttingRates ?? DEFAULT_CUTTING_RATES;
   const ROLL_SIZE_RATES = rates?.rollSizeRates ?? {};
   const materialPrice = parseFloat(form.materialPrice) || 0;
   if (materialPrice === 0) return null;
@@ -46,7 +46,9 @@ export function calculateFlexoRate(form, rates) {
   const gussetRate = form.gusset ? (GUSSET_RATES[form.coverSize] ?? 0) : 0;
   const punchingRate = form.punching ? PUNCHING_RATE : 0;
   const opackRate = form.opack ? OPACK_RATE : 0;
-  const cuttingSizeRate = CUTTING_SIZE_RATES[form.cuttingSize] ?? 0;
+  const cuttingSizeRate = form.cutting
+    ? (CUTTING_RATES[form.coverSize] ?? 0)
+    : 0;
 
   const subtotal =
     materialPrice +
@@ -74,7 +76,6 @@ export function calculateFlexoRate(form, rates) {
     gussetRate,
     punchingRate,
     opackRate,
-    cuttingSize: form.cuttingSize,
     cuttingSizeRate,
     subtotal,
     wastagePercent,

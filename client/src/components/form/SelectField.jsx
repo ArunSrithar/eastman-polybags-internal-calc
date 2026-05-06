@@ -29,6 +29,7 @@ export default function SelectField({
   width = "w-20",
   unit,
   formatLabel,
+  renderOption,
 }) {
   const select = (
     <CreatableSelect
@@ -39,6 +40,7 @@ export default function SelectField({
       placeholder={placeholder}
       className={inline ? width : ""}
       formatLabel={formatLabel}
+      renderOption={renderOption}
     />
   );
 
@@ -50,7 +52,9 @@ export default function SelectField({
           {unit ? (
             <div className="flex items-center gap-2">
               {select}
-              <span className="text-sm font-medium text-label-2">{unit}</span>
+              <span className="px-1.5 text-label-3 text-sm shrink-0">
+                {unit}
+              </span>
             </div>
           ) : (
             select

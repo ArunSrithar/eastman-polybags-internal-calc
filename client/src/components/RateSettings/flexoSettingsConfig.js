@@ -27,26 +27,32 @@ export const ROLL_SIZE_TABS = [
   },
 ];
 
+export const COVER_SIZES_TAB = {
+  id: "coverSizes",
+  label: "Cover Sizes",
+  type: "coverSizes",
+};
+
 export const PRINTING_TAB = {
   id: "printing",
-  label: "Printing",
+  label: "Printing Charges",
   type: "matrix",
 };
 
 export const LOOKUP_TABS = [
   {
     id: "gusset",
-    label: "Gusset",
+    label: "Gusset Charges",
     type: "lookup",
     dataKey: "gussetRates",
     dimensionLabel: "Cover Size",
   },
   {
     id: "cutting",
-    label: "Cutting",
+    label: "Cutting Charges",
     type: "lookup",
     dataKey: "cuttingRates",
-    dimensionLabel: "Cutting Size",
+    dimensionLabel: "Cover Size",
   },
 ];
 
@@ -58,6 +64,7 @@ export const CHARGE_TABS = [
 export const FLEXO_TABS = [
   ...CONVERSION_TABS,
   ...ROLL_SIZE_TABS,
+  COVER_SIZES_TAB,
   PRINTING_TAB,
   ...LOOKUP_TABS,
   ...CHARGE_TABS,

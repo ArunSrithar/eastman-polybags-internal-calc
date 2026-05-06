@@ -25,7 +25,7 @@ import {
   CONVERSION_RATES,
   PRINTING_RATES,
   GUSSET_RATES,
-  CUTTING_SIZE_RATES,
+  CUTTING_RATES,
   PUNCHING_RATE,
   OPACK_RATE,
 } from "../constants/flexoRateCalc";
@@ -67,8 +67,8 @@ function buildFallbackSettings() {
   }
 
   const cuttingRates = {};
-  for (const [size, rate] of Object.entries(CUTTING_SIZE_RATES)) {
-    cuttingRates[String(size)] = entry(rate);
+  for (const [cover, rate] of Object.entries(CUTTING_RATES)) {
+    cuttingRates[cover] = entry(rate);
   }
 
   return {
@@ -115,8 +115,8 @@ export function buildFlexoRatesFromSettings(settings) {
   }
 
   const cuttingRates = {};
-  for (const [size, cell] of Object.entries(settings.cuttingRates)) {
-    cuttingRates[Number(size)] = getCurrentRate(cell);
+  for (const [cover, cell] of Object.entries(settings.cuttingRates)) {
+    cuttingRates[cover] = getCurrentRate(cell);
   }
 
   const rollSizeRates = {};
@@ -211,6 +211,7 @@ export function FlexoSettingsProvider({ children, skip = false }) {
       ...prev,
       printingRates: updated.printingRates,
       gussetRates: updated.gussetRates,
+      cuttingRates: updated.cuttingRates,
     }));
   }, []);
 
@@ -220,6 +221,7 @@ export function FlexoSettingsProvider({ children, skip = false }) {
       ...prev,
       printingRates: updated.printingRates,
       gussetRates: updated.gussetRates,
+      cuttingRates: updated.cuttingRates,
     }));
   }, []);
 
@@ -229,6 +231,7 @@ export function FlexoSettingsProvider({ children, skip = false }) {
       ...prev,
       printingRates: updated.printingRates,
       gussetRates: updated.gussetRates,
+      cuttingRates: updated.cuttingRates,
     }));
   }, []);
 
