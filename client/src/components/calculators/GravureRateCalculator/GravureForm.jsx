@@ -232,11 +232,12 @@ export default forwardRef(function GravureForm(
       <FormSection>
         <SelectField
           label="Pouch Size"
-          placeholder="e.g. 4x6"
+          placeholder="Search pouch size…"
           storageKey="gravure-pouch-sizes"
           defaultOptions={pouchSizeOptions}
           value={form.pouchSize}
           onChange={(v) => setField("pouchSize", v)}
+          creatable={false}
           renderOption={(size) => {
             const rate = pouchRateBySize[size];
             return (
@@ -261,6 +262,16 @@ export default forwardRef(function GravureForm(
           defaultOptions={["0", "1", "2", "3", "4", "5", "8", "10"]}
           value={form.wastage}
           onChange={(v) => setField("wastage", v)}
+        />
+        <SelectField
+          label="Service"
+          placeholder="0"
+          inline
+          unit="%"
+          storageKey="gravure-service"
+          defaultOptions={["0", "1", "2", "3", "4", "5", "8", "10"]}
+          value={form.service}
+          onChange={(v) => setField("service", v)}
         />
       </FormSection>
     </FormStack>

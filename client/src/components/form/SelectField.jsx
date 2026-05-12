@@ -1,23 +1,5 @@
 import CreatableSelect from "../ui/CreatableSelect";
 
-/**
- * SelectField — labeled CreatableSelect inside a card-section.
- *
- * Two layouts:
- *   - Default: label on top, full-width dropdown below
- *   - Inline:  form-row with label left, compact dropdown right (pass `inline` + `width`)
- *
- * Props:
- *   label           string
- *   placeholder     string
- *   value           string
- *   onChange         fn(value)
- *   storageKey       string        localStorage key for persisted options
- *   defaultOptions   string[]      seed options
- *   inline          boolean       use form-row layout (default false)
- *   width           string        Tailwind width class for inline mode (default "w-20")
- *   unit            string        suffix label, e.g. "%" (optional, inline only)
- */
 export default function SelectField({
   label,
   placeholder,
@@ -30,8 +12,30 @@ export default function SelectField({
   unit,
   formatLabel,
   renderOption,
+  creatable = true,
+  native = false,
+  options,
 }) {
-  const select = (
+  const nativeSelect = (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={`input-base appearance-none ${inline ? width : ""}`}
+    >
+      <option value="" disabled>
+        {placeholder ?? "Select…"}
+      </option>
+      {(options ?? defaultOptions ?? []).map((opt) => (
+        <option key={opt} value={opt}>
+          {formatLabel ? formatLabel(opt) : opt}
+        </option>
+      ))}
+    </select>
+  );
+
+  const select = native ? (
+    nativeSelect
+  ) : (
     <CreatableSelect
       storageKey={storageKey}
       defaultOptions={defaultOptions}
@@ -41,6 +45,7 @@ export default function SelectField({
       className={inline ? width : ""}
       formatLabel={formatLabel}
       renderOption={renderOption}
+      creatable={creatable}
     />
   );
 

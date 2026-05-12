@@ -1,6 +1,13 @@
 @echo off
 setlocal
 
+if /I not "%~1"=="__run__" (
+	start "Eastman Beta Start" "%ComSpec%" /k ""%~f0" __run__"
+	exit /b
+)
+
+shift
+
 cd /d "%~dp0"
 echo ==================================================
 echo Eastman Beta Start
@@ -11,4 +18,4 @@ npm start
 
 echo.
 echo App stopped.
-pause
+echo You can close this window.

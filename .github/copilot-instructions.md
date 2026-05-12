@@ -148,6 +148,16 @@ client/src/
 │   │   ├── SectionSubtotal.jsx          ✅ Bordered pill subtotal row + divider
 │   │   └── WastageRow.jsx               ✅ Reusable wastage adjustment line (percent, base, amount)
 │   │
+│   ├── print/                           ✅ Reusable B&W print invoice system (A4, monochrome-safe)
+│   │   ├── printTokens.js               ✅ B&W design tokens (text/muted/panel/rule/ruleStrong) + formatPrintDate()
+│   │   ├── PrintInvoice.jsx             ✅ Generic shell — composes all 5 primitives; accepts documentTitle/No/Date/customer/metaRows/items/adjustments/totalQty/totalAmount/amountWords
+│   │   ├── PrintHeader.jsx              ✅ Company name+address (Georgia serif, left) · Document wordmark (right) · 4px top stripe + 1px separator rule
+│   │   ├── PrintParties.jsx             ✅ Full-width grey panel: Bill To / Ship To (left) · 4-col meta grid (right)
+│   │   ├── PrintItemsTable.jsx          ✅ Hairline-rule table: items + blank rows + adjustment rows (italic) + tfoot TOTAL row (P.panel grey)
+│   │   ├── PrintTotals.jsx              ✅ "Amount Chargeable in words" strip attached below table
+│   │   └── PrintFooter.jsx              ✅ 3-col footer: Bank Details · Declaration · Authorised Signatory + caption
+│   │   — Used by: JobCostPrintLayout (Job Cost Sheet). Future: GravurePrintLayout, FlexoPrintLayout
+│   │
 │   ├── layout/
 │   │   ├── Sidebar/
 │   │   │   ├── Sidebar.jsx          ✅ Glass island container (fixed left, frosted glass, rounded-2xl)
@@ -186,6 +196,7 @@ client/src/
 │           ├── JobCostForm.jsx          ✅ 6-section form, forwardRef + reset(), 10 toggleable items
 │           ├── JobCostResult.jsx         ✅ Invoice breakdown, 3 color-coded sections (Materials/Charges/Other)
 │           ├── JobCostSavedQuotes.jsx    ✅ Saved quotes (wraps SavedQuotesView + formatJobCostPrice)
+│           ├── JobCostPrintLayout.jsx    ✅ Thin wrapper → maps result+form → <PrintInvoice documentTitle="Job Cost Sheet">
 │           ├── ItemRow.jsx              ✅ Toggleable line item row (qty + price or flat amount)
 │           ├── formConfig.js            ✅ makeInitialForm(), item group exports, re-exports
 │           └── JobCostCalculator.md     ✅ Full calculator documentation

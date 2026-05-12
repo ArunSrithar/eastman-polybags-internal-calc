@@ -38,6 +38,9 @@ export default function FlexoResult({ result, form, status, date }) {
     subtotal,
     wastagePercent,
     wastageAmount,
+    preServiceTotal,
+    servicePercent,
+    serviceAmount,
     totalRate,
   } = result;
 
@@ -47,6 +50,7 @@ export default function FlexoResult({ result, form, status, date }) {
     gussetRate + punchingRate + opackRate + cuttingSizeRate;
   const hasAdditional = additionalTotal > 0;
   const hasWastage = wastagePercent > 0;
+  const hasService = servicePercent > 0;
 
   return (
     <div className="card flex flex-col overflow-hidden">
@@ -160,15 +164,23 @@ export default function FlexoResult({ result, form, status, date }) {
       ) : null}
 
       {/* ── Adjustments ────────────────────────────────────────────────── */}
+      {hasWastage || hasService ? (
+        <SectionLabel color={SECTION_COLORS.orange} label="Adjustments" />
+      ) : null}
       {hasWastage ? (
-        <>
-          <SectionLabel color={SECTION_COLORS.orange} label="Adjustments" />
-          <WastageRow
-            percent={wastagePercent}
-            base={subtotal}
-            amount={wastageAmount}
-          />
-        </>
+        <WastageRow
+          percent={wastagePercent}
+          base={subtotal}
+          amount={wastageAmount}
+        />
+      ) : null}
+      {hasService ? (
+        <WastageRow
+          percent={servicePercent}
+          base={preServiceTotal}
+          amount={serviceAmount}
+          label="Service"
+        />
       ) : null}
 
       <InvoiceFooter

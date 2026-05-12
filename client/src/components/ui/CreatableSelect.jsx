@@ -23,6 +23,7 @@ export default function CreatableSelect({
   className = "",
   formatLabel,
   renderOption,
+  creatable = true,
 }) {
   const [options, setOptions] = useState(() => {
     try {
@@ -101,10 +102,16 @@ export default function CreatableSelect({
       setOpen(false);
       return;
     }
-    if (trimmed && !options.includes(trimmed)) {
+    if (creatable && trimmed && !options.includes(trimmed)) {
       const next = [...options, trimmed];
       setOptions(next);
       localStorage.setItem(storageKey, JSON.stringify(next));
+    }
+    // Non-creatable: reject typed value that isn't in options
+    if (!creatable && trimmed && !options.includes(trimmed)) {
+      setInputVal(value);
+      setOpen(false);
+      return;
     }
     setInputVal(trimmed);
     onChange?.(trimmed);

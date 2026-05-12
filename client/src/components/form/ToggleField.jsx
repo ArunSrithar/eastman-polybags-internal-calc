@@ -8,12 +8,12 @@ import IOSToggle from "../ui/IOSToggle";
  *   on        boolean
  *   onToggle  fn()
  */
-export default function ToggleField({ label, on, onToggle }) {
+export default function ToggleField({ label, on, onToggle, disabled = false }) {
   return (
-    <div className="card-section">
+    <div className={`card-section ${disabled ? "opacity-50" : ""}`}>
       <div className="form-row">
         <p className="form-row-label">{label}</p>
-        <IOSToggle on={on} onToggle={onToggle} />
+        <IOSToggle on={on} onToggle={onToggle} disabled={disabled} />
       </div>
     </div>
   );

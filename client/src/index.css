@@ -88,11 +88,11 @@ body {
 
   /* Inline row — label left, input/toggle right */
   .form-row {
-    @apply flex items-center justify-between;
+    @apply flex items-center justify-between gap-3;
   }
 
   .form-row-label {
-    @apply text-sm font-medium text-label;
+    @apply text-sm font-medium text-label w-36 shrink-0;
   }
 
   /* Buttons */
@@ -564,13 +564,24 @@ body {
 
 /* ─── Print Styles ────────────────────────────────────────────────────────── */
 @media print {
+  @page {
+    margin: 0;
+    size: A4;
+  }
+
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
+  /* Collapse document height so invisible app content doesn't create a 2nd page */
+  html {
+    overflow: hidden !important;
+  }
+
   /* Hide everything by default */
   body {
+    overflow: hidden !important;
     background: white !important;
     background-image: none !important;
   }
@@ -592,11 +603,24 @@ body {
 
   [data-print-area] * {
     color: #000 !important;
+    visibility: visible !important;
   }
 
   /* Card container */
   [data-print-area] .card {
     background: #ffffff !important;
     backdrop-filter: none !important;
+  }
+
+  /* Hide screen breakdown card when a print layout is present */
+  [data-print-area] .print\:hidden {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Show the print layout */
+  [data-print-area] .print\:block {
+    display: block !important;
+    visibility: visible !important;
   }
 }

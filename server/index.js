@@ -87,7 +87,17 @@ async function seedAdminIfEmpty() {
 }
 
 async function ensureUserEmailSparseUniqueIndex() {
-  const indexes = await User.collection.indexes();
+  let indexes;
+
+  try {
+    indexes = await User.collection.indexes();
+  } catch (err) {
+    if (err?.code === 26 || err?.codeName === "NamespaceNotFound") {
+      return;
+    }
+    throw err;
+  }
+
   const emailIndex = indexes.find((idx) => idx.name === "email_1");
 
   // Old deployments may have a non-sparse unique email index,
@@ -105,9 +115,9 @@ async function ensureUserEmailSparseUniqueIndex() {
 async function startServer() {
   try {
     await connectDB();
-    await ensureUserEmailSparseUniqueIndex();
     await seedStructureIfMissing();
     await seedAdminIfEmpty();
+    await ensureUserEmailSparseUniqueIndex();
 
     app.listen(port, () => {
       console.log(`Server running on http://localhost:${port}`);

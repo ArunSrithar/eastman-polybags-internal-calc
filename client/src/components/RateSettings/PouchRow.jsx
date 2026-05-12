@@ -32,9 +32,9 @@ export default function PouchRow({ pouch, index, onEdit, onDelete }) {
 
   const sizeDisplay = (
     <span className="inline-flex items-center gap-1">
-      <span className="inline-block w-8 text-right">{pouch.length}</span>
+      <span>{pouch.length}</span>
       <span className="text-label-3">×</span>
-      <span className="inline-block w-8 text-left">{pouch.breadth}</span>
+      <span>{pouch.breadth}</span>
     </span>
   );
 

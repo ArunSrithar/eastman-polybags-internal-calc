@@ -1,5 +1,6 @@
 import { JobCostIcon } from "../../ui/Icons";
 import JobCostResult from "./JobCostResult";
+import JobCostPrintLayout from "./JobCostPrintLayout";
 import { calculateJobCost } from "../../../utils/calculators/jobCost";
 import { fmt } from "../../../utils/format";
 import SavedQuotesView from "../SavedQuotesView";
@@ -14,6 +15,7 @@ export default function JobCostSavedQuotes() {
       title="Job Cost — Saved Quotes"
       calculateRate={calculateJobCost}
       ResultComponent={JobCostResult}
+      PrintComponent={JobCostPrintLayout}
       formatPrice={formatJobCostPrice}
     />
   );

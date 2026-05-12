@@ -22,7 +22,7 @@ export function makeInitialForm() {
   return {
     quoteName: "",
     materialPrice: "",
-    conversionMaterial: "PP",
+    conversionMaterial: "",
     coverSize: "",
     rollSize: "",
     printingColors: "1",
@@ -31,5 +31,6 @@ export function makeInitialForm() {
     punching: false,
     opack: false,
     wastage: "0",
+    service: "0",
   };
 }

@@ -37,6 +37,9 @@ export default function GravureResult({ result, form, status, date }) {
     totalCost,
     wastagePercent,
     wastageAmount,
+    preServiceTotal,
+    servicePercent,
+    serviceAmount,
     adjustedTotal,
     pricePerKg,
   } = result;
@@ -56,6 +59,7 @@ export default function GravureResult({ result, form, status, date }) {
     laminationRatePerKg + slittingRatePerKg + pouchRatePerKg;
   const hasOtherCharges = otherChargesPerKg > 0;
   const hasWastage = wastagePercent > 0;
+  const hasService = servicePercent > 0;
 
   return (
     <div className="card flex flex-col overflow-hidden">
@@ -160,15 +164,23 @@ export default function GravureResult({ result, form, status, date }) {
       ) : null}
 
       {/* ── Adjustments ────────────────────────────────────────────────── */}
+      {hasWastage || hasService ? (
+        <SectionLabel color={SECTION_COLORS.orange} label="Adjustments" />
+      ) : null}
       {hasWastage ? (
-        <>
-          <SectionLabel color={SECTION_COLORS.orange} label="Adjustments" />
-          <WastageRow
-            percent={wastagePercent}
-            base={totalCost}
-            amount={wastageAmount}
-          />
-        </>
+        <WastageRow
+          percent={wastagePercent}
+          base={totalCost}
+          amount={wastageAmount}
+        />
+      ) : null}
+      {hasService ? (
+        <WastageRow
+          percent={servicePercent}
+          base={preServiceTotal}
+          amount={serviceAmount}
+          label="Service"
+        />
       ) : null}
 
       <InvoiceFooter

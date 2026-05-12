@@ -7,12 +7,17 @@ import { fmt } from "../../utils/format";
  * @param {number} base     — base amount the percentage applies to (subtotal)
  * @param {number} amount   — calculated wastage amount (₹)
  */
-export default function WastageRow({ percent, base, amount }) {
+export default function WastageRow({
+  percent,
+  base,
+  amount,
+  label = "Wastage",
+}) {
   return (
     <>
       <div className="flex items-baseline justify-between px-6 py-1.5">
         <span className="text-sm text-label">
-          Wastage ({percent}%)
+          {label} ({percent}%)
           <span className="text-xs text-label-3 ml-1.5">on ₹{fmt(base)}</span>
         </span>
         <span className="text-sm font-medium text-label tabular-nums">

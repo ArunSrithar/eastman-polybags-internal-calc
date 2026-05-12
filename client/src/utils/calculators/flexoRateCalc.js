@@ -62,7 +62,11 @@ export function calculateFlexoRate(form, rates) {
 
   const wastagePercent = parseFloat(form.wastage) || 0;
   const wastageAmount = subtotal * (wastagePercent / 100);
-  const totalRate = subtotal + wastageAmount;
+  const preServiceTotal = subtotal + wastageAmount;
+
+  const servicePercent = parseFloat(form.service) || 0;
+  const serviceAmount = preServiceTotal * (servicePercent / 100);
+  const totalRate = preServiceTotal + serviceAmount;
 
   return {
     materialPrice,
@@ -80,6 +84,9 @@ export function calculateFlexoRate(form, rates) {
     subtotal,
     wastagePercent,
     wastageAmount,
+    preServiceTotal,
+    servicePercent,
+    serviceAmount,
     totalRate,
   };
 }

@@ -2,6 +2,7 @@ import CalculatorHeader from "../../layout/CalculatorHeader";
 import { JobCostIcon } from "../../ui/Icons";
 import JobCostForm from "./JobCostForm";
 import JobCostResult from "./JobCostResult";
+import JobCostPrintLayout from "./JobCostPrintLayout";
 import { makeInitialForm } from "./formConfig";
 import { calculateJobCost } from "../../../utils/calculators/jobCost";
 import useCalculator from "../../../hooks/useCalculator";
@@ -58,7 +59,10 @@ export default function JobCostCalculator() {
 
         {/* Right — Breakdown */}
         <div className="calc-column" data-print-area>
-          <JobCostResult result={result} form={form} />
+          <div className="print:hidden">
+            <JobCostResult result={result} form={form} />
+          </div>
+          <JobCostPrintLayout result={result} form={form} />
         </div>
       </div>
     </div>

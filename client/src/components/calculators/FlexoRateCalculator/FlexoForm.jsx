@@ -48,6 +48,7 @@ export default forwardRef(function FlexoForm(
     .sort(compareDimensions);
 
   function withLiveMaterialPrice(nextForm) {
+    if (!nextForm.conversionMaterial) return nextForm;
     const liveMaterialPrice =
       settings?.materials?.[nextForm.conversionMaterial]?.priceHistory?.[0]
         ?.price ?? 0;
@@ -112,12 +113,13 @@ export default forwardRef(function FlexoForm(
         />
         <SelectField
           label="Roll Size"
-          placeholder="Select"
+          placeholder="Search roll size…"
           inline
           storageKey="flexo-roll-sizes"
           defaultOptions={liveRollSizeOptions}
           value={form.rollSize}
           onChange={(v) => setField("rollSize", v)}
+          creatable={false}
         />
       </FormSection>
 
@@ -125,12 +127,13 @@ export default forwardRef(function FlexoForm(
       <FormSection title="Size &amp; Printing">
         <SelectField
           label="Cover Size"
-          placeholder="e.g. 10x12"
+          placeholder="Search cover size…"
           storageKey="flexo-cover-sizes"
           defaultOptions={liveCoverSizeOptions}
           value={form.coverSize}
           onChange={(v) => setField("coverSize", v)}
           formatLabel={(v) => v.replace(/\s*[xX×]\s*/, " x ")}
+          creatable={false}
         />
         <RadioField
           name="printingColors"
@@ -138,6 +141,7 @@ export default forwardRef(function FlexoForm(
           options={COLOR_OPTIONS}
           value={form.printingColors}
           onChange={(v) => setField("printingColors", v)}
+          disabled={!form.coverSize}
         />
       </FormSection>
 
@@ -147,11 +151,13 @@ export default forwardRef(function FlexoForm(
           label="Gusset"
           on={form.gusset}
           onToggle={() => setField("gusset", !form.gusset)}
+          disabled={!form.coverSize}
         />
         <ToggleField
           label="Cutting"
           on={form.cutting}
           onToggle={() => setField("cutting", !form.cutting)}
+          disabled={!form.coverSize}
         />
         <ToggleField
           label="Punching"
@@ -165,7 +171,7 @@ export default forwardRef(function FlexoForm(
         />
       </FormSection>
 
-      {/* ── Wastage ── */}
+      {/* ── Wastage & Service ── */}
       <FormSection>
         <SelectField
           label="Wastage"
@@ -176,6 +182,16 @@ export default forwardRef(function FlexoForm(
           defaultOptions={WASTAGE_OPTIONS}
           value={form.wastage}
           onChange={(v) => setField("wastage", v)}
+        />
+        <SelectField
+          label="Service"
+          placeholder="0"
+          inline
+          unit="%"
+          storageKey="flexo-service"
+          defaultOptions={WASTAGE_OPTIONS}
+          value={form.service}
+          onChange={(v) => setField("service", v)}
         />
       </FormSection>
     </FormStack>

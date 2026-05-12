@@ -92,7 +92,11 @@ export function calculateGravureRate(form, rates) {
 
   const wastagePercent = parseFloat(form.wastage) || 0;
   const wastageAmount = totalCost * (wastagePercent / 100);
-  const adjustedTotal = totalCost + wastageAmount;
+  const preServiceTotal = totalCost + wastageAmount;
+
+  const servicePercent = parseFloat(form.service) || 0;
+  const serviceAmount = preServiceTotal * (servicePercent / 100);
+  const adjustedTotal = preServiceTotal + serviceAmount;
 
   const pricePerKg = adjustedTotal / totalMaterialQty;
 
@@ -108,6 +112,9 @@ export function calculateGravureRate(form, rates) {
     totalCost,
     wastagePercent,
     wastageAmount,
+    preServiceTotal,
+    servicePercent,
+    serviceAmount,
     adjustedTotal,
     pricePerKg,
   };

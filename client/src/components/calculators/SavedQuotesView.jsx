@@ -18,7 +18,7 @@ import { useToast } from "../ui/Toast";
  * @param {string}    title           — page title
  * @param {Function}  calculateRate   — pure calculation function (form → result | null)
  * @param {Component} ResultComponent — breakdown card component
- * @param {Function}  [formatPrice]   — price formatter for QuoteListItem
+ * @param {Component} [PrintComponent] — optional print layout component (hidden on screen, shown on print)
  */
 export default function SavedQuotesView({
   calcKey,
@@ -26,6 +26,7 @@ export default function SavedQuotesView({
   title,
   calculateRate,
   ResultComponent,
+  PrintComponent,
   formatPrice,
 }) {
   const [quotes, setQuotes] = useState([]);
@@ -41,7 +42,6 @@ export default function SavedQuotesView({
       setQuotes(list);
       setError(null);
     } catch (err) {
-      console.error(`Failed to load quotes for ${calcKey}`, err);
       setError("Couldn't load saved quotes. Check your connection.");
     }
   }, [calcKey]);
@@ -59,7 +59,6 @@ export default function SavedQuotesView({
       })
       .catch((err) => {
         if (cancelled) return;
-        console.error(`Failed to load quotes for ${calcKey}`, err);
         setError("Couldn't load saved quotes. Check your connection.");
       })
       .finally(() => {
@@ -105,7 +104,6 @@ export default function SavedQuotesView({
       );
       showToast(name, "Deleted from saved quotes");
     } catch (err) {
-      console.error(`Failed to delete quote ${selectedId}`, err);
       // Roll back
       setQuotes(previous);
       setSelectedId(selectedId);
@@ -190,12 +188,20 @@ export default function SavedQuotesView({
 
         {/* Right — Breakdown */}
         <div className="calc-column" data-print-area>
-          <ResultComponent
-            result={selectedResult}
-            form={selectedQuote?.form ?? null}
-            status="Saved"
-            date={selectedQuote?.savedAt}
-          />
+          <div className="print:hidden">
+            <ResultComponent
+              result={selectedResult}
+              form={selectedQuote?.form ?? null}
+              status="Saved"
+              date={selectedQuote?.savedAt}
+            />
+          </div>
+          {PrintComponent ? (
+            <PrintComponent
+              result={selectedResult}
+              form={selectedQuote?.form ?? null}
+            />
+          ) : null}
         </div>
       </div>
     </div>

@@ -87,5 +87,6 @@ export function makeInitialForm() {
     lamination: "none",
     slitting: false,
     wastage: "0",
+    service: "0",
   };
 }

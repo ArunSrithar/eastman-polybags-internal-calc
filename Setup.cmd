@@ -1,6 +1,13 @@
 @echo off
 setlocal
 
+if /I not "%~1"=="__run__" (
+  start "Eastman Beta Setup" "%ComSpec%" /k ""%~f0" __run__"
+  exit /b
+)
+
+shift
+
 cd /d "%~dp0"
 echo ==================================================
 echo Eastman Beta Setup
@@ -18,4 +25,4 @@ if errorlevel 1 (
 
 echo.
 echo Setup completed successfully.
-pause
+echo You can close this window.
