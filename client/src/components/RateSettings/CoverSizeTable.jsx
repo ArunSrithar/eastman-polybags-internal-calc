@@ -94,9 +94,9 @@ function CoverSizeRow({ coverSize, entry, index, onDelete, onToggle }) {
 
   const sizeDisplay = (
     <span className="inline-flex items-center gap-1">
-      <span className="inline-block w-20 text-right">{w}</span>
+      <span>{w}</span>
       <span className="text-label-3">×</span>
-      <span className="inline-block w-20 text-left">{h}</span>
+      <span>{h}</span>
     </span>
   );
 

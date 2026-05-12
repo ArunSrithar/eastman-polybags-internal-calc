@@ -117,7 +117,7 @@ export default function RateMatrixTable({
               <th className="table-header-cell rounded-l-full w-10 text-center">
                 #
               </th>
-              <th className="table-header-cell w-36">{rowLabel}</th>
+              <th className="table-header-cell w-64">{rowLabel}</th>
               {colKeys.map((c, i) => (
                 <th
                   key={c}
@@ -154,7 +154,7 @@ export default function RateMatrixTable({
                     return (
                       <td key={c} className="table-cell p-0">
                         {isEditing ? (
-                          <div className="flex items-center gap-1 px-2 py-1.5 bg-tint/5">
+                          <div className="flex items-center gap-1 px-2 py-3 bg-tint/5">
                             <input
                               ref={cellInputRef}
                               type="number"
@@ -184,7 +184,7 @@ export default function RateMatrixTable({
                           <button
                             type="button"
                             onClick={() => startEdit(r, c, rate)}
-                            className="w-full text-center px-4 py-2.5 text-label hover:bg-tint/5 transition-colors cursor-pointer"
+                            className="w-full text-center px-4 py-3 text-label hover:bg-tint/5 transition-colors cursor-pointer"
                             title={
                               current?.changedAt
                                 ? `₹${fmt(rate)} — ${current.changedBy}, ${formatDate(current.changedAt)}`
@@ -245,7 +245,7 @@ export default function RateMatrixTable({
                       onChange={(e) => setNewLength(e.target.value)}
                       onKeyDown={handleAddKeyDown}
                       placeholder="W"
-                      className="input-base py-1.5 text-sm w-12 text-right"
+                      className="input-base py-1.5 text-sm w-24 text-right"
                     />
                     <span className="text-label-3 text-xs">×</span>
                     <input
@@ -254,7 +254,7 @@ export default function RateMatrixTable({
                       onChange={(e) => setNewBreadth(e.target.value)}
                       onKeyDown={handleAddKeyDown}
                       placeholder="H"
-                      className="input-base py-1.5 text-sm w-12"
+                      className="input-base py-1.5 text-sm w-24 text-left"
                     />
                   </div>
                 </td>
