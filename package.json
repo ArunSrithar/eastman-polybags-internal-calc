@@ -1,6 +1,6 @@
 {
   "name": "eastman-polybags-internal-calc",
-  "version": "0.1.1-beta",
+  "version": "0.2.0-beta",
   "private": true,
   "description": "Eastman Colour Printers internal quote calculator — beta build",
   "scripts": {
