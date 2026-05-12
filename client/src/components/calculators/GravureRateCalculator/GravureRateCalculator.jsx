@@ -2,6 +2,7 @@ import CalculatorHeader from "../../layout/CalculatorHeader";
 import { GravureIcon } from "../../ui/Icons";
 import GravureForm from "./GravureForm";
 import GravureResult from "./GravureResult";
+import GravurePrintLayout from "./GravurePrintLayout";
 import { makeInitialForm } from "./formConfig";
 import { calculateGravureRate } from "../../../utils/calculators/gravureRate";
 import useCalculator from "../../../hooks/useCalculator";
@@ -74,7 +75,10 @@ function GravureRateCalculatorInner() {
 
         {/* Right — Breakdown */}
         <div className="calc-column" data-print-area>
-          <GravureResult result={result} form={form} />
+          <div className="print:hidden">
+            <GravureResult result={result} form={form} />
+          </div>
+          <GravurePrintLayout result={result} form={form} />
         </div>
       </div>
     </div>

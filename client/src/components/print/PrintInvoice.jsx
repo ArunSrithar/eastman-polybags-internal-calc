@@ -28,6 +28,8 @@ import PrintFooter from "./PrintFooter";
  *   totalQty       — grand total quantity (0 = blank cell)
  *   totalAmount    — grand total amount number
  *   amountWords    — INR amount in words string
+ *   pricePerKg     — optional; renders Rate per Kg badge in PrintTotals (Gravure/Flexo only)
+ *   pricePerKgWords — optional; renders per-kg amount in words in PrintTotals (Gravure/Flexo only)
  */
 export default function PrintInvoice({
   documentTitle,
@@ -40,6 +42,8 @@ export default function PrintInvoice({
   totalQty,
   totalAmount,
   amountWords,
+  pricePerKg,
+  pricePerKgWords,
 }) {
   return (
     <div
@@ -64,7 +68,7 @@ export default function PrintInvoice({
         totalQty={totalQty}
         totalAmount={totalAmount}
       />
-      <PrintTotals amountWords={amountWords} />
+      <PrintTotals amountWords={amountWords} pricePerKg={pricePerKg} pricePerKgWords={pricePerKgWords} />
       <PrintFooter />
     </div>
   );
