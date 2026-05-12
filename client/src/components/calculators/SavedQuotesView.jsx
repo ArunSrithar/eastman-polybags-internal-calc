@@ -188,7 +188,7 @@ export default function SavedQuotesView({
 
         {/* Right — Breakdown */}
         <div className="calc-column" data-print-area>
-          <div className="print:hidden">
+          <div className={PrintComponent ? "print:hidden" : undefined}>
             <ResultComponent
               result={selectedResult}
               form={selectedQuote?.form ?? null}
