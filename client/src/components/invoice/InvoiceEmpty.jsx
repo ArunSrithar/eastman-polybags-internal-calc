@@ -11,7 +11,7 @@ export default function InvoiceEmpty({
   hint = "Enable a material and set its price & quantity to see the rate breakdown.",
 }) {
   return (
-    <div className="flex flex-col items-center justify-center h-full gap-3 px-6 text-center">
+    <div className="flex flex-col items-center justify-center min-h-[70vh] gap-3 px-6 text-center">
       <div className="size-12 rounded-2xl bg-fill-3 flex items-center justify-center">
         <CalculatorSubIcon className="size-5 text-label-3" />
       </div>

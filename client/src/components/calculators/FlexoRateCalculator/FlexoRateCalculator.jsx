@@ -2,6 +2,7 @@ import CalculatorHeader from "../../layout/CalculatorHeader";
 import { FlexoIcon } from "../../ui/Icons";
 import FlexoForm from "./FlexoForm";
 import FlexoResult from "./FlexoResult";
+import FlexoPrintLayout from "./FlexoPrintLayout";
 import { makeInitialForm } from "./formConfig";
 import { calculateFlexoRate } from "../../../utils/calculators/flexoRateCalc";
 import useCalculator from "../../../hooks/useCalculator";
@@ -74,7 +75,10 @@ export default function FlexoRateCalculator() {
 
         {/* Right — Breakdown */}
         <div className="calc-column" data-print-area>
-          <FlexoResult result={result} form={form} />
+          <div className="print:hidden">
+            <FlexoResult result={result} form={form} />
+          </div>
+          <FlexoPrintLayout result={result} form={form} />
         </div>
       </div>
     </div>
