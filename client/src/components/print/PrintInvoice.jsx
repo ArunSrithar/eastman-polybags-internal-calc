@@ -68,7 +68,11 @@ export default function PrintInvoice({
         totalQty={totalQty}
         totalAmount={totalAmount}
       />
-      <PrintTotals amountWords={amountWords} pricePerKg={pricePerKg} pricePerKgWords={pricePerKgWords} />
+      <PrintTotals
+        amountWords={amountWords}
+        pricePerKg={pricePerKg}
+        pricePerKgWords={pricePerKgWords}
+      />
       <PrintFooter />
     </div>
   );

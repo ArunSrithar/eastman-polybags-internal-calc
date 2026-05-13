@@ -34,7 +34,13 @@ export default function FlexoPrintLayout({ result, form }) {
   /* ── Numbered line items ── */
   const items = [
     /* Material base price */
-    { key: "material", label: "Material Price", qty: null, price: null, amount: materialPrice },
+    {
+      key: "material",
+      label: "Material Price",
+      qty: null,
+      price: null,
+      amount: materialPrice,
+    },
 
     /* Conversion */
     conversionRate > 0
@@ -51,7 +57,13 @@ export default function FlexoPrintLayout({ result, form }) {
 
     /* Roll size surcharge */
     rollSizeRate > 0
-      ? { key: "rollSize", label: `Roll Size (${rollSize || "—"})`, qty: null, price: null, amount: rollSizeRate }
+      ? {
+          key: "rollSize",
+          label: `Roll Size (${rollSize || "—"})`,
+          qty: null,
+          price: null,
+          amount: rollSizeRate,
+        }
       : null,
 
     /* Printing */
@@ -67,32 +79,64 @@ export default function FlexoPrintLayout({ result, form }) {
 
     /* Gusset */
     gussetRate > 0
-      ? { key: "gusset", label: "Gusset", qty: null, price: null, amount: gussetRate }
+      ? {
+          key: "gusset",
+          label: "Gusset",
+          qty: null,
+          price: null,
+          amount: gussetRate,
+        }
       : null,
 
     /* Punching */
     punchingRate > 0
-      ? { key: "punching", label: "Punching", qty: null, price: null, amount: punchingRate }
+      ? {
+          key: "punching",
+          label: "Punching",
+          qty: null,
+          price: null,
+          amount: punchingRate,
+        }
       : null,
 
     /* O-Pack */
     opackRate > 0
-      ? { key: "opack", label: "O-Pack", qty: null, price: null, amount: opackRate }
+      ? {
+          key: "opack",
+          label: "O-Pack",
+          qty: null,
+          price: null,
+          amount: opackRate,
+        }
       : null,
 
     /* Cutting */
     cuttingSizeRate > 0
-      ? { key: "cutting", label: `Cutting${coverSize ? ` (${coverSize})` : ""}`, qty: null, price: null, amount: cuttingSizeRate }
+      ? {
+          key: "cutting",
+          label: `Cutting${coverSize ? ` (${coverSize})` : ""}`,
+          qty: null,
+          price: null,
+          amount: cuttingSizeRate,
+        }
       : null,
   ].filter(Boolean);
 
   /* ── Adjustment rows: wastage (italic) then service (bold) ── */
   const adjustments = [
     wastagePercent > 0
-      ? { label: `Wastage @ ${wastagePercent}%`, amount: wastageAmount, bold: false }
+      ? {
+          label: `Wastage @ ${wastagePercent}%`,
+          amount: wastageAmount,
+          bold: false,
+        }
       : null,
     servicePercent > 0
-      ? { label: `Service @ ${servicePercent}%`, amount: serviceAmount, bold: true }
+      ? {
+          label: `Service @ ${servicePercent}%`,
+          amount: serviceAmount,
+          bold: true,
+        }
       : null,
   ].filter(Boolean);
 

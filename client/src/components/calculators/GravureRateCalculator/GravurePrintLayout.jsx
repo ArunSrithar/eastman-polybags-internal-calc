@@ -46,7 +46,13 @@ export default function GravurePrintLayout({ result, form }) {
     }),
     /* Printing charges (single combined row) */
     printingRatePerKg > 0
-      ? { key: "printing", label: "Printing Charges", qty: null, price: null, amount: printingRatePerKg }
+      ? {
+          key: "printing",
+          label: "Printing Charges",
+          qty: null,
+          price: null,
+          amount: printingRatePerKg,
+        }
       : null,
     /* Lamination */
     laminationRatePerKg > 0
@@ -63,7 +69,13 @@ export default function GravurePrintLayout({ result, form }) {
       : null,
     /* Slitting */
     slittingRatePerKg > 0
-      ? { key: "slitting", label: "Slitting", qty: null, price: null, amount: slittingRatePerKg }
+      ? {
+          key: "slitting",
+          label: "Slitting",
+          qty: null,
+          price: null,
+          amount: slittingRatePerKg,
+        }
       : null,
     /* Pouch making */
     pouchRatePerKg > 0
@@ -80,10 +92,18 @@ export default function GravurePrintLayout({ result, form }) {
   /* ── Adjustment rows: wastage then service ── */
   const adjustments = [
     wastagePercent > 0
-      ? { label: `Wastage @ ${wastagePercent}%`, amount: wastageAmount, bold: false }
+      ? {
+          label: `Wastage @ ${wastagePercent}%`,
+          amount: wastageAmount,
+          bold: false,
+        }
       : null,
     servicePercent > 0
-      ? { label: `Service @ ${servicePercent}%`, amount: serviceAmount, bold: true }
+      ? {
+          label: `Service @ ${servicePercent}%`,
+          amount: serviceAmount,
+          bold: true,
+        }
       : null,
   ].filter(Boolean);
 

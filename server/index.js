@@ -1,4 +1,6 @@
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -17,6 +19,10 @@ import { requireAuth } from "./middleware/auth.js";
 import User from "./models/User.js";
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const clientDist = path.resolve(__dirname, "../client/dist");
 
 const app = express();
 const { port, clientOrigins, mutationRateLimitMax, trustProxy } =
@@ -49,6 +55,16 @@ app.use("/api/roles", requireAuth, rolesRouter);
 // Health check
 app.get("/health", (_req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
+});
+
+// Serve React build (production)
+app.use(express.static(clientDist));
+
+// SPA fallback — all non-API routes return index.html
+app.get("*", (_req, res, next) => {
+  res.sendFile(path.join(clientDist, "index.html"), (err) => {
+    if (err) next(err);
+  });
 });
 
 // Error handling

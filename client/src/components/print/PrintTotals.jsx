@@ -15,7 +15,11 @@ import { P } from "./printTokens";
  *   pricePerKg       — optional number (Gravure / Flexo only)
  *   pricePerKgWords  — optional words string for per-kg amount (Gravure / Flexo only)
  */
-export default function PrintTotals({ amountWords, pricePerKg, pricePerKgWords }) {
+export default function PrintTotals({
+  amountWords,
+  pricePerKg,
+  pricePerKgWords,
+}) {
   return (
     <>
       {/* ── Rate per Kg strip (Gravure / Flexo only) ── */}
@@ -102,14 +106,22 @@ export default function PrintTotals({ amountWords, pricePerKg, pricePerKgWords }
               >
                 Amount Required to Produce a Kg (in words)
               </div>
-              <div style={{ fontWeight: "700", fontSize: "10px", color: P.text }}>
+              <div
+                style={{ fontWeight: "700", fontSize: "10px", color: P.text }}
+              >
                 {pricePerKgWords}
               </div>
             </>
           ) : null}
         </div>
         <div
-          style={{ fontSize: "8px", color: P.soft, whiteSpace: "nowrap", paddingTop: "2px", paddingLeft: "12px" }}
+          style={{
+            fontSize: "8px",
+            color: P.soft,
+            whiteSpace: "nowrap",
+            paddingTop: "2px",
+            paddingLeft: "12px",
+          }}
         >
           E. &amp; O.E
         </div>
