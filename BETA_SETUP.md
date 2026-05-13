@@ -2,7 +2,7 @@
 
 This is a beta build of the Eastman Colour Printers Internal Quote Calculator. Follow these steps to run it on your local machine.
 
-> **Beta version:** `v0.2.0-beta` — please share feedback during our review meeting.
+> **Beta version:** `v0.2.1-beta` — please share feedback during our review meeting.
 
 ---
 
