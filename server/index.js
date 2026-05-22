@@ -136,7 +136,7 @@ async function startServer() {
     await ensureUserEmailSparseUniqueIndex();
 
     app.listen(port, () => {
-      console.log(`Server running on http://localhost:${port}`);
+      console.log(`Server running on ${process.env.RENDER_EXTERNAL_URL || `http://localhost:${port}`}`);
     });
   } catch (err) {
     console.error("Failed to start server", err);
