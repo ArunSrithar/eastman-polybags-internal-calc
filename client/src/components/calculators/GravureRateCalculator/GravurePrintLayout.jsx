@@ -167,6 +167,7 @@ export default function GravurePrintLayout({ result, form }) {
       pricePerKg={roundedPricePerKg}
       pricePerKgDisplay={roundedPriceDisplay}
       pricePerKgWords={amountInWords(roundedPricePerKg)}
+      footerShowBoxes={false}
     />
   );
 }

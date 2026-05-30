@@ -187,6 +187,7 @@ export default function FlexoPrintLayout({ result, form }) {
       totalAmount={roundedTotalAmount}
       totalAmountDisplay={roundedTotalDisplay}
       amountWords={amountInWords(roundedTotalAmount)}
+      footerShowBoxes={false}
     />
   );
 }
