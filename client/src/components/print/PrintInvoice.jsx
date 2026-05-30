@@ -28,8 +28,23 @@ import PrintFooter from "./PrintFooter";
  *   totalQty       — grand total quantity (0 = blank cell)
  *   totalAmount    — grand total amount number
  *   amountWords    — INR amount in words string
+ *   showAmountWords — optional; toggles total amount words block
+ *   totalRowProminent — optional; toggles stronger TOTAL row styling
  *   pricePerKg     — optional; renders Rate per Kg badge in PrintTotals (Gravure/Flexo only)
+ *   pricePerKgLabel — optional; label override for per-kg strip
+ *   pricePerKgDisplay — optional; value string override for per-kg strip
+ *   pricePerKgProminent — optional; renders per-kg value with stronger emphasis
+ *   pricePerKgUnitSuffix — optional; unit suffix for per-kg value
+ *   pricePerKgLabelIndent — optional; left indent for per-kg label
  *   pricePerKgWords — optional; renders per-kg amount in words in PrintTotals (Gravure/Flexo only)
+ *   pricePerKgWordsProminent — optional; stronger typography for per-kg words block
+ *   totalAmountDisplay — optional; value string override for TOTAL row amount
+ *   partyPrimaryLabel   — optional; defaults to Bill To / Consignee
+ *   partyPrimaryValue   — optional; defaults to customer
+ *   partySecondaryLabel — optional; defaults to Ship To / Buyer
+ *   partySecondaryValue — optional; defaults to customer
+ *   footerShowBoxes     — optional; toggles footer 3-box panel
+ *   footerShowCaption   — optional; toggles bottom caption
  */
 export default function PrintInvoice({
   documentTitle,
@@ -42,8 +57,23 @@ export default function PrintInvoice({
   totalQty,
   totalAmount,
   amountWords,
+  showAmountWords = true,
+  totalRowProminent = true,
   pricePerKg,
+  pricePerKgLabel,
+  pricePerKgDisplay,
+  pricePerKgProminent = false,
+  pricePerKgUnitSuffix,
+  pricePerKgLabelIndent,
   pricePerKgWords,
+  pricePerKgWordsProminent = false,
+  totalAmountDisplay,
+  partyPrimaryLabel,
+  partyPrimaryValue,
+  partySecondaryLabel,
+  partySecondaryValue,
+  footerShowBoxes = true,
+  footerShowCaption = true,
 }) {
   return (
     <div
@@ -61,19 +91,38 @@ export default function PrintInvoice({
         documentNo={documentNo}
         documentDate={documentDate}
       />
-      <PrintParties customer={customer} metaRows={metaRows} />
+      <PrintParties
+        customer={customer}
+        partyPrimaryLabel={partyPrimaryLabel}
+        partyPrimaryValue={partyPrimaryValue}
+        partySecondaryLabel={partySecondaryLabel}
+        partySecondaryValue={partySecondaryValue}
+        metaRows={metaRows}
+      />
       <PrintItemsTable
         items={items}
         adjustments={adjustments}
         totalQty={totalQty}
         totalAmount={totalAmount}
+        totalAmountDisplay={totalAmountDisplay}
+        totalRowProminent={totalRowProminent}
       />
       <PrintTotals
         amountWords={amountWords}
+        showAmountWords={showAmountWords}
         pricePerKg={pricePerKg}
+        pricePerKgLabel={pricePerKgLabel}
+        pricePerKgDisplay={pricePerKgDisplay}
+        pricePerKgProminent={pricePerKgProminent}
+        pricePerKgUnitSuffix={pricePerKgUnitSuffix}
+        pricePerKgLabelIndent={pricePerKgLabelIndent}
         pricePerKgWords={pricePerKgWords}
+        pricePerKgWordsProminent={pricePerKgWordsProminent}
       />
-      <PrintFooter />
+      <PrintFooter
+        showBoxes={footerShowBoxes}
+        showCaption={footerShowCaption}
+      />
     </div>
   );
 }

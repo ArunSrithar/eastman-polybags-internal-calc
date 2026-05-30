@@ -17,6 +17,8 @@ import { P } from "./printTokens";
  *   adjustments  — Array<{ label, amount }> rendered after blank rows
  *   totalQty     — number shown in TOTAL row qty cell (0 = blank)
  *   totalAmount  — number shown in TOTAL row amount cell
+ *   totalAmountDisplay — optional string override for TOTAL row amount
+ *   totalRowProminent — optional; toggles stronger TOTAL row styling
  *   minRows      — minimum visible rows (padded with blank rows), default 8
  */
 
@@ -50,6 +52,8 @@ export default function PrintItemsTable({
   adjustments = [],
   totalQty,
   totalAmount,
+  totalAmountDisplay,
+  totalRowProminent = true,
   minRows = MIN_ROWS,
 }) {
   const blankRows = Math.max(0, minRows - items.length);
@@ -155,16 +159,18 @@ export default function PrintItemsTable({
         <tfoot>
           <tr
             style={{
-              backgroundColor: P.panel,
-              borderTop: `2px solid ${P.ruleStrong}`,
+              backgroundColor: totalRowProminent ? P.panel : P.white,
+              borderTop: totalRowProminent
+                ? `2px solid ${P.ruleStrong}`
+                : `1px solid ${P.rule}`,
             }}
           >
             <td />
             <td
               style={{
                 padding: "9px 10px",
-                fontWeight: "700",
-                fontSize: "11px",
+                fontWeight: totalRowProminent ? "700" : "600",
+                fontSize: totalRowProminent ? "11px" : "10px",
                 textAlign: "left",
                 color: P.text,
               }}
@@ -174,7 +180,7 @@ export default function PrintItemsTable({
             <td
               style={{
                 padding: "9px 10px",
-                fontWeight: "600",
+                fontWeight: totalRowProminent ? "600" : "500",
                 textAlign: "center",
                 color: P.text,
               }}
@@ -185,8 +191,8 @@ export default function PrintItemsTable({
             <td
               style={{
                 padding: "9px 10px",
-                fontWeight: "800",
-                fontSize: "14px",
+                fontWeight: totalRowProminent ? "800" : "700",
+                fontSize: totalRowProminent ? "14px" : "11px",
                 textAlign: "right",
                 fontVariantNumeric: "tabular-nums",
                 whiteSpace: "nowrap",
@@ -194,7 +200,7 @@ export default function PrintItemsTable({
                 color: P.text,
               }}
             >
-              ₹ {fmt(totalAmount)}
+              ₹ {totalAmountDisplay ?? fmt(totalAmount)}
             </td>
           </tr>
         </tfoot>

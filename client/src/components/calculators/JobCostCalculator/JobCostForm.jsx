@@ -12,6 +12,7 @@ import {
   CHARGE_ITEMS,
   FLAT_ITEMS,
   DROPDOWN_SEEDS,
+  storeFlatChargePrice,
 } from "./formConfig";
 
 /* ─── JobCostForm ────────────────────────────────────────────────────────── */
@@ -36,6 +37,13 @@ export default forwardRef(function JobCostForm(
   }
 
   function setItem(itemKey, field, val) {
+    if (
+      field === "price" &&
+      (itemKey === "packingCharges" || itemKey === "transportCharge")
+    ) {
+      storeFlatChargePrice(itemKey, val);
+    }
+
     const next = {
       ...form,
       items: {
@@ -76,17 +84,17 @@ export default forwardRef(function JobCostForm(
       </FormSection>
 
       <FormSection title="Job Details">
+        <DateField
+          label="Job Card Date"
+          value={form.jobCardDate}
+          onChange={(v) => setField("jobCardDate", v)}
+        />
         <TextField
           label="Job Card No"
           placeholder="e.g. JC-001"
           inline
           value={form.jobCardNo}
           onChange={(v) => setField("jobCardNo", v)}
-        />
-        <DateField
-          label="Job Card Date"
-          value={form.jobCardDate}
-          onChange={(v) => setField("jobCardDate", v)}
         />
         <SelectField
           label="Job Work Company"
@@ -109,6 +117,11 @@ export default forwardRef(function JobCostForm(
           label="Billing Date"
           value={form.billingDate}
           onChange={(v) => setField("billingDate", v)}
+        />
+        <DateField
+          label="Dispatch Date"
+          value={form.dispatchDate}
+          onChange={(v) => setField("dispatchDate", v)}
         />
         <NumberField
           label="Billing Rate"
@@ -193,24 +206,10 @@ export default forwardRef(function JobCostForm(
           placeholder="0"
           inline
           unit="%"
-          storageKey="job-cost-wastage"
           defaultOptions={["0", "1", "2", "3", "4", "5", "8", "10"]}
           value={form.wastage}
           onChange={(v) => setField("wastage", v)}
         />
-      </FormSection>
-
-      {/* ── Flat Charges (packing + transport) ── */}
-      <FormSection title="Other Charges">
-        {FLAT_ITEMS.map((def) => (
-          <ItemRow
-            key={def.key}
-            def={def}
-            item={form.items[def.key]}
-            onToggle={() => toggleItem(def.key)}
-            onChange={(field, val) => setItem(def.key, field, val)}
-          />
-        ))}
       </FormSection>
 
       {/* ── Weights ── */}
@@ -225,7 +224,7 @@ export default forwardRef(function JobCostForm(
           placeholder="0.00"
         />
         <NumberField
-          label="Despatch Weight"
+          label="Dispatch Weight"
           value={form.dispatchWeight}
           onChange={(v) => setField("dispatchWeight", v)}
           min={0}
@@ -233,6 +232,19 @@ export default forwardRef(function JobCostForm(
           width="w-48"
           placeholder="0.00"
         />
+      </FormSection>
+
+      {/* ── Flat Charges (packing + transport) ── */}
+      <FormSection title="Other Charges">
+        {FLAT_ITEMS.map((def) => (
+          <ItemRow
+            key={def.key}
+            def={def}
+            item={form.items[def.key]}
+            onToggle={() => toggleItem(def.key)}
+            onChange={(field, val) => setItem(def.key, field, val)}
+          />
+        ))}
       </FormSection>
     </FormStack>
   );

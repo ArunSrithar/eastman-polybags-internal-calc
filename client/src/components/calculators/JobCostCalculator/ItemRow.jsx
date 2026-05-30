@@ -36,8 +36,9 @@ export default function ItemRow({ def, item, onToggle, onChange }) {
               onChange={(e) => onChange("price", e.target.value)}
               placeholder="0.00"
               disabled={!on}
-              className="flex-1 bg-transparent px-3 py-2 text-sm outline-none input-no-spinner w-0"
+              className="flex-1 min-w-0 bg-transparent px-3 py-2 text-sm outline-none input-no-spinner"
             />
+            <span className="px-2 text-label-3 text-xs shrink-0">per kg</span>
           </div>
         </div>
       </div>

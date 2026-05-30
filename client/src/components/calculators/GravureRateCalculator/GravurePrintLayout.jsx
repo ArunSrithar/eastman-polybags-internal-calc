@@ -1,6 +1,5 @@
 import { fmt, amountInWords } from "../../../utils/format";
 import { MATERIAL_NAMES } from "../../../constants/gravureRates";
-import { formatPrintDate } from "../../print/printTokens";
 import PrintInvoice from "../../print/PrintInvoice";
 
 /**
@@ -23,12 +22,22 @@ export default function GravurePrintLayout({ result, form }) {
     pouchRatePerKg,
     wastagePercent,
     wastageAmount,
-    preServiceTotal,
     servicePercent,
     serviceAmount,
     adjustedTotal,
     pricePerKg,
   } = result;
+
+  const roundedTotalAmount = Math.round(adjustedTotal || 0);
+  const roundedPricePerKg = Math.round(pricePerKg || 0);
+  const roundedTotalDisplay = roundedTotalAmount.toLocaleString("en-IN", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+  const roundedPriceDisplay = roundedPricePerKg.toLocaleString("en-IN", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
 
   /* ── Numbered line items ── */
   const items = [
@@ -138,7 +147,7 @@ export default function GravurePrintLayout({ result, form }) {
       label: "Total Qty",
       value: `${fmt(totalMaterialQty)} Kgs`,
       label2: "Price / Kg",
-      value2: `₹ ${fmt(pricePerKg)}`,
+      value2: `₹ ${roundedPriceDisplay}`,
     },
   ];
 
@@ -152,10 +161,12 @@ export default function GravurePrintLayout({ result, form }) {
       items={items}
       adjustments={adjustments}
       totalQty={totalMaterialQty}
-      totalAmount={adjustedTotal}
-      amountWords={amountInWords(adjustedTotal)}
-      pricePerKg={pricePerKg}
-      pricePerKgWords={amountInWords(pricePerKg)}
+      totalAmount={roundedTotalAmount}
+      totalAmountDisplay={roundedTotalDisplay}
+      amountWords={amountInWords(roundedTotalAmount)}
+      pricePerKg={roundedPricePerKg}
+      pricePerKgDisplay={roundedPriceDisplay}
+      pricePerKgWords={amountInWords(roundedPricePerKg)}
     />
   );
 }

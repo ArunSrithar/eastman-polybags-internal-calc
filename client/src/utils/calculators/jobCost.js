@@ -9,11 +9,13 @@ import { LINE_ITEMS } from "../../constants/jobCost";
  * Where:
  *   Total Amount = Σ amount_i  for each ENABLED line item
  *   Items 1–8:  amount_i = qty_i × price_i
- *   Items 9–11: amount_i = price_i  (flat charge, no qty)
+ *   Packing/Transport: amount_i = price_i × finishedWeight
  *
  * Returns null if dispatchWeight is 0, no items are enabled, or total is 0.
  */
 export function calculateJobCost(form) {
+  const finishedWeight = parseFloat(form.finishedWeight) || 0;
+
   // First pass: build line items with hasQty amounts
   const lineItems = LINE_ITEMS.map((def) => {
     const item = form.items?.[def.key] ?? {};
@@ -47,22 +49,24 @@ export function calculateJobCost(form) {
   const wastagePercent = parseFloat(form.wastage) || 0;
   const wastageAmount = (wastagePercent / 100) * baseTotal;
 
-  // Second pass: flat items — all flat (packing, transport)
+  // Second pass: flat items use per-kg rates × finished weight
   for (const item of lineItems) {
     if (!item.hasQty && item.enabled) {
-      item.amount = item.price;
+      item.amount = item.price * finishedWeight;
     }
   }
 
   const enabledItems = lineItems.filter((i) => i.enabled);
   const flatTotal = enabledItems.reduce((s, i) => s + i.amount, 0);
-  const totalAmount = flatTotal + wastageAmount;
+  const rawTotalAmount = flatTotal + wastageAmount;
   const dispatchWeight = parseFloat(form.dispatchWeight) || 0;
-  const finishedWeight = parseFloat(form.finishedWeight) || 0;
 
-  if (enabledItems.length === 0 || totalAmount === 0) {
+  if (enabledItems.length === 0 || rawTotalAmount === 0) {
     return null;
   }
+
+  const totalAmount = rawTotalAmount;
+  const costOfJob = dispatchWeight > 0 ? totalAmount / dispatchWeight : null;
 
   return {
     lineItems,
@@ -72,6 +76,6 @@ export function calculateJobCost(form) {
     totalAmount,
     finishedWeight,
     dispatchWeight,
-    costOfJob: dispatchWeight > 0 ? totalAmount / dispatchWeight : null,
+    costOfJob,
   };
 }

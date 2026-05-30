@@ -31,6 +31,12 @@ export default function FlexoPrintLayout({ result, form }) {
     totalRate,
   } = result;
 
+  const roundedTotalAmount = Math.round(totalRate || 0);
+  const roundedTotalDisplay = roundedTotalAmount.toLocaleString("en-IN", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+
   /* ── Numbered line items ── */
   const items = [
     /* Material base price */
@@ -178,8 +184,9 @@ export default function FlexoPrintLayout({ result, form }) {
       items={items}
       adjustments={adjustments}
       totalQty={0}
-      totalAmount={totalRate}
-      amountWords={amountInWords(totalRate)}
+      totalAmount={roundedTotalAmount}
+      totalAmountDisplay={roundedTotalDisplay}
+      amountWords={amountInWords(roundedTotalAmount)}
     />
   );
 }

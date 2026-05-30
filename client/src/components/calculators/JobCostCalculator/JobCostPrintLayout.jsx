@@ -24,6 +24,21 @@ export default function JobCostPrintLayout({ result, form }) {
     finishedWeight,
   } = result;
 
+  const roundedTotalAmount = Math.round(totalAmount || 0);
+  const roundedTotalDisplay = roundedTotalAmount.toLocaleString("en-IN", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+  const jobCostPerKg =
+    dispatchWeight > 0 ? Math.round(roundedTotalAmount / dispatchWeight) : null;
+  const jobCostPerKgDisplay =
+    jobCostPerKg != null
+      ? jobCostPerKg.toLocaleString("en-IN", {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        })
+      : null;
+
   /* ── Numbered line items (exclude flat-charge keys) ── */
   const items = enabledItems
     .filter((item) => !FLAT_KEYS.has(item.key))
@@ -67,8 +82,8 @@ export default function JobCostPrintLayout({ result, form }) {
     {
       label: "Total Bundles",
       value: form.noOfBundles,
-      label2: "Dispatched through",
-      value2: form.jobWorkCompany,
+      label2: "Dispatch Date",
+      value2: formatPrintDate(form.dispatchDate),
     },
     {
       label: "Film",
@@ -83,7 +98,7 @@ export default function JobCostPrintLayout({ result, form }) {
       value2: form.billingRate ? `₹ ${fmt(form.billingRate)}` : "",
     },
     {
-      label: "Despatch Weight",
+      label: "Dispatch Weight",
       value: dispatchWeight > 0 ? `${fmt(dispatchWeight)} Kgs` : "",
       label2: "Finished Weight",
       value2: finishedWeight > 0 ? `${fmt(finishedWeight)} Kgs` : "",
@@ -96,12 +111,31 @@ export default function JobCostPrintLayout({ result, form }) {
       documentNo={form.billingNo}
       documentDate={formatPrintDate(form.billingDate)}
       customer={form.quoteName?.trim()}
+      partyPrimaryLabel="Customer"
+      partyPrimaryValue={form.quoteName?.trim()}
+      partySecondaryLabel="Job Work Place"
+      partySecondaryValue={form.jobWorkCompany?.trim()}
       metaRows={metaRows}
       items={items}
       adjustments={adjustments}
       totalQty={totalQty}
-      totalAmount={totalAmount}
-      amountWords={amountInWords(totalAmount)}
+      totalAmount={roundedTotalAmount}
+      totalAmountDisplay={roundedTotalDisplay}
+      amountWords={amountInWords(roundedTotalAmount)}
+      showAmountWords={false}
+      totalRowProminent={false}
+      pricePerKg={jobCostPerKg}
+      pricePerKgLabel="Job Cost"
+      pricePerKgDisplay={jobCostPerKgDisplay}
+      pricePerKgProminent
+      pricePerKgUnitSuffix=""
+      pricePerKgLabelIndent={46}
+      pricePerKgWords={
+        jobCostPerKg != null ? amountInWords(jobCostPerKg) : undefined
+      }
+      pricePerKgWordsProminent
+      footerShowBoxes={false}
+      footerShowCaption
     />
   );
 }

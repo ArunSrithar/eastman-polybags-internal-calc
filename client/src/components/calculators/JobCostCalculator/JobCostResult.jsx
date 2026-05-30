@@ -29,6 +29,24 @@ function sumSection(items) {
   return items.reduce((s, i) => s + i.amount, 0);
 }
 
+function formatOtherLabel(item, finishedWeight) {
+  if (
+    finishedWeight > 0 &&
+    (item.key === "packingCharges" || item.key === "transportCharge")
+  ) {
+    return (
+      <>
+        {item.label}
+        <span className="text-label-3 italic">
+          {` · ₹${fmt(item.price)} × ${fmt(finishedWeight)} kg`}
+        </span>
+      </>
+    );
+  }
+
+  return item.label;
+}
+
 /* ─── Main component ─────────────────────────────────────────────────────── */
 
 export default function JobCostResult({ result, form, status, date }) {
@@ -36,7 +54,7 @@ export default function JobCostResult({ result, form, status, date }) {
     return (
       <InvoiceEmpty
         message="No breakdown yet"
-        hint="Enter item quantities and despatch weight to see the cost breakdown."
+        hint="Enter item quantities and dispatch weight to see the cost breakdown."
       />
     );
   }
@@ -48,8 +66,11 @@ export default function JobCostResult({ result, form, status, date }) {
     totalAmount,
     finishedWeight,
     dispatchWeight,
-    costOfJob,
   } = result;
+
+  const roundedTotalAmount = Math.round(totalAmount);
+  const breakdownCostOfJob =
+    dispatchWeight > 0 ? roundedTotalAmount / dispatchWeight : null;
 
   const materials = enabledItems.filter((i) => MATERIAL_KEYS.has(i.key));
   const charges = enabledItems.filter((i) => CHARGE_KEYS.has(i.key));
@@ -134,7 +155,11 @@ export default function JobCostResult({ result, form, status, date }) {
         <>
           <SectionLabel color={SECTION_COLORS.orange} label="Other" />
           {other.map((item) => (
-            <ItemRow key={item.key} label={item.label} amount={item.amount} />
+            <ItemRow
+              key={item.key}
+              label={formatOtherLabel(item, finishedWeight)}
+              amount={item.amount}
+            />
           ))}
           <SectionSubtotal label="Other subtotal" amount={otherTotal} />
         </>
@@ -142,13 +167,13 @@ export default function JobCostResult({ result, form, status, date }) {
 
       <InvoiceFooter
         total={totalAmount}
-        highlight={costOfJob}
+        highlight={breakdownCostOfJob}
         highlightLabel="Cost of Job"
         highlightUnit="/kg"
         annotation={
           dispatchWeight > 0
-            ? `₹${fmt(totalAmount)} total ÷ ${fmt(dispatchWeight)} kg despatch${finishedWeight > 0 ? ` · ${fmt(finishedWeight)} kg finished` : ""}`
-            : "Enter despatch weight to see cost per kg"
+            ? `₹${fmt(roundedTotalAmount)} total ÷ ${fmt(dispatchWeight)} kg dispatch${finishedWeight > 0 ? ` · ${fmt(finishedWeight)} kg finished` : ""}`
+            : "Enter dispatch weight to see cost per kg"
         }
       />
     </div>

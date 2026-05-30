@@ -9,11 +9,25 @@ import { P } from "./printTokens";
  *
  * Props:
  *   customer   — customer / quote name string
+ *   partyPrimaryLabel   — left panel top label
+ *   partyPrimaryValue   — left panel top value
+ *   partySecondaryLabel — left panel bottom label
+ *   partySecondaryValue — left panel bottom value
  *   metaRows   — Array<{ label, value, label2?, value2? }>
  *                Each entry renders one row in the meta grid.
  *                Pass in document order — max ~6 rows fits cleanly.
  */
-export default function PrintParties({ customer, metaRows = [] }) {
+export default function PrintParties({
+  customer,
+  partyPrimaryLabel = "Bill To / Consignee",
+  partyPrimaryValue,
+  partySecondaryLabel = "Ship To / Buyer",
+  partySecondaryValue,
+  metaRows = [],
+}) {
+  const firstPartyValue = partyPrimaryValue ?? customer;
+  const secondPartyValue = partySecondaryValue ?? customer;
+
   return (
     <div
       style={{ borderRadius: "8px", overflow: "hidden", marginBottom: "14px" }}
@@ -40,7 +54,7 @@ export default function PrintParties({ customer, metaRows = [] }) {
                   marginBottom: "4px",
                 }}
               >
-                Bill To / Consignee
+                {partyPrimaryLabel}
               </div>
               <div
                 style={{
@@ -50,7 +64,7 @@ export default function PrintParties({ customer, metaRows = [] }) {
                   marginBottom: "12px",
                 }}
               >
-                {customer || "—"}
+                {firstPartyValue || "—"}
               </div>
               <div
                 style={{
@@ -68,12 +82,12 @@ export default function PrintParties({ customer, metaRows = [] }) {
                   marginBottom: "4px",
                 }}
               >
-                Ship To / Buyer
+                {partySecondaryLabel}
               </div>
               <div
                 style={{ fontSize: "13px", fontWeight: "700", color: P.text }}
               >
-                {customer || "—"}
+                {secondPartyValue || "—"}
               </div>
             </td>
 

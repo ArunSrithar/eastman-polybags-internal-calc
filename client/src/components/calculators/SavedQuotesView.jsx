@@ -41,7 +41,7 @@ export default function SavedQuotesView({
       const list = await getQuotes(calcKey);
       setQuotes(list);
       setError(null);
-    } catch (err) {
+    } catch {
       setError("Couldn't load saved quotes. Check your connection.");
     }
   }, [calcKey]);
@@ -57,7 +57,7 @@ export default function SavedQuotesView({
         setQuotes(list);
         setError(null);
       })
-      .catch((err) => {
+      .catch(() => {
         if (cancelled) return;
         setError("Couldn't load saved quotes. Check your connection.");
       })
@@ -103,7 +103,7 @@ export default function SavedQuotesView({
         new CustomEvent("quotes-updated", { detail: calcKey }),
       );
       showToast(name, "Deleted from saved quotes");
-    } catch (err) {
+    } catch {
       // Roll back
       setQuotes(previous);
       setSelectedId(selectedId);

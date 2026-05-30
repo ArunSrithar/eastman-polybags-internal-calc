@@ -7,14 +7,14 @@
 
 ## Purpose
 
-Calculates the **Cost of Job per kg** for a given set of materials, processing charges, and flat charges. Unlike Gravure and Flexo (which compute rate-per-kg from material/printing/adjustment rates), Job Cost tracks individually toggled line items with quantities and prices, then divides the total by despatch weight.
+Calculates the **Cost of Job per kg** for a given set of materials, processing charges, and flat charges. Unlike Gravure and Flexo (which compute rate-per-kg from material/printing/adjustment rates), Job Cost tracks individually toggled line items with quantities and prices, then divides the total by dispatch weight.
 
 ---
 
 ## Formula
 
 ```
-Cost of Job (₹/kg) = Total Amount / Despatch Weight
+Cost of Job (₹/kg) = Total Amount / Dispatch Weight
 ```
 
 Where:
@@ -22,8 +22,8 @@ Where:
 | Term                | Definition                                                  |
 | ------------------- | ----------------------------------------------------------- |
 | **Total Amount**    | Sum of all **enabled** line item amounts                    |
-| **Line amount**     | `qty × price` for qty-based items; `price` for flat charges |
-| **Despatch Weight** | User-entered weight (kg) of finished goods despatched       |
+| **Line amount**     | `qty × price` for qty-based items; `price × finishedWeight` for packing/transport |
+| **Dispatch Weight** | User-entered weight (kg) of finished goods dispatched      |
 
 ### Worked Example
 
@@ -36,20 +36,21 @@ Where:
 | Transport Charge   |        — |            — |        500 |
 
 - **Total Amount** = 8,000 + 3,200 + 1,800 + 900 + 500 = **₹14,400**
-- **Despatch Weight** = 60 kg
+- **Dispatch Weight** = 60 kg
 - **Cost of Job** = 14,400 ÷ 60 = **₹240.00/kg**
 
 ---
 
 ## Form Fields
 
-### Metadata Fields (11)
+### Metadata Fields (12)
 
 | Field            | Type          | Key              | Notes                               |
 | ---------------- | ------------- | ---------------- | ----------------------------------- |
 | Customer Name    | `TextField`   | `quoteName`      | Required for save; validates unique |
 | Job Card No      | `TextField`   | `jobCardNo`      | e.g. JC-001                         |
 | Job Card Date    | `date` input  | `jobCardDate`    | Native HTML date picker             |
+| Dispatch Date    | `date` input  | `dispatchDate`   | Native HTML date picker             |
 | Job Work Company | `SelectField` | `jobWorkCompany` | CreatableSelect, persisted options  |
 | Billing No       | `TextField`   | `billingNo`      | e.g. B-001                          |
 | Billing Date     | `date` input  | `billingDate`    | Native HTML date picker             |
@@ -77,26 +78,26 @@ Each item has `enabled` (toggle), `price`, and optionally `qty`. Items are defin
 | 9   | `wastages`           | Wastages             | ❌      |               300 | Other     |
 
 Items 0–7 are **qty-based**: `amount = qty × price`.
-Items 8–9 are **flat charges**: `amount = price`.
+Items 8–9 are **per-kg charges**: `amount = price × finishedWeight`.
 
 ### Weight Fields (2)
 
 | Field           | Key              | Unit |
 | --------------- | ---------------- | ---- |
 | Finished Weight | `finishedWeight` | kg   |
-| Despatch Weight | `dispatchWeight` | kg   |
+| Dispatch Weight | `dispatchWeight` | kg   |
 
 ---
 
 ## Form Sections (6)
 
 1. **Customer & Job Details** — `quoteName` only
-2. **Job Details** — jobCardNo, jobCardDate, jobWorkCompany, billingNo, billingDate, billingRate, noOfBundles
+2. **Job Details** — jobCardNo, jobCardDate, dispatchDate, jobWorkCompany, billingNo, billingDate, billingRate, noOfBundles
 3. **Specifications** — film, micron, noOfColours
 4. **Materials** — items 0–3 (`MATERIAL_ITEMS`)
 5. **Charges** — items 4–7 (`CHARGE_ITEMS`)
-6. **Other Charges** — items 8–9 (`FLAT_ITEMS`)
-7. **Weights** — finishedWeight, dispatchWeight
+6. **Weights** — finishedWeight, dispatchWeight
+7. **Other Charges** — items 8–9 (`FLAT_ITEMS`)
 
 ---
 
@@ -123,7 +124,7 @@ Source: `utils/calculators/jobCost.js → calculateJobCost(form)`
 1. **Iterate** `LINE_ITEMS` array (10 items)
 2. For each item, read `form.items[key]` → get `enabled`, `price`, `qty`
 3. If **enabled** and **hasQty**: `amount = qty × price`
-4. If **enabled** and **not hasQty** (flat): `amount = price`
+4. If **enabled** and **not hasQty** (packing/transport): `amount = price × finishedWeight`
 5. If **disabled**: `amount = 0`
 6. **Filter** to enabled items only → `enabledItems`
 7. **Sum** all enabled amounts → `totalAmount`
@@ -170,7 +171,7 @@ Each section shows item rows (label, rate, qty, amount) followed by a section su
 
 - Total Amount row
 - Highlight strip: Cost of Job value with "/kg" unit
-- Annotation: `₹{totalAmount} total ÷ {dispatchWeight} kg despatch · {finishedWeight} kg finished`
+- Annotation: `₹{totalAmount} total ÷ {dispatchWeight} kg dispatch · {finishedWeight} kg finished`
 
 ---
 
@@ -289,5 +290,5 @@ routed through `/api/quotes/job-cost` (see [server/models/Quote.js](../../../../
 | `formConfig.js`        | ✅     | Factory + item groups + re-exports                 |
 | `calculateJobCost()`   | ✅     | Pure function in `utils/calculators/`              |
 | `constants/jobCost.js` | ✅     | LINE_ITEMS, DROPDOWN_SEEDS                         |
-| Print layout           | ✅     | `data-print-area` + `@media print`                 |
+| Print layout           | ✅     | `data-print-area` + `@media print`; left panel uses Customer and Job Work Place labels; footer 3-box section hidden for Job Cost; TOTAL and Job Cost are ceil-rounded in print; Job Cost value is emphasized and total amount words are hidden |
 | AppShell wiring        | ✅     | `job-cost` + `job-cost-quotes` in PERSISTENT_VIEWS |

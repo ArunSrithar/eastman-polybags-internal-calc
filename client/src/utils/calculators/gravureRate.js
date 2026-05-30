@@ -97,7 +97,6 @@ export function calculateGravureRate(form, rates) {
   const servicePercent = parseFloat(form.service) || 0;
   const serviceAmount = preServiceTotal * (servicePercent / 100);
   const adjustedTotal = preServiceTotal + serviceAmount;
-
   const pricePerKg = adjustedTotal / totalMaterialQty;
 
   return {

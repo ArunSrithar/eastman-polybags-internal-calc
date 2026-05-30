@@ -19,147 +19,150 @@ const BANK_ROWS = [
   ["Branch & IFS Code", COMPANY.bank.ifsc],
 ];
 
-export default function PrintFooter() {
+export default function PrintFooter({ showBoxes = true, showCaption = true }) {
   return (
     <>
-      <div
-        style={{
-          marginTop: "14px",
-          borderRadius: "8px",
-          overflow: "hidden",
-          border: `1px solid ${P.rule}`,
-        }}
-      >
-        <table
+      {showBoxes ? (
+        <div
           style={{
-            width: "100%",
-            borderCollapse: "collapse",
+            marginTop: "14px",
+            borderRadius: "8px",
+            overflow: "hidden",
+            border: `1px solid ${P.rule}`,
           }}
         >
-          <tbody>
-            <tr>
-              {/* ── Bank Details ── */}
-              <td
-                style={{
-                  width: "33%",
-                  padding: "10px 12px",
-                  verticalAlign: "top",
-                  borderRight: `1px solid ${P.rule}`,
-                }}
-              >
-                <div
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+            }}
+          >
+            <tbody>
+              <tr>
+                {/* ── Bank Details ── */}
+                <td
                   style={{
-                    fontSize: "8px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.6px",
-                    color: P.muted,
-                    marginBottom: "7px",
-                    fontWeight: "700",
+                    width: "33%",
+                    padding: "10px 12px",
+                    verticalAlign: "top",
+                    borderRight: `1px solid ${P.rule}`,
                   }}
                 >
-                  Company&apos;s Bank Details
-                </div>
-                {BANK_ROWS.map(([lbl, val]) => (
                   <div
-                    key={lbl}
-                    style={{ display: "flex", gap: "4px", marginBottom: "3px" }}
+                    style={{
+                      fontSize: "8px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.6px",
+                      color: P.muted,
+                      marginBottom: "7px",
+                      fontWeight: "700",
+                    }}
                   >
-                    <span
-                      style={{
-                        fontSize: "9px",
-                        color: P.muted,
-                        minWidth: "96px",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {lbl}
-                    </span>
-                    <span style={{ fontSize: "9px", color: P.text }}>
-                      : {val}
-                    </span>
+                    Company&apos;s Bank Details
                   </div>
-                ))}
-              </td>
+                  {BANK_ROWS.map(([lbl, val]) => (
+                    <div
+                      key={lbl}
+                      style={{ display: "flex", gap: "4px", marginBottom: "3px" }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "9px",
+                          color: P.muted,
+                          minWidth: "96px",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {lbl}
+                      </span>
+                      <span style={{ fontSize: "9px", color: P.text }}>
+                        : {val}
+                      </span>
+                    </div>
+                  ))}
+                </td>
 
-              {/* ── Declaration ── */}
-              <td
-                style={{
-                  width: "40%",
-                  padding: "10px 12px",
-                  verticalAlign: "top",
-                  borderRight: `1px solid ${P.rule}`,
-                }}
-              >
-                <div
+                {/* ── Declaration ── */}
+                <td
                   style={{
-                    fontSize: "8px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.6px",
-                    color: P.muted,
-                    marginBottom: "7px",
-                    fontWeight: "700",
+                    width: "40%",
+                    padding: "10px 12px",
+                    verticalAlign: "top",
+                    borderRight: `1px solid ${P.rule}`,
                   }}
                 >
-                  Declaration
-                </div>
-                <div
-                  style={{ fontSize: "9px", color: P.muted, lineHeight: "1.7" }}
-                >
-                  {COMPANY.declaration}
-                </div>
-              </td>
+                  <div
+                    style={{
+                      fontSize: "8px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.6px",
+                      color: P.muted,
+                      marginBottom: "7px",
+                      fontWeight: "700",
+                    }}
+                  >
+                    Declaration
+                  </div>
+                  <div
+                    style={{ fontSize: "9px", color: P.muted, lineHeight: "1.7" }}
+                  >
+                    {COMPANY.declaration}
+                  </div>
+                </td>
 
-              {/* ── Signatory ── */}
-              <td
-                style={{
-                  width: "27%",
-                  padding: "10px 12px",
-                  verticalAlign: "top",
-                }}
-              >
-                <div
+                {/* ── Signatory ── */}
+                <td
                   style={{
-                    fontSize: "9px",
-                    color: P.muted,
-                    textAlign: "right",
+                    width: "27%",
+                    padding: "10px 12px",
+                    verticalAlign: "top",
                   }}
                 >
-                  for{" "}
-                  <strong style={{ color: P.text, fontWeight: "700" }}>
-                    {COMPANY.name}
-                  </strong>
-                </div>
-                {/* Signature gap */}
-                <div style={{ height: "38px" }} />
-                <div
-                  style={{
-                    fontSize: "9px",
-                    color: P.muted,
-                    textAlign: "right",
-                    borderTop: `1px solid ${P.rule}`,
-                    paddingTop: "4px",
-                  }}
-                >
-                  Authorised Signatory
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+                  <div
+                    style={{
+                      fontSize: "9px",
+                      color: P.muted,
+                      textAlign: "right",
+                    }}
+                  >
+                    for{" "}
+                    <strong style={{ color: P.text, fontWeight: "700" }}>
+                      {COMPANY.name}
+                    </strong>
+                  </div>
+                  {/* Signature gap */}
+                  <div style={{ height: "38px" }} />
+                  <div
+                    style={{
+                      fontSize: "9px",
+                      color: P.muted,
+                      textAlign: "right",
+                      borderTop: `1px solid ${P.rule}`,
+                      paddingTop: "4px",
+                    }}
+                  >
+                    Authorised Signatory
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      ) : null}
 
-      {/* ── Bottom caption ── */}
-      <div
-        style={{
-          textAlign: "center",
-          fontSize: "8px",
-          color: P.soft,
-          marginTop: "8px",
-          letterSpacing: "0.3px",
-        }}
-      >
-        This is a Computer Generated Invoice
-      </div>
+      {showCaption ? (
+        <div
+          style={{
+            textAlign: "center",
+            fontSize: "8px",
+            color: P.soft,
+            marginTop: "8px",
+            letterSpacing: "0.3px",
+          }}
+        >
+          This is a Computer Generated Invoice
+        </div>
+      ) : null}
     </>
   );
 }

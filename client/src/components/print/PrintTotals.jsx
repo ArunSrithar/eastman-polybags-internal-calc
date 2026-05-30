@@ -12,13 +12,27 @@ import { P } from "./printTokens";
  *
  * Props:
  *   amountWords      — total amount in words string
+ *   showAmountWords  — optional; show/hide total amount words block
  *   pricePerKg       — optional number (Gravure / Flexo only)
+ *   pricePerKgLabel   — optional label override for per-kg strip
+ *   pricePerKgDisplay — optional value string override for per-kg strip
+ *   pricePerKgProminent — optional; renders per-kg value with stronger emphasis
+ *   pricePerKgUnitSuffix — optional; unit suffix for per-kg value
+ *   pricePerKgLabelIndent — optional; left indent for per-kg label
  *   pricePerKgWords  — optional words string for per-kg amount (Gravure / Flexo only)
+ *   pricePerKgWordsProminent — optional; stronger typography for per-kg words block
  */
 export default function PrintTotals({
   amountWords,
+  showAmountWords = true,
   pricePerKg,
+  pricePerKgLabel = "Rate per Kg",
+  pricePerKgDisplay,
+  pricePerKgProminent = false,
+  pricePerKgUnitSuffix = " / Kg",
+  pricePerKgLabelIndent = 0,
   pricePerKgWords,
+  pricePerKgWordsProminent = false,
 }) {
   return (
     <>
@@ -38,25 +52,27 @@ export default function PrintTotals({
         >
           <div
             style={{
-              fontSize: "8px",
               textTransform: "uppercase",
               letterSpacing: "0.6px",
               color: P.muted,
-              fontWeight: "700",
+              fontWeight: pricePerKgProminent ? "800" : "700",
+              fontSize: pricePerKgProminent ? "11px" : "8px",
+              marginLeft: `${pricePerKgLabelIndent}px`,
             }}
           >
-            Rate per Kg
+            {pricePerKgLabel}
           </div>
           <div
             style={{
               fontWeight: "800",
-              fontSize: "15px",
+              fontSize: pricePerKgProminent ? "22px" : "15px",
+              lineHeight: pricePerKgProminent ? "1.1" : undefined,
               color: P.text,
               whiteSpace: "nowrap",
               letterSpacing: "0.3px",
             }}
           >
-            ₹ {fmt(pricePerKg)} / Kg
+            ₹ {pricePerKgDisplay ?? fmt(pricePerKg)}{pricePerKgUnitSuffix}
           </div>
         </div>
       ) : null}
@@ -75,39 +91,51 @@ export default function PrintTotals({
         }}
       >
         <div style={{ flex: 1 }}>
-          {/* Total amount in words */}
-          <div
-            style={{
-              fontSize: "8px",
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-              color: P.muted,
-              marginBottom: "3px",
-            }}
-          >
-            Amount Chargeable (in words)
-          </div>
-          <div style={{ fontWeight: "700", fontSize: "10px", color: P.text }}>
-            {amountWords}
-          </div>
-
-          {/* Per-kg amount in words (Gravure / Flexo only) */}
-          {pricePerKgWords ? (
+          {showAmountWords ? (
             <>
+              {/* Total amount in words */}
               <div
                 style={{
                   fontSize: "8px",
                   textTransform: "uppercase",
                   letterSpacing: "0.5px",
                   color: P.muted,
-                  marginTop: "6px",
                   marginBottom: "3px",
                 }}
               >
-                Amount Required to Produce a Kg (in words)
+                Amount Chargeable (in words)
               </div>
               <div
                 style={{ fontWeight: "700", fontSize: "10px", color: P.text }}
+              >
+                {amountWords}
+              </div>
+            </>
+          ) : null}
+
+          {/* Per-kg amount in words (Gravure / Flexo only) */}
+          {pricePerKgWords ? (
+            <>
+              <div
+                style={{
+                  fontSize: pricePerKgWordsProminent ? "9px" : "8px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                  color: P.muted,
+                  marginTop: showAmountWords ? "6px" : "0",
+                  marginBottom: "3px",
+                  fontWeight: pricePerKgWordsProminent ? "700" : "400",
+                }}
+              >
+                AMOUNT CHARGEABLE (IN WORDS)
+              </div>
+              <div
+                style={{
+                  fontWeight: pricePerKgWordsProminent ? "800" : "700",
+                  fontSize: pricePerKgWordsProminent ? "14px" : "10px",
+                  color: P.text,
+                  lineHeight: pricePerKgWordsProminent ? "1.2" : undefined,
+                }}
               >
                 {pricePerKgWords}
               </div>
