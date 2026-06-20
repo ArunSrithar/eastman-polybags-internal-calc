@@ -11,3 +11,6 @@ client/dist/
 
 # Beta distribution archives
 eastman-polybags-beta-*.zip
+
+# Ignore npm lock files across workspace
+**/package-lock.json
