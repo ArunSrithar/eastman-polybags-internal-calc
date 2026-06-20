@@ -26,6 +26,7 @@ import {
   useGravureSettings,
   getCurrentPrice,
 } from "../../../context/GravureSettingsContext";
+import { useAuth } from "../../../context/AuthContext";
 
 const LAMINATION_OPTIONS = [
   { value: "none", label: "None" },
@@ -39,7 +40,10 @@ export default forwardRef(function GravureForm(
   ref,
 ) {
   const [form, setForm] = useState(() => makeInitialForm());
-  const { settings, addMaterialOption } = useGravureSettings();
+  const [savingPriceByMaterial, setSavingPriceByMaterial] = useState({});
+  const { settings, addMaterialOption, updateMaterialPrice } = useGravureSettings();
+  const { canEditPrices } = useAuth();
+  const canEditMaterialPrice = canEditPrices("gravure");
 
   // Derive pouch size options from settings (only enabled pouches)
   const pouchSizeOptions = settings?.pouches
@@ -155,6 +159,23 @@ export default forwardRef(function GravureForm(
     onProceed?.(next);
   }
 
+  async function handleMaterialPriceSave(materialKey, value) {
+    const price = parseFloat(value);
+    if (!Number.isFinite(price) || price < 0) return;
+
+    const current = getCurrentPrice(settings?.materials?.[materialKey]);
+    if (String(current) === String(price)) return;
+
+    if (savingPriceByMaterial[materialKey]) return;
+
+    setSavingPriceByMaterial((prev) => ({ ...prev, [materialKey]: true }));
+    try {
+      await updateMaterialPrice(materialKey, price);
+    } finally {
+      setSavingPriceByMaterial((prev) => ({ ...prev, [materialKey]: false }));
+    }
+  }
+
   return (
     <FormStack>
       <FormSection>
@@ -170,6 +191,10 @@ export default forwardRef(function GravureForm(
       <FormSection title="Materials">
         {MATERIALS.map((mat) => {
           const matSettings = settings?.materials?.[mat.key];
+          const priceOptions = (matSettings?.priceHistory ?? [])
+            .map((entry) => String(entry.price))
+            .filter((val, idx, arr) => arr.indexOf(val) === idx);
+
           return (
             <MaterialRow
               key={mat.key}
@@ -177,11 +202,15 @@ export default forwardRef(function GravureForm(
               materialKey={mat.key}
               material={form.materials[mat.key]}
               currentPrice={getCurrentPrice(matSettings)}
+              priceOptions={priceOptions}
               micronOptions={
                 matSettings?.micronOptions?.map((o) => o.value) ?? []
               }
               qtyOptions={matSettings?.qtyOptions?.map((o) => o.value) ?? []}
               onToggle={() => toggleMaterial(mat.key)}
+              onPriceChange={(value) => handleMaterialPriceSave(mat.key, value)}
+              canEditPrice={canEditMaterialPrice}
+              priceSaving={Boolean(savingPriceByMaterial[mat.key])}
               onChange={(field, val) => setMaterial(mat.key, field, val)}
               onNewOption={addMaterialOption}
               qtyDisabled={mat.key === "ldRoll" || mat.key === "bopp"}

@@ -24,8 +24,15 @@ export default function CreatableSelect({
   formatLabel,
   renderOption,
   creatable = true,
+  disabled = false,
+  persistOptions = true,
+  sanitizeInput,
 }) {
   const [options, setOptions] = useState(() => {
+    if (!persistOptions || !storageKey) {
+      return defaultOptions;
+    }
+
     try {
       const stored = JSON.parse(localStorage.getItem(storageKey) || "null");
       return stored && stored.length > 0 ? stored : defaultOptions;
@@ -74,6 +81,7 @@ export default function CreatableSelect({
   }
 
   function openDropdown() {
+    if (disabled) return;
     computePosition();
     setOpen(true);
   }
@@ -96,7 +104,13 @@ export default function CreatableSelect({
   }, [open]);
 
   function commitValue(val) {
-    const trimmed = val.trim();
+    if (disabled) {
+      setOpen(false);
+      return;
+    }
+
+    const normalized = sanitizeInput ? sanitizeInput(val) : val;
+    const trimmed = normalized.trim();
     // Only persist and notify if the value actually changed
     if (trimmed === value) {
       setOpen(false);
@@ -105,7 +119,9 @@ export default function CreatableSelect({
     if (creatable && trimmed && !options.includes(trimmed)) {
       const next = [...options, trimmed];
       setOptions(next);
-      localStorage.setItem(storageKey, JSON.stringify(next));
+      if (persistOptions && storageKey) {
+        localStorage.setItem(storageKey, JSON.stringify(next));
+      }
     }
     // Non-creatable: reject typed value that isn't in options
     if (!creatable && trimmed && !options.includes(trimmed)) {
@@ -169,6 +185,7 @@ export default function CreatableSelect({
   }
 
   function handleBlur() {
+    if (disabled) return;
     // Delay to allow click on dropdown option to fire first
     setTimeout(() => {
       commitValue(inputVal);
@@ -211,13 +228,16 @@ export default function CreatableSelect({
             : inputVal
         }
         onChange={(e) => {
-          setInputVal(e.target.value);
+          const raw = e.target.value;
+          const next = sanitizeInput ? sanitizeInput(raw) : raw;
+          setInputVal(next);
           if (!open) openDropdown();
         }}
         onFocus={openDropdown}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
+        disabled={disabled}
         className="input-base pr-7"
       />
       <span

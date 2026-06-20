@@ -20,13 +20,24 @@ export default function MaterialRow({
   materialKey,
   material: m,
   currentPrice = 0,
+  priceOptions = [],
   micronOptions = [],
   qtyOptions = [],
   onToggle,
   onChange,
+  onPriceChange,
+  canEditPrice = false,
+  priceSaving = false,
   onNewOption,
   qtyDisabled = false,
 }) {
+  function sanitizePriceInput(raw) {
+    const cleaned = String(raw || "").replace(/[^\d.]/g, "");
+    const [whole = "", ...fractionParts] = cleaned.split(".");
+    if (fractionParts.length === 0) return whole;
+    return `${whole}.${fractionParts.join("")}`;
+  }
+
   function handleMicronChange(v) {
     onChange("micron", v);
     if (v && !micronOptions.includes(v) && onNewOption) {
@@ -56,18 +67,16 @@ export default function MaterialRow({
       >
         <div>
           <p className="field-label mb-1">Price</p>
-          <div className="flex items-center input-base p-0 overflow-hidden opacity-60 cursor-not-allowed">
-            <span className="px-3 text-label-3 text-sm border-r border-separator shrink-0">
-              ₹
-            </span>
-            <input
-              type="text"
-              value={currentPrice ? String(currentPrice) : "—"}
-              disabled
-              className="flex-1 min-w-0 bg-transparent px-3 py-2 text-sm outline-none"
-            />
-            <span className="px-3 text-label-3 text-xs shrink-0">per kg</span>
-          </div>
+          <CreatableSelect
+            storageKey={`gravure-price-history-${materialKey}`}
+            defaultOptions={priceOptions}
+            value={currentPrice > 0 ? String(currentPrice) : ""}
+            onChange={onPriceChange}
+            placeholder="₹ price"
+            disabled={!canEditPrice || priceSaving}
+            persistOptions={false}
+            sanitizeInput={sanitizePriceInput}
+          />
         </div>
         <div>
           <p className="field-label mb-1">Micron</p>

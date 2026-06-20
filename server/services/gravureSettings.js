@@ -1,6 +1,7 @@
 import GravureMaterial from "../models/GravureMaterial.js";
 import GravurePouch from "../models/GravurePouch.js";
 import GravureChargeRate from "../models/GravureChargeRate.js";
+import User from "../models/User.js";
 
 const CHANGED_BY = "Admin";
 
@@ -26,6 +27,24 @@ function makeNotFoundError(message) {
   const err = new Error(message);
   err.status = 404;
   return err;
+}
+
+async function resolveChangedBy(userId) {
+  if (!userId) return CHANGED_BY;
+
+  const user = await User.findById(userId)
+    .select("displayName fullName username email")
+    .lean();
+
+  if (!user) return CHANGED_BY;
+
+  return (
+    user.displayName ||
+    user.fullName ||
+    user.username ||
+    user.email ||
+    CHANGED_BY
+  );
 }
 
 /* ── Settings ───────────────────────────────────────────────────────────── */
@@ -56,7 +75,9 @@ export async function getSettings() {
 
 /* ── Material prices ────────────────────────────────────────────────────── */
 
-export async function addMaterialPrice(materialKey, price) {
+export async function addMaterialPrice(materialKey, price, userId) {
+  const changedBy = await resolveChangedBy(userId);
+
   const updated = await GravureMaterial.findByIdAndUpdate(
     materialKey,
     {
@@ -65,7 +86,7 @@ export async function addMaterialPrice(materialKey, price) {
           $each: [
             {
               price,
-              changedBy: CHANGED_BY,
+              changedBy,
               changedAt: new Date(),
             },
           ],

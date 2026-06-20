@@ -13,6 +13,7 @@ export async function updateMaterialPrice(req, res, next) {
     const result = await service.addMaterialPrice(
       req.params.materialKey,
       req.body.price,
+      req.user?.userId,
     );
     res.json(result);
   } catch (err) {
