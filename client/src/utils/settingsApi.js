@@ -81,6 +81,42 @@ export function updateChargeRate(rateKey, rate) {
   });
 }
 
+// ── Companies ──────────────────────────────────────────────────────────────
+export function getCompanies() {
+  return request(`${API_BASE}/companies`);
+}
+
+export function createCompany(name) {
+  return request(`${API_BASE}/companies`, {
+    method: "POST",
+    body: JSON.stringify({ name }),
+  });
+}
+
+export function updateCompanyProcess(companyId, processKey, { price, isAvailable }) {
+  return request(`${API_BASE}/companies/${companyId}/process/${processKey}`, {
+    method: "PUT",
+    body: JSON.stringify({ price, isAvailable }),
+  });
+}
+
+export function deleteCompany(companyId) {
+  return request(`${API_BASE}/companies/${companyId}`, {
+    method: "DELETE",
+  });
+}
+
+export function restoreCompany(companyId) {
+  return request(`${API_BASE}/companies/${companyId}/restore`, {
+    method: "PATCH",
+  });
+}
+
+export function permanentDeleteCompany(companyId) {
+  return request(`${API_BASE}/companies/${companyId}/permanent`, {
+    method: "DELETE",
+  });
+}
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Flexo Settings API
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

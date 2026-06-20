@@ -18,7 +18,13 @@ export const RATE_TABS = [
   { id: "slittingRate", label: "Slitting", type: "rate" },
 ];
 
-export const ALL_TABS = [...MATERIAL_TABS, POUCH_TAB, ...RATE_TABS];
+export const COMPANIES_TAB = {
+  id: "companies",
+  label: "Companies & Charges",
+  type: "companies",
+};
+
+export const ALL_TABS = [...MATERIAL_TABS, POUCH_TAB, COMPANIES_TAB];
 
 /* Pouch table column definitions */
 export const POUCH_COLUMNS = [
@@ -43,3 +49,16 @@ export function makeHistoryColumns(valueLabel) {
     { key: "actions", label: "", className: "w-24" },
   ];
 }
+
+/* Company table column definitions */
+export const COMPANY_COLUMNS = [
+  { key: "sno", label: "#", className: "w-8" },
+  { key: "name", label: "Company", className: "w-40" },
+  { key: "normalColor", label: "Normal Color (₹/kg)", className: "w-32" },
+  { key: "metallicColor", label: "Metallic Color (₹/kg)", className: "w-32" },
+  { key: "mattFinish", label: "Matt Finish (₹/kg)", className: "w-28" },
+  { key: "singleLam", label: "Single Lam (₹/kg)", className: "w-28" },
+  { key: "doubleLam", label: "Double Lam (₹/kg)", className: "w-28" },
+  { key: "slitting", label: "Slitting (₹/kg)", className: "w-24" },
+  { key: "actions", label: "", className: "w-20" },
+];

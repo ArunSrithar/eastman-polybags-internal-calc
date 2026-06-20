@@ -16,11 +16,15 @@ const buildPayload = (name, form, calc) => ({
   quoteName: name,
   pouchSize: form.pouchSize,
   pricePerKg: calc.pricePerKg,
-  form: { ...form, quoteName: name },
+  form: {
+    ...form,
+    quoteName: name,
+    companyRateSnapshot: calc.companyRateSnapshot,
+  },
 });
 
 function GravureRateCalculatorInner() {
-  const { settings, loading } = useGravureSettings();
+  const { settings, companies, loading, companiesLoading } = useGravureSettings();
   const rates = settings ? buildRatesFromSettings(settings) : undefined;
   const { canSaveQuote } = useAuth();
 
@@ -36,13 +40,13 @@ function GravureRateCalculatorInner() {
     handlePrint,
   } = useCalculator({
     calcKey: "gravure",
-    calculateFn: (f) => calculateGravureRate(f, rates),
+    calculateFn: (f) => calculateGravureRate(f, rates, companies),
     makeInitialForm,
     buildPayload,
     toastMessage: "Saved the gravure calculation successfully",
   });
 
-  if (loading) {
+  if (loading || companiesLoading) {
     return (
       <div className="calc-shell items-center justify-center">
         <p className="text-label-2">Loading settings…</p>

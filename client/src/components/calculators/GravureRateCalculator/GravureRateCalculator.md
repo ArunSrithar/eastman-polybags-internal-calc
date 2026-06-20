@@ -212,27 +212,38 @@ Pure function: `utils/calculators/gravureRate.js` → `calculateGravureRate(form
 
 ```
 GravureRateCalculator/
-├── GravureRateCalculator.jsx    Container: state, refs, save/print/reset, 2-col grid layout
-├── GravureForm.jsx              Controlled form with forwardRef + reset()
-├── GravureResult.jsx            Invoice breakdown card (reused by saved quotes)
-├── GravureSavedQuotes.jsx       Saved quotes list view with search + breakdown panel
-├── QuoteListItem.jsx            Presentational quote row (name, price, date, savedBy)
-├── MaterialRow.jsx              Single material toggle + price/micron/qty inputs
-├── formConfig.js                MATERIALS config, localStorage helpers, makeInitialForm()
-└── GravureRateCalculator.md     This file
+├── GravureRateCalculator.jsx          Container: state, refs, save/print/reset, 2-col grid layout
+├── GravureForm.jsx                    Controlled form orchestrator with forwardRef + reset()
+├── GravureResult.jsx                  Invoice breakdown card (reused by saved quotes)
+├── GravurePrintLayout.jsx             Print mapping wrapper to PrintInvoice
+├── GravureSavedQuotes.jsx             Saved quotes list view with search + breakdown panel
+├── MaterialRow.jsx                    Single material toggle + price/micron/qty inputs
+├── formConfig.js                      MATERIALS config, localStorage helpers, makeInitialForm()
+├── companyDisplay.js                  Shared helpers for own-company visibility rules
+├── processCompanyOptions.jsx          Shared process-company option + rate-render helpers
+├── formRows/
+│   ├── ProcessCountCompanyRow.jsx     Reusable row (count input + from + company select)
+│   ├── ToggleCompanyRow.jsx           Reusable row (toggle + from + company select)
+│   └── LaminationCompanyRow.jsx       Reusable row (lamination type + from + company select)
+└── GravureRateCalculator.md           This file
 ```
 
 ### File responsibilities
 
 | File                        | Role                                                                                                                                                                                                                                                                                              | LOC  |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
-| `GravureRateCalculator.jsx` | Container — `useState` (form, result, saveError), `useRef` (formRef), save/print/reset handlers. Renders 2-column grid: form left, result right.                                                                                                                                                  | ~100 |
-| `GravureForm.jsx`           | Controlled form via `forwardRef`. Uses compound form components (`FormStack`, `FormSection`, `TextField`, `NumberField`, `ToggleField`, `RadioField`, `SelectField`). Calls `onProceed(form)` in every field change event handler (not `useEffect`). Exposes `reset()` via `useImperativeHandle`. | ~130 |
-| `GravureResult.jsx`         | Stateless invoice breakdown. Sections: Materials, Printing, Other Charges, Adjustments. Uses invoice primitives (`InvoiceHeader`, `TableHeader`, `ItemRow`, `SectionLabel`, `SectionSubtotal`, `InvoiceFooter`). Accepts optional `status` and `date` props for saved-quote context.              | ~180 |
-| `GravureSavedQuotes.jsx`    | Saved quotes view — quote list with search (left) + `GravureResult` breakdown (right). Listens for `quotes-updated` CustomEvent. Delete with auto-select-next.                                                                                                                                    | ~120 |
-| `QuoteListItem.jsx`         | Presentational button row — quote name, ₹/kg price, date, savedBy. Uses `.quote-list-item` CSS classes.                                                                                                                                                                                           | ~45  |
-| `MaterialRow.jsx`           | Single material row — IOSToggle + 3-col grid (price input, micron CreatableSelect, qty CreatableSelect). Disabled state via opacity.                                                                                                                                                              | ~45  |
-| `formConfig.js`             | `MATERIALS` list, `storeMaterialField()`, `makeInitialForm()` with localStorage hydration.                                                                                                                                                                                                        | ~85  |
+| `GravureRateCalculator.jsx`      | Container — `useState` (form, result, saveError), `useRef` (formRef), save/print/reset handlers. Renders 2-column grid: form left, result right.                                                                                                                             | ~100 |
+| `GravureForm.jsx`                | Controlled form orchestrator via `forwardRef`. Delegates process rows to reusable components in `formRows/`, keeps material + field state logic focused, and calls `onProceed(form)` in field event handlers (not `useEffect`). Exposes `reset()` via `useImperativeHandle`. | ~190 |
+| `GravureResult.jsx`              | Stateless invoice breakdown. Sections: Materials, Printing, Other Charges, Adjustments. Uses invoice primitives (`InvoiceHeader`, `TableHeader`, `ItemRow`, `SectionLabel`, `SectionSubtotal`, `InvoiceFooter`). Company suffix uses shared own-company visibility helper. | ~220 |
+| `GravurePrintLayout.jsx`         | Print mapping wrapper. Builds printable items/adjustments/meta rows, includes company subtitle/icon handling, and composes `PrintInvoice`.                                                                                                                              | ~240 |
+| `GravureSavedQuotes.jsx`         | Saved quotes view — quote list with search (left) + `GravureResult` breakdown (right). Listens for `quotes-updated` CustomEvent. Delete with auto-select-next.                                                                                                                       | ~120 |
+| `MaterialRow.jsx`                | Single material row — IOSToggle + 3-col grid (price input, micron CreatableSelect, qty CreatableSelect). Disabled state via opacity.                                                                                                                                                 | ~45  |
+| `formConfig.js`                  | `MATERIALS` list, `storeMaterialField()`, `makeInitialForm()` with localStorage hydration.                                                                                                                                                                                           | ~85  |
+| `companyDisplay.js`              | Shared Gravure helpers: own-company detection and visible company-name normalization for breakdown/print consistency.                                                                                                                                                                   | ~15  |
+| `processCompanyOptions.jsx`      | Shared process-company option builder + dropdown option renderer with inline process rates.                                                                                                                                                                                             | ~40  |
+| `formRows/ProcessCountCompanyRow.jsx` | Reusable process row (count input + from + company select).                                                                                                                                                                                                                          | ~45  |
+| `formRows/ToggleCompanyRow.jsx`  | Reusable process row (toggle + from + company select).                                                                                                                                                                                                                               | ~40  |
+| `formRows/LaminationCompanyRow.jsx` | Reusable lamination row (native lamination type select + from + company select).                                                                                                                                                                                                  | ~55  |
 
 ---
 

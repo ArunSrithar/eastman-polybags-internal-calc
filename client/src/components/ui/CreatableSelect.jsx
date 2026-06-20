@@ -28,6 +28,23 @@ export default function CreatableSelect({
   persistOptions = true,
   sanitizeInput,
 }) {
+  function getOptionValue(opt) {
+    return typeof opt === "string" ? opt : opt?.value ?? "";
+  }
+
+  function getOptionLabel(opt) {
+    if (typeof opt === "string") {
+      return formatLabel ? formatLabel(opt) : opt;
+    }
+    const value = opt?.value ?? "";
+    const label = opt?.label ?? value;
+    return formatLabel ? formatLabel(value) : label;
+  }
+
+  function isOptionDisabled(opt) {
+    return typeof opt === "object" && opt?.disabled === true;
+  }
+
   const [options, setOptions] = useState(() => {
     if (!persistOptions || !storageKey) {
       return defaultOptions;
@@ -42,7 +59,16 @@ export default function CreatableSelect({
   });
 
   // Re-sync when defaultOptions change (e.g. pouch enabled/disabled in settings)
-  const defaultKey = defaultOptions.join(",");
+  const defaultKey = JSON.stringify(
+    defaultOptions.map((opt) => {
+      if (typeof opt === "string") return opt;
+      return {
+        value: opt?.value ?? "",
+        label: opt?.label ?? opt?.value ?? "",
+        disabled: opt?.disabled === true,
+      };
+    }),
+  );
   useEffect(() => {
     setOptions(defaultOptions);
   }, [defaultKey, defaultOptions]);
@@ -116,7 +142,9 @@ export default function CreatableSelect({
       setOpen(false);
       return;
     }
-    if (creatable && trimmed && !options.includes(trimmed)) {
+    const hasExactOption = options.some((opt) => getOptionValue(opt) === trimmed);
+
+    if (creatable && trimmed && !hasExactOption) {
       const next = [...options, trimmed];
       setOptions(next);
       if (persistOptions && storageKey) {
@@ -124,7 +152,7 @@ export default function CreatableSelect({
       }
     }
     // Non-creatable: reject typed value that isn't in options
-    if (!creatable && trimmed && !options.includes(trimmed)) {
+    if (!creatable && trimmed && !hasExactOption) {
       setInputVal(value);
       setOpen(false);
       return;
@@ -135,8 +163,11 @@ export default function CreatableSelect({
   }
 
   function handleSelect(opt) {
-    setInputVal(opt);
-    onChange?.(opt);
+    if (isOptionDisabled(opt)) return;
+
+    const optionValue = getOptionValue(opt);
+    setInputVal(optionValue);
+    onChange?.(optionValue);
     setOpen(false);
   }
 
@@ -192,9 +223,12 @@ export default function CreatableSelect({
     }, 150);
   }
 
-  const filtered = options.filter((o) =>
-    o.toLowerCase().includes(inputVal.toLowerCase()),
-  );
+  const filtered = options.filter((opt) => {
+    const valueText = getOptionValue(opt).toLowerCase();
+    const labelText = getOptionLabel(opt).toLowerCase();
+    const needle = String(inputVal || "").toLowerCase();
+    return valueText.includes(needle) || labelText.includes(needle);
+  });
 
   useEffect(() => {
     if (!open) {
@@ -202,7 +236,9 @@ export default function CreatableSelect({
       return;
     }
 
-    const selectedIndex = filtered.findIndex((opt) => opt === value);
+    const selectedIndex = filtered.findIndex(
+      (opt) => getOptionValue(opt) === value,
+    );
     setActiveIndex(
       selectedIndex >= 0 ? selectedIndex : filtered.length > 0 ? 0 : -1,
     );
@@ -238,12 +274,15 @@ export default function CreatableSelect({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         disabled={disabled}
-        className="input-base pr-7"
+        className={`input-base pr-7 ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
       />
       <span
-        className={`absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none transition-all duration-150 ${
-          open ? "text-tint rotate-180" : "text-label-3 rotate-0"
-        }`}
+        className={`absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none transition-all duration-150 ${disabled
+          ? "text-label-4 rotate-0"
+          : open
+            ? "text-tint rotate-180"
+            : "text-label-3 rotate-0"
+          }`}
         aria-hidden="true"
       >
         <ChevronDownIcon className="size-3" />
@@ -251,19 +290,25 @@ export default function CreatableSelect({
 
       {open && filtered.length > 0
         ? createPortal(
-            <ul
-              className={`dropdown-menu ${
-                dropPos.openAbove ? "dropdown-menu-up" : "dropdown-menu-down"
+          <ul
+            className={`dropdown-menu ${dropPos.openAbove ? "dropdown-menu-up" : "dropdown-menu-down"
               }`}
-              style={{
-                top: dropPos.top,
-                bottom: dropPos.bottom,
-                left: dropPos.left,
-                width: dropPos.width,
-              }}
-            >
-              {filtered.map((opt, idx) => (
-                <li key={opt}>
+            style={{
+              top: dropPos.top,
+              bottom: dropPos.bottom,
+              left: dropPos.left,
+              width: dropPos.width,
+            }}
+          >
+            {filtered.map((opt, idx) => {
+              const optionValue = getOptionValue(opt);
+              const disabledOption = isOptionDisabled(opt);
+              const optionLabel = renderOption
+                ? renderOption(opt)
+                : getOptionLabel(opt);
+
+              return (
+                <li key={optionValue || String(idx)}>
                   <button
                     ref={(node) => {
                       optionRefs.current[idx] = node;
@@ -271,28 +316,28 @@ export default function CreatableSelect({
                     type="button"
                     onMouseDown={(e) => {
                       e.preventDefault();
+                      if (disabledOption) return;
                       handleSelect(opt);
                     }}
-                    onMouseEnter={() => setActiveIndex(idx)}
-                    className={`dropdown-option ${
-                      idx === activeIndex
-                        ? "dropdown-option-active"
-                        : opt === value
-                          ? "text-tint font-medium"
-                          : "text-label"
-                    }`}
+                    onMouseEnter={() => {
+                      if (!disabledOption) setActiveIndex(idx);
+                    }}
+                    disabled={disabledOption}
+                    className={`dropdown-option ${idx === activeIndex
+                      ? "dropdown-option-active"
+                      : optionValue === value
+                        ? "text-tint font-medium"
+                        : "text-label"
+                      } ${disabledOption ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
-                    {renderOption
-                      ? renderOption(opt)
-                      : formatLabel
-                        ? formatLabel(opt)
-                        : opt}
+                    {optionLabel}
                   </button>
                 </li>
-              ))}
-            </ul>,
-            document.body,
-          )
+              );
+            })}
+          </ul>,
+          document.body,
+        )
         : null}
     </div>
   );

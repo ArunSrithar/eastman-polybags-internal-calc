@@ -83,3 +83,68 @@ export async function updateChargeRate(req, res, next) {
     next(err);
   }
 }
+
+/* ── Companies ──────────────────────────────────────────────────────────── */
+
+export async function getCompanies(req, res, next) {
+  try {
+    const companies = await service.getCompanies();
+    res.json(companies);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function createCompanyHandler(req, res, next) {
+  try {
+    const { name } = req.body;
+    const company = await service.createCompany(name);
+    res.status(201).json(company);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function updateCompanyProcessHandler(req, res, next) {
+  try {
+    const { id, processKey } = req.params;
+    const { price, isAvailable } = req.body;
+    const company = await service.updateCompanyProcess(id, processKey, {
+      price,
+      isAvailable,
+    });
+    res.json(company);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteCompanyHandler(req, res, next) {
+  try {
+    const { id } = req.params;
+    const company = await service.deleteCompany(id);
+    res.json(company);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function restoreCompanyHandler(req, res, next) {
+  try {
+    const { id } = req.params;
+    const company = await service.restoreCompany(id);
+    res.json(company);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function permanentDeleteCompanyHandler(req, res, next) {
+  try {
+    const { id } = req.params;
+    const result = await service.permanentDeleteCompany(id);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}

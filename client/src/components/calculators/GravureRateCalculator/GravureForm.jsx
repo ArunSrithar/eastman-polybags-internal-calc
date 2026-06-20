@@ -8,11 +8,15 @@ import {
 import FormStack from "../../form/FormStack";
 import FormSection from "../../form/FormSection";
 import TextField from "../../form/TextField";
-import NumberField from "../../form/NumberField";
-import ToggleField from "../../form/ToggleField";
-import RadioField from "../../form/RadioField";
 import SelectField from "../../form/SelectField";
 import MaterialRow from "./MaterialRow";
+import ProcessCountCompanyRow from "./formRows/ProcessCountCompanyRow";
+import ToggleCompanyRow from "./formRows/ToggleCompanyRow";
+import LaminationCompanyRow from "./formRows/LaminationCompanyRow";
+import {
+  getProcessCompanyOptions,
+  makeCompanyOptionRenderer,
+} from "./processCompanyOptions.jsx";
 import {
   MATERIALS,
   storeMaterialField,
@@ -29,9 +33,9 @@ import {
 import { useAuth } from "../../../context/AuthContext";
 
 const LAMINATION_OPTIONS = [
-  { value: "none", label: "None" },
-  { value: "single", label: "Single" },
-  { value: "double", label: "Double" },
+  { value: "none", label: "No Lamination" },
+  { value: "single", label: "Single Lamination" },
+  { value: "double", label: "Double Lamination" },
 ];
 
 /* ─── GravureForm ────────────────────────────────────────────────────────── */
@@ -41,19 +45,55 @@ export default forwardRef(function GravureForm(
 ) {
   const [form, setForm] = useState(() => makeInitialForm());
   const [savingPriceByMaterial, setSavingPriceByMaterial] = useState({});
-  const { settings, addMaterialOption, updateMaterialPrice } = useGravureSettings();
+  const { settings, companies, addMaterialOption, updateMaterialPrice } =
+    useGravureSettings();
   const { canEditPrices } = useAuth();
   const canEditMaterialPrice = canEditPrices("gravure");
+
+  const normalCompanyOptions = getProcessCompanyOptions(companies, "normalColor");
+  const metallicCompanyOptions = getProcessCompanyOptions(companies, "metallicColor");
+  const mattCompanyOptions = getProcessCompanyOptions(companies, "mattFinish");
+  const singleLamCompanyOptions = getProcessCompanyOptions(
+    companies,
+    "singleLamination",
+  );
+  const doubleLamCompanyOptions = getProcessCompanyOptions(
+    companies,
+    "doubleLamination",
+  );
+  const slittingCompanyOptions = getProcessCompanyOptions(companies, "slitting");
+
+  const renderNormalCompanyOption = makeCompanyOptionRenderer(
+    companies,
+    "normalColor",
+  );
+  const renderMetallicCompanyOption = makeCompanyOptionRenderer(
+    companies,
+    "metallicColor",
+  );
+  const renderMattCompanyOption = makeCompanyOptionRenderer(companies, "mattFinish");
+  const renderSingleLamCompanyOption = makeCompanyOptionRenderer(
+    companies,
+    "singleLamination",
+  );
+  const renderDoubleLamCompanyOption = makeCompanyOptionRenderer(
+    companies,
+    "doubleLamination",
+  );
+  const renderSlittingCompanyOption = makeCompanyOptionRenderer(
+    companies,
+    "slitting",
+  );
 
   // Derive pouch size options from settings (only enabled pouches)
   const pouchSizeOptions = settings?.pouches
     ?.filter((p) => p.enabled !== false)
     .map((p) => `${p.length} x ${p.breadth}`) ?? [
-    "4 x 6",
-    "5 x 7",
-    "6 x 8",
-    "7 x 10",
-  ];
+      "4 x 6",
+      "5 x 7",
+      "6 x 8",
+      "7 x 10",
+    ];
 
   const pouchRateBySize =
     settings?.pouches?.reduce((acc, p) => {
@@ -220,41 +260,80 @@ export default forwardRef(function GravureForm(
       </FormSection>
 
       <FormSection title="Printing Charges">
-        <NumberField
+        <ProcessCountCompanyRow
           label="Normal Colors"
-          min={0}
-          max={12}
           value={form.normalColors}
-          onChange={(v) => setField("normalColors", v)}
+          onValueChange={(v) => setField("normalColors", v)}
+          companyValue={form.normalColorCompany}
+          onCompanyChange={(v) => setField("normalColorCompany", v)}
+          companyOptions={normalCompanyOptions}
+          renderCompanyOption={renderNormalCompanyOption}
+          companyDisabled={Number(form.normalColors || 0) <= 0}
         />
-        <NumberField
+        <ProcessCountCompanyRow
           label="Metallic Colors"
-          min={0}
-          max={12}
           value={form.metallicColors}
-          onChange={(v) => setField("metallicColors", v)}
+          onValueChange={(v) => setField("metallicColors", v)}
+          companyValue={form.metallicColorCompany}
+          onCompanyChange={(v) => setField("metallicColorCompany", v)}
+          companyOptions={metallicCompanyOptions}
+          renderCompanyOption={renderMetallicCompanyOption}
+          companyDisabled={Number(form.metallicColors || 0) <= 0}
         />
-        <ToggleField
+        <ToggleCompanyRow
           label="Matt Finish"
           on={form.mattFinish}
           onToggle={() => setField("mattFinish", !form.mattFinish)}
+          companyValue={form.mattFinishCompany}
+          onCompanyChange={(v) => setField("mattFinishCompany", v)}
+          companyOptions={mattCompanyOptions}
+          renderCompanyOption={renderMattCompanyOption}
         />
       </FormSection>
 
       <FormSection title="Lamination">
-        <RadioField
-          name="lamination"
-          options={LAMINATION_OPTIONS}
-          value={form.lamination}
-          onChange={(v) => setField("lamination", v)}
+        <LaminationCompanyRow
+          lamination={form.lamination}
+          onLaminationChange={(v) => setField("lamination", v)}
+          laminationOptions={LAMINATION_OPTIONS}
+          companyValue={
+            form.lamination === "single"
+              ? form.singleLaminationCompany
+              : form.doubleLaminationCompany
+          }
+          onCompanyChange={(v) => {
+            if (form.lamination === "single") {
+              setField("singleLaminationCompany", v);
+              return;
+            }
+            if (form.lamination === "double") {
+              setField("doubleLaminationCompany", v);
+            }
+          }}
+          companyOptions={
+            form.lamination === "single"
+              ? singleLamCompanyOptions
+              : form.lamination === "double"
+                ? doubleLamCompanyOptions
+                : []
+          }
+          renderCompanyOption={
+            form.lamination === "single"
+              ? renderSingleLamCompanyOption
+              : renderDoubleLamCompanyOption
+          }
         />
       </FormSection>
 
       <FormSection>
-        <ToggleField
-          label="Slitting Charges"
+        <ToggleCompanyRow
+          label="Slitting"
           on={form.slitting}
           onToggle={() => setField("slitting", !form.slitting)}
+          companyValue={form.slittingCompany}
+          onCompanyChange={(v) => setField("slittingCompany", v)}
+          companyOptions={slittingCompanyOptions}
+          renderCompanyOption={renderSlittingCompanyOption}
         />
       </FormSection>
 

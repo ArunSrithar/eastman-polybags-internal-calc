@@ -9,7 +9,7 @@ import {
 } from "../../../context/GravureSettingsContext";
 
 export default function GravureSavedQuotes() {
-  const { settings } = useGravureSettings();
+  const { settings, companies } = useGravureSettings();
   const rates = settings ? buildRatesFromSettings(settings) : undefined;
 
   return (
@@ -17,7 +17,7 @@ export default function GravureSavedQuotes() {
       calcKey="gravure"
       icon={GravureIcon}
       title="Gravure — Saved Quotes"
-      calculateRate={(form) => calculateGravureRate(form, rates)}
+      calculateRate={(form) => calculateGravureRate(form, rates, companies)}
       ResultComponent={GravureResult}
       PrintComponent={GravurePrintLayout}
     />

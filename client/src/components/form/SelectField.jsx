@@ -15,21 +15,41 @@ export default function SelectField({
   creatable = true,
   native = false,
   options,
+  disabled = false,
+  helperText,
 }) {
+  const selectOptions = options ?? defaultOptions ?? [];
+
   const nativeSelect = (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className={`input-base appearance-none ${inline ? width : ""}`}
+      disabled={disabled}
+      className={`input-base appearance-none ${inline ? width : ""} ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
     >
       <option value="" disabled>
         {placeholder ?? "Select…"}
       </option>
-      {(options ?? defaultOptions ?? []).map((opt) => (
-        <option key={opt} value={opt}>
-          {formatLabel ? formatLabel(opt) : opt}
-        </option>
-      ))}
+      {selectOptions.map((opt) => {
+        const optionValue = typeof opt === "string" ? opt : opt.value;
+        const optionLabel =
+          typeof opt === "string"
+            ? formatLabel
+              ? formatLabel(opt)
+              : opt
+            : opt.label ??
+            (formatLabel ? formatLabel(opt.value) : opt.value);
+
+        return (
+          <option
+            key={optionValue}
+            value={optionValue}
+            disabled={typeof opt === "object" && opt.disabled === true}
+          >
+            {optionLabel}
+          </option>
+        );
+      })}
     </select>
   );
 
@@ -38,7 +58,7 @@ export default function SelectField({
   ) : (
     <CreatableSelect
       storageKey={storageKey}
-      defaultOptions={defaultOptions}
+      defaultOptions={selectOptions}
       value={value}
       onChange={onChange}
       placeholder={placeholder}
@@ -46,6 +66,7 @@ export default function SelectField({
       formatLabel={formatLabel}
       renderOption={renderOption}
       creatable={creatable}
+      disabled={disabled}
     />
   );
 
@@ -65,6 +86,7 @@ export default function SelectField({
             select
           )}
         </div>
+        {helperText ? <p className="text-xs text-label-3 mt-1.5">{helperText}</p> : null}
       </div>
     );
   }
@@ -73,6 +95,7 @@ export default function SelectField({
     <div className="card-section">
       <p className="field-label mb-1.5">{label}</p>
       {select}
+      {helperText ? <p className="text-xs text-label-3 mt-1.5">{helperText}</p> : null}
     </div>
   );
 }

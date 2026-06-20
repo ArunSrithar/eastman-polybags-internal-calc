@@ -1,9 +1,27 @@
 import GravureMaterial from "../models/GravureMaterial.js";
 import GravurePouch from "../models/GravurePouch.js";
 import GravureChargeRate from "../models/GravureChargeRate.js";
+import GravureCompany from "../models/GravureCompany.js";
 import User from "../models/User.js";
 
 const CHANGED_BY = "Admin";
+const DEFAULT_COMPANY_NAME = "Eastman Color Printers";
+const DEFAULT_COMPANY_PROCESSES = {
+  normalColor: { price: 0, isAvailable: true },
+  metallicColor: { price: 0, isAvailable: true },
+  mattFinish: { price: 0, isAvailable: true },
+  singleLamination: { price: 0, isAvailable: true },
+  doubleLamination: { price: 0, isAvailable: true },
+  slitting: { price: 0, isAvailable: true },
+};
+const DEFAULT_COMPANY_RATE_IDS = {
+  normalColor: "normalColorRate",
+  metallicColor: "metallicColorRate",
+  mattFinish: "mattFinishRate",
+  singleLamination: "singleLamRate",
+  doubleLamination: "doubleLamRate",
+  slitting: "slittingRate",
+};
 
 function toMaterialResponse(doc) {
   if (!doc) return null;
@@ -21,6 +39,18 @@ function toChargeRateResponse(doc) {
   if (!doc) return null;
   const { _id, ...rest } = doc;
   return rest;
+}
+
+function toCompanyResponse(doc) {
+  if (!doc) return null;
+  return {
+    id: doc._id.toString(),
+    name: doc.name,
+    isActive: doc.isActive,
+    processes: doc.processes,
+    createdAt: doc.createdAt,
+    updatedAt: doc.updatedAt,
+  };
 }
 
 function makeNotFoundError(message) {
@@ -45,6 +75,39 @@ async function resolveChangedBy(userId) {
     user.email ||
     CHANGED_BY
   );
+}
+
+async function ensureDefaultCompany() {
+  const existing = await GravureCompany.findOne({ name: DEFAULT_COMPANY_NAME })
+    .select("_id")
+    .lean();
+
+  if (existing) {
+    await GravureCompany.findByIdAndUpdate(existing._id, {
+      $set: { isActive: true },
+    });
+    return;
+  }
+
+  const chargeRates = await GravureChargeRate.find({
+    _id: { $in: Object.values(DEFAULT_COMPANY_RATE_IDS) },
+  }).lean();
+
+  const chargeRateMap = new Map(chargeRates.map((rate) => [rate._id, rate]));
+  const processes = Object.entries(DEFAULT_COMPANY_RATE_IDS).reduce(
+    (acc, [processKey, rateId]) => {
+      const rate = chargeRateMap.get(rateId)?.history?.[0]?.rate ?? 0;
+      acc[processKey] = { price: rate, isAvailable: true };
+      return acc;
+    },
+    {},
+  );
+
+  await GravureCompany.create({
+    name: DEFAULT_COMPANY_NAME,
+    isActive: true,
+    processes: { ...DEFAULT_COMPANY_PROCESSES, ...processes },
+  });
 }
 
 /* ── Settings ───────────────────────────────────────────────────────────── */
@@ -220,4 +283,163 @@ export async function addChargeRate(rateKey, rate) {
   }
 
   return toChargeRateResponse(updated);
+}
+
+/* ── Companies ──────────────────────────────────────────────────────────── */
+
+export async function getCompanies() {
+  await ensureDefaultCompany();
+
+  const docs = await GravureCompany.find()
+    .sort({ isActive: -1, name: 1 })
+    .lean();
+
+  return docs.map(toCompanyResponse);
+}
+
+export async function createCompany(name) {
+  if (!name || typeof name !== "string" || name.trim().length === 0) {
+    const err = new Error("Company name is required");
+    err.status = 400;
+    throw err;
+  }
+
+  const trimmed = name.trim();
+
+  if (trimmed.toLowerCase() === DEFAULT_COMPANY_NAME.toLowerCase()) {
+    const err = new Error(`Company "${DEFAULT_COMPANY_NAME}" already exists`);
+    err.status = 409;
+    throw err;
+  }
+
+  // Check if company already exists
+  const existing = await GravureCompany.findOne({
+    name: { $regex: `^${trimmed.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" },
+  }).lean();
+  if (existing) {
+    const err = new Error(`Company "${trimmed}" already exists`);
+    err.status = 409;
+    throw err;
+  }
+
+  // Create with all 6 processes initialized to 0 and available
+  const company = await GravureCompany.create({
+    name: trimmed,
+    isActive: true,
+    processes: DEFAULT_COMPANY_PROCESSES,
+  });
+
+  return toCompanyResponse(company);
+}
+
+export async function updateCompanyProcess(
+  companyId,
+  processKey,
+  { price, isAvailable },
+) {
+  // Validate processKey
+  const validProcesses = [
+    "normalColor",
+    "metallicColor",
+    "mattFinish",
+    "singleLamination",
+    "doubleLamination",
+    "slitting",
+  ];
+  if (!validProcesses.includes(processKey)) {
+    const err = new Error(`Invalid process key: ${processKey}`);
+    err.status = 400;
+    throw err;
+  }
+
+  if (price === undefined && isAvailable === undefined) {
+    const err = new Error("At least one of price or isAvailable is required");
+    err.status = 400;
+    throw err;
+  }
+
+  const patch = {};
+
+  if (price !== undefined) {
+    const numPrice = Number(price);
+    if (Number.isNaN(numPrice) || numPrice < 0) {
+      const err = new Error("Price must be a non-negative number");
+      err.status = 400;
+      throw err;
+    }
+    patch[`processes.${processKey}.price`] = numPrice;
+  }
+
+  if (isAvailable !== undefined) {
+    patch[`processes.${processKey}.isAvailable`] = !!isAvailable;
+  }
+
+  const updated = await GravureCompany.findByIdAndUpdate(
+    companyId,
+    { $set: patch },
+    { new: true, lean: true },
+  );
+
+  if (!updated) {
+    throw makeNotFoundError(`Company not found`);
+  }
+
+  return toCompanyResponse(updated);
+}
+
+export async function deleteCompany(companyId) {
+  // Check if it's the default company
+  const company = await GravureCompany.findById(companyId).lean();
+  if (!company) {
+    throw makeNotFoundError("Company not found");
+  }
+
+  if (company.name === DEFAULT_COMPANY_NAME) {
+    const err = new Error(
+      `Cannot delete the default company (${DEFAULT_COMPANY_NAME})`,
+    );
+    err.status = 400;
+    throw err;
+  }
+
+  // Soft delete: set isActive to false
+  const updated = await GravureCompany.findByIdAndUpdate(
+    companyId,
+    { $set: { isActive: false } },
+    { new: true, lean: true },
+  );
+
+  return toCompanyResponse(updated);
+}
+
+export async function restoreCompany(companyId) {
+  const updated = await GravureCompany.findByIdAndUpdate(
+    companyId,
+    { $set: { isActive: true } },
+    { new: true, lean: true },
+  );
+
+  if (!updated) {
+    throw makeNotFoundError("Company not found");
+  }
+
+  return toCompanyResponse(updated);
+}
+
+export async function permanentDeleteCompany(companyId) {
+  const company = await GravureCompany.findById(companyId).lean();
+  if (!company) {
+    throw makeNotFoundError("Company not found");
+  }
+
+  if (company.name === DEFAULT_COMPANY_NAME) {
+    const err = new Error(
+      `Cannot permanently delete the default company (${DEFAULT_COMPANY_NAME})`,
+    );
+    err.status = 400;
+    throw err;
+  }
+
+  await GravureCompany.findByIdAndDelete(companyId);
+  return { id: companyId, deleted: true };
 }

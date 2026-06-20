@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { CheckIcon, XMarkIcon } from "./Icons";
 
 /**
@@ -52,9 +53,9 @@ function Toast({ title, message, variant = "success", onDone }) {
         ? "translate-x-[calc(100%+1.5rem)]"
         : "translate-x-0";
 
-  return (
+  const content = (
     <div
-      className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-2xl w-80
+      className={`fixed top-4 right-4 z-[100] px-4 py-3 rounded-2xl w-80
         bg-background/60 dark:bg-background-2/60 backdrop-blur-2xl backdrop-saturate-200
         border border-separator/30 dark:border-white/10 shadow-lg
         flex items-start gap-3
@@ -72,6 +73,9 @@ function Toast({ title, message, variant = "success", onDone }) {
       </div>
     </div>
   );
+
+  if (typeof document === "undefined") return content;
+  return createPortal(content, document.body);
 }
 
 export function useToast() {

@@ -6,7 +6,8 @@ import { ALL_TABS } from "./settingsConfig";
 import TabBar from "./TabBar";
 import MaterialPriceTable from "./MaterialPriceTable";
 import PouchTable from "./PouchTable";
-import ChargeRateTable from "./ChargeRateTable";
+import CompaniesContainer from "./CompaniesContainer";
+import CompanyTableRenderer from "./CompanyTableRenderer";
 
 export default function GravurePriceSettings() {
   const {
@@ -16,7 +17,6 @@ export default function GravurePriceSettings() {
     addPouch,
     editPouch,
     removePouch,
-    updateChargeRate,
   } = useGravureSettings();
   const [toast, showToast] = useToast();
   const [activeTab, setActiveTab] = useState(ALL_TABS[0]);
@@ -82,19 +82,6 @@ export default function GravurePriceSettings() {
     }
   }
 
-  async function handleAddChargeRate(rate) {
-    try {
-      await updateChargeRate(activeTab.id, rate);
-      showToast(
-        "Rate Updated",
-        `${activeTab.label} charge rate set to ₹${rate}`,
-      );
-      setAdding(false);
-    } catch (err) {
-      showToast("Update Failed", err.message, "error");
-    }
-  }
-
   /* ── Active table by tab type ───────────────────────────────────────── */
 
   function renderTable() {
@@ -122,16 +109,10 @@ export default function GravurePriceSettings() {
             onAddStart={() => setAdding(true)}
           />
         );
-      case "rate":
+      case "companies":
         return (
-          <ChargeRateTable
-            rateKey={activeTab.id}
-            settings={settings}
-            adding={adding}
-            onAdd={handleAddChargeRate}
-            onCancelAdd={() => setAdding(false)}
-            title={activeTab.label}
-            onAddStart={() => setAdding(true)}
+          <CompaniesContainer
+            renderer={CompanyTableRenderer}
           />
         );
       default:

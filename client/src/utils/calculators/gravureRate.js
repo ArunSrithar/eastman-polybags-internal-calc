@@ -20,6 +20,79 @@ const FALLBACK_RATES = {
   pouchRates: POUCH_RATE_BY_SIZE,
 };
 
+export const DEFAULT_GRAVURE_COMPANY_NAME = "Eastman Color Printers";
+
+const PROCESS_RATE_KEYS = {
+  normalColor: "normalColorRate",
+  metallicColor: "metallicColorRate",
+  mattFinish: "mattFinishRate",
+  singleLamination: "singleLamRate",
+  doubleLamination: "doubleLamRate",
+  slitting: "slittingRate",
+};
+
+function findCompany(companies, companyName) {
+  if (!companyName) return null;
+
+  return (
+    companies?.find(
+      (company) =>
+        company.name === companyName && company.isActive !== false,
+    ) ?? null
+  );
+}
+
+function resolveProcessRate({
+  companies,
+  companyName,
+  processKey,
+  fallbackRate,
+}) {
+  const company = findCompany(companies, companyName);
+  const process = company?.processes?.[processKey];
+
+  if (!process || process.isAvailable === false) {
+    return fallbackRate;
+  }
+
+  return Number.isFinite(process.price) ? process.price : fallbackRate;
+}
+
+function resolveCompanyPricingSnapshot(form, rates, companies) {
+  if (form.companyRateSnapshot) {
+    return form.companyRateSnapshot;
+  }
+
+  const companiesByProcess = {
+    normalColor: form.normalColorCompany || DEFAULT_GRAVURE_COMPANY_NAME,
+    metallicColor: form.metallicColorCompany || DEFAULT_GRAVURE_COMPANY_NAME,
+    mattFinish: form.mattFinishCompany || DEFAULT_GRAVURE_COMPANY_NAME,
+    singleLamination:
+      form.singleLaminationCompany || DEFAULT_GRAVURE_COMPANY_NAME,
+    doubleLamination:
+      form.doubleLaminationCompany || DEFAULT_GRAVURE_COMPANY_NAME,
+    slitting: form.slittingCompany || DEFAULT_GRAVURE_COMPANY_NAME,
+  };
+
+  const resolvedRates = Object.entries(PROCESS_RATE_KEYS).reduce(
+    (acc, [processKey, rateKey]) => {
+      acc[rateKey] = resolveProcessRate({
+        companies,
+        companyName: companiesByProcess[processKey],
+        processKey,
+        fallbackRate: rates[rateKey],
+      });
+      return acc;
+    },
+    {},
+  );
+
+  return {
+    companies: companiesByProcess,
+    rates: resolvedRates,
+  };
+}
+
 /**
  * calculateGravureRate(form, rates?)
  *
@@ -35,9 +108,18 @@ const FALLBACK_RATES = {
  *                             pouchRates: { "4x6": 15, ... } }
  * Returns null if no materials are enabled or total qty is 0.
  */
-export function calculateGravureRate(form, rates) {
+export function calculateGravureRate(form, rates, companies) {
   const r = rates ?? FALLBACK_RATES;
   const MATERIAL_KEYS = ["polyester", "silverPet", "ldRoll", "bopp"];
+  const companyPricingSnapshot = resolveCompanyPricingSnapshot(
+    form,
+    r,
+    companies,
+  );
+  const effectiveRates = {
+    ...r,
+    ...companyPricingSnapshot.rates,
+  };
 
   // ── Materials ────────────────────────────────────────────────────────────
   const materialLines = MATERIAL_KEYS.map((key) => {
@@ -62,21 +144,21 @@ export function calculateGravureRate(form, rates) {
   const normalColors = parseInt(form.normalColors) || 0;
   const metallicColors = parseInt(form.metallicColors) || 0;
   const printingRatePerKg =
-    normalColors * r.normalColorRate +
-    metallicColors * r.metallicColorRate +
-    (form.mattFinish ? r.mattFinishRate : 0);
+    normalColors * effectiveRates.normalColorRate +
+    metallicColors * effectiveRates.metallicColorRate +
+    (form.mattFinish ? effectiveRates.mattFinishRate : 0);
 
   const laminationRatePerKg =
     form.lamination === "single"
-      ? r.singleLamRate
+      ? effectiveRates.singleLamRate
       : form.lamination === "double"
-        ? r.doubleLamRate
+        ? effectiveRates.doubleLamRate
         : 0;
 
-  const slittingRatePerKg = form.slitting ? r.slittingRate : 0;
+  const slittingRatePerKg = form.slitting ? effectiveRates.slittingRate : 0;
 
   const pouchRatePerKg = form.pouchSize
-    ? (r.pouchRates[form.pouchSize] ?? DEFAULT_POUCH_RATE)
+    ? (effectiveRates.pouchRates[form.pouchSize] ?? DEFAULT_POUCH_RATE)
     : 0;
 
   // ── Per-kg charge sums (NOT multiplied by qty) ──────────────────────────
@@ -116,5 +198,8 @@ export function calculateGravureRate(form, rates) {
     serviceAmount,
     adjustedTotal,
     pricePerKg,
+    selectedRates: companyPricingSnapshot.rates,
+    selectedCompanies: companyPricingSnapshot.companies,
+    companyRateSnapshot: companyPricingSnapshot,
   };
 }

@@ -13,6 +13,12 @@ import {
   updatePouch as apiUpdatePouch,
   deletePouch as apiDeletePouch,
   updateChargeRate as apiUpdateChargeRate,
+  getCompanies as apiGetCompanies,
+  createCompany as apiCreateCompany,
+  updateCompanyProcess as apiUpdateCompanyProcess,
+  deleteCompany as apiDeleteCompany,
+  restoreCompany as apiRestoreCompany,
+  permanentDeleteCompany as apiPermanentDeleteCompany,
 } from "../utils/settingsApi";
 import {
   NORMAL_COLOR_RATE,
@@ -26,7 +32,6 @@ import {
 } from "../constants/gravureRates";
 
 const GravureSettingsContext = createContext(null);
-
 // ── Helpers — derive current value from history[0] ─────────────────────────
 export function getCurrentPrice(material) {
   return material?.priceHistory?.[0]?.price ?? 0;
@@ -128,6 +133,8 @@ export function GravureSettingsProvider({ children, skip = false }) {
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(!skip);
   const [error, setError] = useState(null);
+  const [companies, setCompanies] = useState([]);
+  const [companiesLoading, setCompaniesLoading] = useState(!skip);
 
   const refresh = useCallback(async () => {
     if (skip) return;
@@ -144,9 +151,30 @@ export function GravureSettingsProvider({ children, skip = false }) {
     }
   }, [skip]);
 
+  const fetchCompanies = useCallback(async () => {
+    if (skip) return;
+    try {
+      const data = await apiGetCompanies();
+      setCompanies(data);
+    } catch (err) {
+      console.error("Failed to fetch companies:", err);
+    } finally {
+      setCompaniesLoading(false);
+    }
+  }, [skip]);
   useEffect(() => {
     if (!skip) refresh();
   }, [refresh, skip]);
+
+  useEffect(() => {
+    if (!skip) fetchCompanies();
+  }, [fetchCompanies, skip]);
+
+  useEffect(() => {
+    const handleUpdate = () => fetchCompanies();
+    window.addEventListener("companies-updated", handleUpdate);
+    return () => window.removeEventListener("companies-updated", handleUpdate);
+  }, [fetchCompanies]);
 
   const updateMaterialPrice = useCallback(async (materialKey, price) => {
     const updated = await apiUpdateMaterialPrice(materialKey, price);
@@ -193,6 +221,45 @@ export function GravureSettingsProvider({ children, skip = false }) {
     setSettings((prev) => ({ ...prev, [rateKey]: updated }));
   }, []);
 
+  const createCompany = useCallback(async (name) => {
+    const newCompany = await apiCreateCompany(name);
+    setCompanies((prev) => [...prev, newCompany]);
+    window.dispatchEvent(new CustomEvent("companies-updated"));
+    return newCompany;
+  }, []);
+
+  const updateCompanyProcess = useCallback(async (companyId, processKey, { price, isAvailable }) => {
+    const updated = await apiUpdateCompanyProcess(companyId, processKey, { price, isAvailable });
+    setCompanies((prev) =>
+      prev.map((c) => (c.id === companyId ? updated : c))
+    );
+    window.dispatchEvent(new CustomEvent("companies-updated"));
+    return updated;
+  }, []);
+
+  const deleteCompany = useCallback(async (companyId) => {
+    const deleted = await apiDeleteCompany(companyId);
+    setCompanies((prev) =>
+      prev.map((c) => (c.id === companyId ? deleted : c))
+    );
+    window.dispatchEvent(new CustomEvent("companies-updated"));
+    return deleted;
+  }, []);
+
+  const restoreCompany = useCallback(async (companyId) => {
+    const restored = await apiRestoreCompany(companyId);
+    setCompanies((prev) =>
+      prev.map((c) => (c.id === companyId ? restored : c))
+    );
+    window.dispatchEvent(new CustomEvent("companies-updated"));
+    return restored;
+  }, []);
+
+  const permanentDeleteCompany = useCallback(async (companyId) => {
+    await apiPermanentDeleteCompany(companyId);
+    setCompanies((prev) => prev.filter((c) => c.id !== companyId));
+    window.dispatchEvent(new CustomEvent("companies-updated"));
+  }, []);
   const value = {
     settings,
     loading,
@@ -204,6 +271,14 @@ export function GravureSettingsProvider({ children, skip = false }) {
     editPouch,
     removePouch,
     updateChargeRate,
+    companies,
+    companiesLoading,
+    fetchCompanies,
+    createCompany,
+    updateCompanyProcess,
+    deleteCompany,
+    restoreCompany,
+    permanentDeleteCompany,
   };
 
   return (

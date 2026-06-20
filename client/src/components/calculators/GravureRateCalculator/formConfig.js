@@ -1,4 +1,5 @@
 import { MATERIAL_NAMES } from "../../../constants/gravureRates";
+import { DEFAULT_GRAVURE_COMPANY_NAME } from "../../../utils/calculators/gravureRate";
 
 /* ─── Materials list derived from constants ───────────────────────────────── */
 export const MATERIALS = Object.entries(MATERIAL_NAMES).map(([key, name]) => ({
@@ -55,6 +56,12 @@ export function makeInitialForm() {
   return {
     quoteName: "",
     pouchSize: "",
+    normalColorCompany: DEFAULT_GRAVURE_COMPANY_NAME,
+    metallicColorCompany: DEFAULT_GRAVURE_COMPANY_NAME,
+    mattFinishCompany: DEFAULT_GRAVURE_COMPANY_NAME,
+    singleLaminationCompany: DEFAULT_GRAVURE_COMPANY_NAME,
+    doubleLaminationCompany: DEFAULT_GRAVURE_COMPANY_NAME,
+    slittingCompany: DEFAULT_GRAVURE_COMPANY_NAME,
     materials: {
       polyester: makeMaterial(
         true,

@@ -542,6 +542,24 @@ export function UsersIcon({ className = "size-5" }) {
   );
 }
 
+export function CompanyIcon({ className = "size-4" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M8 8h2M14 8h2M8 12h2M14 12h2M8 16h2M14 16h2" />
+      <path d="M11 21v-4h2v4" />
+    </svg>
+  );
+}
+
 export function ShieldIcon({ className = "size-5" }) {
   return (
     <svg

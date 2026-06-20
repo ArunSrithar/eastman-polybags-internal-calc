@@ -12,7 +12,7 @@ import { P } from "./printTokens";
  *   - tfoot total row: P.panel grey background, 2px strong top rule
  *
  * Props:
- *   items        — Array<{ key, label, qty, price, per, amount }>
+ *   items        — Array<{ key, label, subtitle?, qty, price, per, amount }>
  *                  qty/price null for flat-amount items
  *   adjustments  — Array<{ label, amount }> rendered after blank rows
  *   totalQty     — number shown in TOTAL row qty cell (0 = blank)
@@ -90,7 +90,20 @@ export default function PrintItemsTable({
             >
               <td style={dCell("center", P.muted)}>{idx + 1}</td>
               <td style={{ ...dCell("left"), fontWeight: "600" }}>
-                {row.label.toUpperCase()}
+                <div>{row.label.toUpperCase()}</div>
+                {row.subtitle ? (
+                  <div
+                    style={{
+                      marginTop: "2px",
+                      fontSize: "9px",
+                      fontWeight: "400",
+                      color: P.muted,
+                      textTransform: "none",
+                    }}
+                  >
+                    {row.subtitle}
+                  </div>
+                ) : null}
               </td>
               <td style={dCell("center")}>
                 {row.qty != null ? `${fmt(row.qty)} Kgs` : ""}

@@ -59,4 +59,26 @@ router.put(
   ctrl.updateChargeRate,
 );
 
+// Companies
+router.get("/companies", needCalculate, ctrl.getCompanies);
+
+router.post(
+  "/companies",
+  needEditPrices,
+  validateString("name"),
+  ctrl.createCompanyHandler,
+);
+
+router.put(
+  "/companies/:id/process/:processKey",
+  needEditPrices,
+  ctrl.updateCompanyProcessHandler,
+);
+
+router.delete("/companies/:id", needEditPrices, ctrl.deleteCompanyHandler);
+
+router.patch("/companies/:id/restore", needEditPrices, ctrl.restoreCompanyHandler);
+
+router.delete("/companies/:id/permanent", needEditPrices, ctrl.permanentDeleteCompanyHandler);
+
 export default router;
