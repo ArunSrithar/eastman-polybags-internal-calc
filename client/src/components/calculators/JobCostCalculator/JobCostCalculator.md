@@ -208,16 +208,32 @@ Container uses the shared `useCalculator` hook which encapsulates form state, re
 
 ```
 components/calculators/JobCostCalculator/
-├── JobCostCalculator.jsx   ← container: useCalculator hook, 2-col grid
-├── JobCostForm.jsx         ← 6-section form, forwardRef + reset
-├── JobCostResult.jsx       ← invoice breakdown, 3 color-coded sections
-├── JobCostSavedQuotes.jsx  ← SavedQuotesView wrapper with formatPrice
-├── ItemRow.jsx             ← toggleable line item (qty + price inputs)
-├── formConfig.js           ← makeInitialForm(), item group exports
-└── JobCostCalculator.md    ← this file
+├── JobCostCalculator.jsx     ← container: useCalculator hook, 2-col grid
+├── JobCostForm.jsx           ← 6-section form orchestrator, forwardRef + reset
+├── JobCostResult.jsx         ← invoice breakdown, 3 color-coded sections
+├── JobCostPrintLayout.jsx    ← print mapping wrapper to PrintInvoice
+├── JobCostSavedQuotes.jsx    ← SavedQuotesView wrapper with formatPrice
+├── ItemRow.jsx               ← reusable toggleable line item (qty + price inputs)
+├── formConfig.js             ← makeInitialForm(), item group exports
+├── formRows/
+│   └── JobCostItemRow.jsx    ← reusable item row with flexible qty/amount modes
+└── JobCostCalculator.md      ← this file
 ```
 
-Supporting files:
+### File responsibilities
+
+| File                    | Role                                                                                               | LOC  |
+| ----------------------- | -------------------------------------------------------------------------------------------------- | ---- |
+| `JobCostCalculator.jsx` | Container — `useCalculator` hook, state, save/print/reset. Renders 2-col grid: form left, result right. | ~100 |
+| `JobCostForm.jsx`       | Orchestrator form via `forwardRef`. Delegates all items to reusable `ItemRow` component.            | ~240 |
+| `JobCostResult.jsx`     | Stateless invoice breakdown. 3 color-coded sections: Materials, Charges, Other. Uses invoice primitives. | ~190 |
+| `JobCostPrintLayout.jsx` | Print mapping wrapper. Builds printable items and composes `PrintInvoice`.                         | ~160 |
+| `JobCostSavedQuotes.jsx` | Thin wrapper around `SavedQuotesView` with Job Cost config + `formatJobCostPrice`.                 | ~20  |
+| `ItemRow.jsx`           | Reusable item row — toggle + conditional qty+price or flat amount inputs.                         | ~70  |
+| `formConfig.js`         | `makeInitialForm()`, `MATERIAL_ITEMS`, `CHARGE_ITEMS`, `FLAT_ITEMS`, `DROPDOWN_SEEDS`, localStorage helpers. | ~100 |
+| `formRows/JobCostItemRow.jsx` | Reusable item row abstraction with flexible qty/amount modes.                               | ~55  |
+
+### Supporting modules
 
 - `constants/jobCost.js` — `LINE_ITEMS`, `DROPDOWN_SEEDS`
 - `utils/calculators/jobCost.js` — `calculateJobCost()` pure function
