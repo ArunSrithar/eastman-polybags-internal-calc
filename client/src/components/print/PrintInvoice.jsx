@@ -9,8 +9,8 @@ import PrintFooter from "./PrintFooter";
  * PrintInvoice — generic print invoice shell.
  *
  * Composes the 5 primitives into a complete A4 print layout.
- * Hidden on screen (`hidden print:block`), visible only during @media print.
- * All styling is inline — no Tailwind classes inside — for print reliability.
+ *   GravurePrintLayout   → documentTitle = "Gravure Quote"
+ *   FlexoPrintLayout     → documentTitle = "Flexo Quote"
  *
  * Reused by:
  *   JobCostPrintLayout   → documentTitle = "Job Cost Sheet"
@@ -27,6 +27,7 @@ import PrintFooter from "./PrintFooter";
  *   adjustments    — Array<{ label, amount }> (wastage, packing, transport, service …)
  *   totalQty       — grand total quantity (0 = blank cell)
  *   totalAmount    — grand total amount number
+ *   showTotalRow   — optional; controls TOTAL row visibility in items table
  *   amountWords    — INR amount in words string
  *   showAmountWords — optional; toggles total amount words block
  *   totalRowProminent — optional; toggles stronger TOTAL row styling
@@ -38,6 +39,8 @@ import PrintFooter from "./PrintFooter";
  *   pricePerKgLabelIndent — optional; left indent for per-kg label
  *   pricePerKgWords — optional; renders per-kg amount in words in PrintTotals (Gravure/Flexo only)
  *   pricePerKgWordsProminent — optional; stronger typography for per-kg words block
+ *   footerShowBoxes     — optional; toggles footer 3-box panel
+ *   footerShowCaption   — optional; toggles bottom caption
  *   totalAmountDisplay — optional; value string override for TOTAL row amount
  *   partyPrimaryLabel   — optional; defaults to Bill To / Consignee
  *   partyPrimaryValue   — optional; defaults to customer
@@ -56,6 +59,7 @@ export default function PrintInvoice({
   adjustments,
   totalQty,
   totalAmount,
+  showTotalRow = true,
   amountWords,
   showAmountWords = true,
   totalRowProminent = true,
@@ -83,7 +87,7 @@ export default function PrintInvoice({
         fontSize: "11px",
         color: P.text,
         backgroundColor: P.white,
-        padding: "0 10mm 10mm",
+        padding: "0 6mm 10mm",
       }}
     >
       <PrintHeader
@@ -104,6 +108,7 @@ export default function PrintInvoice({
         adjustments={adjustments}
         totalQty={totalQty}
         totalAmount={totalAmount}
+        showTotalRow={showTotalRow}
         totalAmountDisplay={totalAmountDisplay}
         totalRowProminent={totalRowProminent}
       />

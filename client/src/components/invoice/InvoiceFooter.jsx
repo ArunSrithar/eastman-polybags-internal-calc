@@ -15,18 +15,21 @@ export default function InvoiceFooter({
   highlightLabel,
   highlightUnit = "",
   annotation,
+  showTotal = true,
 }) {
   return (
     <>
       {/* ── Total row ──────────────────────────────────────────────────── */}
-      <div className="bg-fill-4 px-6 py-3 mt-1">
-        <div className="flex items-baseline justify-between">
-          <span className="text-sm font-bold text-label">Total</span>
-          <span className="text-lg font-bold text-label tabular-nums">
-            ₹{fmt(total)}
-          </span>
+      {showTotal ? (
+        <div className="bg-fill-4 px-6 py-3 mt-1">
+          <div className="flex items-baseline justify-between">
+            <span className="text-sm font-bold text-label">Total</span>
+            <span className="text-lg font-bold text-label tabular-nums">
+              ₹{fmt(total)}
+            </span>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {/* ── Highlight strip ────────────────────────────────────────────── */}
       <div className="bg-tint/5 border-t border-tint/15 px-6 py-4 rounded-b-2xl">

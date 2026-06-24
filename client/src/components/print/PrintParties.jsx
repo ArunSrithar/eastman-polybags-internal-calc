@@ -4,7 +4,7 @@ import { P } from "./printTokens";
  * PrintParties — grey customer panel + metadata grid.
  *
  * Layout (full-width grey background):
- *   [Left 38%: Bill To / Ship To — customer name bold]
+ *   [Left 38%: primary/secondary party info — customer/prepared-by etc.]
  *   [Right 62%: 4-col meta grid — label | value | label | value per row]
  *
  * Props:
@@ -27,6 +27,9 @@ export default function PrintParties({
 }) {
   const firstPartyValue = partyPrimaryValue ?? customer;
   const secondPartyValue = partySecondaryValue ?? customer;
+  const hasSecondary = Boolean(partySecondaryLabel || secondPartyValue);
+  const cellPadY = "9px";
+  const cellPadX = "12px";
 
   return (
     <div
@@ -40,7 +43,7 @@ export default function PrintParties({
               style={{
                 width: "38%",
                 backgroundColor: P.panel,
-                padding: "12px 14px",
+                padding: "10px 14px",
                 verticalAlign: "top",
                 borderRight: `1px solid ${P.rule}`,
               }}
@@ -51,7 +54,7 @@ export default function PrintParties({
                   textTransform: "uppercase",
                   letterSpacing: "0.7px",
                   color: P.muted,
-                  marginBottom: "4px",
+                  marginBottom: "6px",
                 }}
               >
                 {partyPrimaryLabel}
@@ -61,34 +64,38 @@ export default function PrintParties({
                   fontSize: "13px",
                   fontWeight: "700",
                   color: P.text,
-                  marginBottom: "12px",
+                  marginBottom: hasSecondary ? "12px" : "0",
                 }}
               >
                 {firstPartyValue || "—"}
               </div>
-              <div
-                style={{
-                  height: "1px",
-                  backgroundColor: P.rule,
-                  marginBottom: "10px",
-                }}
-              />
-              <div
-                style={{
-                  fontSize: "8px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.7px",
-                  color: P.muted,
-                  marginBottom: "4px",
-                }}
-              >
-                {partySecondaryLabel}
-              </div>
-              <div
-                style={{ fontSize: "13px", fontWeight: "700", color: P.text }}
-              >
-                {secondPartyValue || "—"}
-              </div>
+              {hasSecondary ? (
+                <>
+                  <div
+                    style={{
+                      height: "1px",
+                      backgroundColor: P.rule,
+                      marginBottom: "8px",
+                    }}
+                  />
+                  <div
+                    style={{
+                      fontSize: "8px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.7px",
+                      color: P.muted,
+                      marginBottom: "6px",
+                    }}
+                  >
+                    {partySecondaryLabel}
+                  </div>
+                  <div
+                    style={{ fontSize: "13px", fontWeight: "700", color: P.text }}
+                  >
+                    {secondPartyValue || "—"}
+                  </div>
+                </>
+              ) : null}
             </td>
 
             {/* ── Meta grid ── */}
@@ -102,59 +109,71 @@ export default function PrintParties({
             >
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <tbody>
-                  {metaRows.map((row, i) => (
-                    <tr key={i} style={{ borderBottom: `1px solid ${P.rule}` }}>
-                      <td
+                  {metaRows.map((row, i) => {
+                    const isPriceRow =
+                      String(row.label2 || "").toLowerCase() === "price / kg";
+
+                    return (
+                      <tr
+                        key={i}
                         style={{
-                          padding: "6px 10px",
-                          fontSize: "8px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                          color: P.muted,
-                          width: "22%",
-                          whiteSpace: "nowrap",
+                          borderBottom:
+                            i < metaRows.length - 1 ? `1px solid ${P.rule}` : "none",
                         }}
                       >
-                        {row.label}
-                      </td>
-                      <td
-                        style={{
-                          padding: "6px 10px",
-                          fontSize: "10px",
-                          fontWeight: "600",
-                          color: P.text,
-                          width: "28%",
-                          borderRight: `1px solid ${P.rule}`,
-                        }}
-                      >
-                        {row.value || ""}
-                      </td>
-                      <td
-                        style={{
-                          padding: "6px 10px",
-                          fontSize: "8px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                          color: P.muted,
-                          width: "22%",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {row.label2 || ""}
-                      </td>
-                      <td
-                        style={{
-                          padding: "6px 10px",
-                          fontSize: "10px",
-                          fontWeight: "600",
-                          color: P.text,
-                          width: "28%",
-                        }}
-                      >
-                        {row.value2 || ""}
-                      </td>
-                    </tr>
-                  ))}
+                        <td
+                          style={{
+                            padding: `${cellPadY} ${cellPadX}`,
+                            fontSize: "8px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                            color: P.muted,
+                            width: "25%",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {row.label}
+                        </td>
+                        <td
+                          style={{
+                            padding: `${cellPadY} ${cellPadX}`,
+                            fontSize: "10px",
+                            fontWeight: "600",
+                            color: P.text,
+                            width: "25%",
+                            borderRight: `1px solid ${P.rule}`,
+                          }}
+                        >
+                          {row.value || ""}
+                        </td>
+                        <td
+                          style={{
+                            padding: `${cellPadY} ${cellPadX}`,
+                            fontSize: "8px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                            color: isPriceRow ? P.text : P.muted,
+                            fontWeight: isPriceRow ? "700" : "500",
+                            width: "25%",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {row.label2 || ""}
+                        </td>
+                        <td
+                          style={{
+                            padding: `${cellPadY} ${cellPadX}`,
+                            fontSize: isPriceRow ? "12px" : "10px",
+                            fontWeight: isPriceRow ? "700" : "600",
+                            color: P.text,
+                            width: "25%",
+                          }}
+                        >
+                          {row.value2 || ""}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </td>

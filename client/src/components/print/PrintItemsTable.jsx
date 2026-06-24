@@ -19,6 +19,7 @@ import { P } from "./printTokens";
  *   totalAmount  — number shown in TOTAL row amount cell
  *   totalAmountDisplay — optional string override for TOTAL row amount
  *   totalRowProminent — optional; toggles stronger TOTAL row styling
+ *   showTotalRow — optional; controls TOTAL row visibility
  *   minRows      — minimum visible rows (padded with blank rows), default 8
  */
 
@@ -54,9 +55,11 @@ export default function PrintItemsTable({
   totalAmount,
   totalAmountDisplay,
   totalRowProminent = true,
+  showTotalRow = true,
   minRows = MIN_ROWS,
 }) {
   const blankRows = Math.max(0, minRows - items.length);
+  const hasAdjustmentRows = adjustments.some((row) => row.type !== "divider");
 
   return (
     <div
@@ -136,87 +139,128 @@ export default function PrintItemsTable({
             </tr>
           ))}
 
-          {/* ── Adjustment rows (wastage, packing, transport, service) ── */}
-          {adjustments.map((row, i) => (
-            <tr key={`adj-${i}`}>
+          {hasAdjustmentRows ? (
+            <tr>
               <td style={{ borderRight: `1px solid ${P.rule}` }} />
               <td
-                colSpan={3}
+                colSpan={4}
                 style={{
-                  padding: "5px 10px",
+                  padding: "6px 10px 4px",
                   textAlign: "right",
-                  fontStyle: row.bold ? "normal" : "italic",
-                  fontWeight: row.bold ? "700" : "400",
-                  color: P.muted,
-                  fontSize: "10px",
+                  fontSize: "8px",
+                  letterSpacing: "0.6px",
+                  textTransform: "uppercase",
+                  color: P.soft,
+                  fontWeight: "500",
+                  borderTop: `1px solid ${P.rule}`,
                 }}
               >
-                {row.label}
-              </td>
-              <td
-                style={{
-                  padding: "5px 10px",
-                  textAlign: "right",
-                  fontVariantNumeric: "tabular-nums",
-                  fontWeight: row.bold ? "700" : "400",
-                  fontSize: "10px",
-                }}
-              >
-                {fmt(row.amount)}
+                Rate Derivation
               </td>
             </tr>
-          ))}
+          ) : null}
+
+          {/* ── Adjustment rows (wastage, packing, transport, service) ── */}
+          {adjustments.map((row, i) => {
+            if (row.type === "divider") {
+              return (
+                <tr key={`adj-${i}`}>
+                  <td style={{ borderRight: `1px solid ${P.rule}` }} />
+                  <td
+                    colSpan={4}
+                    style={{
+                      padding: 0,
+                      borderTop: `1px solid ${P.rule}`,
+                      height: "4px",
+                    }}
+                  />
+                </tr>
+              );
+            }
+
+            return (
+              <tr key={`adj-${i}`}>
+                <td style={{ borderRight: `1px solid ${P.rule}` }} />
+                <td
+                  colSpan={3}
+                  style={{
+                    padding: "5px 10px",
+                    textAlign: "right",
+                    fontStyle: row.bold ? "normal" : "italic",
+                    fontWeight: row.bold ? "700" : "400",
+                    color: P.muted,
+                    fontSize: "10px",
+                  }}
+                >
+                  {row.label}
+                </td>
+                <td
+                  style={{
+                    padding: "5px 10px",
+                    textAlign: "right",
+                    fontVariantNumeric: "tabular-nums",
+                    fontWeight: row.bold ? "700" : "400",
+                    fontSize: "10px",
+                  }}
+                >
+                  {fmt(row.amount)}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
 
         {/* ── Total row ── */}
-        <tfoot>
-          <tr
-            style={{
-              backgroundColor: totalRowProminent ? P.panel : P.white,
-              borderTop: totalRowProminent
-                ? `2px solid ${P.ruleStrong}`
-                : `1px solid ${P.rule}`,
-            }}
-          >
-            <td />
-            <td
+        {showTotalRow ? (
+          <tfoot>
+            <tr
               style={{
-                padding: "9px 10px",
-                fontWeight: totalRowProminent ? "700" : "600",
-                fontSize: totalRowProminent ? "11px" : "10px",
-                textAlign: "left",
-                color: P.text,
+                backgroundColor: totalRowProminent ? P.panel : P.white,
+                borderTop: totalRowProminent
+                  ? `2px solid ${P.ruleStrong}`
+                  : `1px solid ${P.rule}`,
               }}
             >
-              TOTAL
-            </td>
-            <td
-              style={{
-                padding: "9px 10px",
-                fontWeight: totalRowProminent ? "600" : "500",
-                textAlign: "center",
-                color: P.text,
-              }}
-            >
-              {totalQty > 0 ? `${fmt(totalQty)} Kgs` : ""}
-            </td>
-            <td />
-            <td
-              style={{
-                padding: "9px 10px",
-                fontWeight: totalRowProminent ? "800" : "700",
-                fontSize: totalRowProminent ? "14px" : "11px",
-                textAlign: "right",
-                fontVariantNumeric: "tabular-nums",
-                whiteSpace: "nowrap",
-                width: "110px",
-                color: P.text,
-              }}
-            >
-              ₹ {totalAmountDisplay ?? fmt(totalAmount)}
-            </td>
-          </tr>
-        </tfoot>
+              <td />
+              <td
+                style={{
+                  padding: "9px 10px",
+                  fontWeight: totalRowProminent ? "700" : "600",
+                  fontSize: totalRowProminent ? "11px" : "10px",
+                  textAlign: "left",
+                  color: P.text,
+                }}
+              >
+                TOTAL
+              </td>
+              <td
+                style={{
+                  padding: "9px 10px",
+                  fontWeight: totalRowProminent ? "600" : "500",
+                  textAlign: "center",
+                  color: P.text,
+                }}
+              >
+                {totalQty > 0 ? `${fmt(totalQty)} Kgs` : ""}
+              </td>
+              <td />
+              <td
+                style={{
+                  padding: "9px 10px",
+                  fontWeight: totalRowProminent ? "800" : "700",
+                  fontSize: totalRowProminent ? "14px" : "11px",
+                  textAlign: "right",
+                  fontVariantNumeric: "tabular-nums",
+                  whiteSpace: "nowrap",
+                  width: "110px",
+                  color: P.text,
+                }}
+              >
+                ₹ {totalAmountDisplay ?? fmt(totalAmount)}
+              </td>
+            </tr>
+          </tfoot>
+        ) : null}
       </table>
     </div>
   );

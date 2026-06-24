@@ -3,6 +3,7 @@ import { MATERIAL_NAMES } from "../../../constants/gravureRates";
 import PrintInvoice from "../../print/PrintInvoice";
 import { CompanyIcon } from "../../ui/Icons";
 import { isOwnGravureCompany, visibleCompanyName } from "./companyDisplay";
+import { useAuth } from "../../../context/AuthContext";
 
 /**
  * GravurePrintLayout — thin wrapper that maps Gravure result + form data
@@ -13,6 +14,8 @@ import { isOwnGravureCompany, visibleCompanyName } from "./companyDisplay";
  *   2. Render <PrintInvoice documentTitle="..." ... />
  */
 export default function GravurePrintLayout({ result, form }) {
+  const { user } = useAuth();
+
   if (!result) return null;
 
   const {
@@ -23,6 +26,8 @@ export default function GravurePrintLayout({ result, form }) {
     pouchRatePerKg,
     wastagePercent,
     wastageAmount,
+    preServiceTotal,
+    basePricePerKg,
     servicePercent,
     serviceAmount,
     adjustedTotal,
@@ -64,6 +69,15 @@ export default function GravurePrintLayout({ result, form }) {
   const roundedPriceDisplay = roundedPricePerKg.toLocaleString("en-IN", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
+  });
+  const generatedBy = user?.username?.trim() || "System";
+  const documentDateTime = new Date().toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
   });
 
   /* ── Numbered line items ── */
@@ -160,16 +174,29 @@ export default function GravurePrintLayout({ result, form }) {
         bold: false,
       }
       : null,
+    {
+      label: "Total Cost",
+      amount: preServiceTotal,
+      bold: true,
+    },
+    {
+      type: "divider",
+    },
+    {
+      label: `Base Price / Kg @ ${fmt(totalMaterialQty)} Kgs`,
+      amount: basePricePerKg,
+      bold: false,
+    },
     servicePercent > 0
       ? {
-        label: `Service @ ${servicePercent}%`,
+        label: `Service/Kg @ ${servicePercent}%`,
         amount: serviceAmount,
         bold: true,
       }
       : null,
   ].filter(Boolean);
 
-  /* ── Meta rows for the parties panel ── */
+  /* ── Processed metadata: only info not in line items or requiring summary ── */
   const laminationLabel =
     form.lamination === "single"
       ? "Single"
@@ -177,38 +204,36 @@ export default function GravurePrintLayout({ result, form }) {
         ? "Double"
         : "None";
 
+  const slittingLabel = form.slitting ? "Yes" : "No";
+  const pouchLabel = form.pouchSize || "—";
+
+  /* Only show: lamination decision, company assignments, and price/kg result */
   const metaRows = [
     {
-      label: "Normal Colors",
-      value: form.normalColors || "0",
-      label2: "Metallic Colors",
-      value2: form.metallicColors || "0",
+      label: "Lamination",
+      value: laminationLabel,
+      label2: "Print Co.",
+      value2: companyMetaValue(selectedCompanies?.normalColor),
     },
     {
-      label: "Matt Finish",
-      value: form.mattFinish ? "Yes" : "No",
-      label2: "Lamination",
-      value2: laminationLabel,
-    },
-    {
-      label: "Print Co.",
-      value: companyMetaValue(selectedCompanies?.normalColor),
-      label2: "Pouch Size",
-      value2: form.pouchSize || "—",
-    },
-    {
-      label: "Lam / Slit Co.",
-      value:
+      label: "Slitting",
+      value: slittingLabel,
+      label2: "Lam Co.",
+      value2:
         form.lamination === "single"
           ? companyMetaValue(selectedCompanies?.singleLamination)
           : form.lamination === "double"
             ? companyMetaValue(selectedCompanies?.doubleLamination)
-            : companyMetaValue(selectedCompanies?.slitting),
-      label2: "Slitting",
-      value2: form.slitting ? "Yes" : "No",
+            : "—",
     },
     {
-      label: "Total Qty",
+      label: "Pouch",
+      value: pouchLabel,
+      label2: "Slit Co.",
+      value2: companyMetaValue(selectedCompanies?.slitting),
+    },
+    {
+      label: "Total Weight",
       value: `${fmt(totalMaterialQty)} Kgs`,
       label2: "Price / Kg",
       value2: `₹ ${roundedPriceDisplay}`,
@@ -219,13 +244,19 @@ export default function GravurePrintLayout({ result, form }) {
     <PrintInvoice
       documentTitle="Gravure Quote"
       documentNo={null}
-      documentDate={null}
+      documentDate={documentDateTime}
       customer={form.quoteName?.trim()}
+      partyPrimaryLabel="CUSTOMER"
+      partyPrimaryValue={form.quoteName?.trim()}
+      partySecondaryLabel="PREPARED BY"
+      partySecondaryValue={generatedBy}
       metaRows={metaRows}
       items={items}
       adjustments={adjustments}
       totalQty={totalMaterialQty}
       totalAmount={roundedTotalAmount}
+      showTotalRow={false}
+      showAmountWords={false}
       totalAmountDisplay={roundedTotalDisplay}
       amountWords={amountInWords(roundedTotalAmount)}
       pricePerKg={roundedPricePerKg}

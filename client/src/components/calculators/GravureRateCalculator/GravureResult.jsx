@@ -29,9 +29,9 @@ export default function GravureResult({ result, form, status, date }) {
     wastagePercent,
     wastageAmount,
     preServiceTotal,
+    basePricePerKg,
     servicePercent,
     serviceAmount,
-    adjustedTotal,
     pricePerKg,
     selectedRates,
     selectedCompanies,
@@ -206,21 +206,34 @@ export default function GravureResult({ result, form, status, date }) {
           amount={wastageAmount}
         />
       ) : null}
+      <div className="flex items-baseline justify-between px-6 py-1.5">
+        <span className="text-sm text-label">
+          Base Price/Kg
+          <span className="text-xs text-label-3 ml-1.5">
+            from ₹{fmt(preServiceTotal)} / {fmt(totalMaterialQty)} kg
+          </span>
+        </span>
+        <span className="text-sm font-medium text-label tabular-nums">
+          ₹{fmt(basePricePerKg)}
+        </span>
+      </div>
+      <div className="divider mx-3 mt-1" />
       {hasService ? (
         <WastageRow
           percent={servicePercent}
-          base={preServiceTotal}
+          base={basePricePerKg}
           amount={serviceAmount}
-          label="Service"
+          label="Service/Kg"
         />
       ) : null}
 
       <InvoiceFooter
-        total={adjustedTotal}
+        total={preServiceTotal}
         highlight={pricePerKg}
-        highlightLabel="Price per kg"
+        highlightLabel="Price per Kg"
         highlightUnit="/kg"
-        annotation={`₹${fmt(adjustedTotal)} total / ${fmt(totalMaterialQty)} kg`}
+        annotation={`Base ₹${fmt(basePricePerKg)}/kg + Service ₹${fmt(serviceAmount)}/kg`}
+        showTotal={false}
       />
     </div>
   );

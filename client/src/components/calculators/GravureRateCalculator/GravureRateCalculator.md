@@ -9,12 +9,14 @@ Reference: [`Gravure Rate Calculation.jpeg`](../../../assets/reference_bills/Gra
 ## Formula
 
 ```
-Price per kg = Adjusted Total ÷ Total Material Qty
+Base Price per kg = Total (with Wastage) ÷ Total Material Qty
+Service per kg    = Base Price per kg × (Service% ÷ 100)
+Final Price per kg = Base Price per kg + Service per kg
 
 Where:
-  Total Cost     = Material Cost + Charges per kg
-  Wastage Amount = Total Cost × (Wastage% ÷ 100)
-  Adjusted Total = Total Cost + Wastage Amount
+  Total Cost          = Material Cost + Charges per kg
+  Wastage Amount      = Total Cost × (Wastage% ÷ 100)
+  Total (with Wastage) = Total Cost + Wastage Amount
 ```
 
 ### Worked example (from reference sheet)
@@ -28,9 +30,11 @@ Where:
 - **Charges per kg** (printing + lamination + slitting + pouch) = e.g. ₹42
 - **Total cost** = 482.70 + 42 = **₹524.70**
 - **Wastage** (5%) = 524.70 × 0.05 = **₹26.24**
-- **Adjusted total** = 524.70 + 26.24 = **₹550.94**
+- **Total (with wastage)** = 524.70 + 26.24 = **₹550.94**
 - **Total qty** = 1.00 + 2.79 = **3.79 kg**
-- **Price per kg** = 550.94 ÷ 3.79 = **₹145.37/kg**
+- **Base price per kg** = 550.94 ÷ 3.79 = **₹145.37/kg**
+- **Service per kg** (5%) = 145.37 × 0.05 = **₹7.27/kg**
+- **Final price per kg** = 145.37 + 7.27 = **₹152.64/kg**
 
 ---
 
@@ -112,6 +116,16 @@ Type: Radio pill group (None / Single / Double).
 
 Wastage is applied as a percentage surcharge on the total cost, **not** on quantity.
 
+### 8. Service
+
+| Property        | Value                                   |
+| --------------- | --------------------------------------- |
+| Type            | CreatableSelect (inline, with `%` unit) |
+| Default options | 0, 1, 2, 3, 4, 5, 8, 10                 |
+| Storage key     | `gravure-service`                       |
+
+Service is applied as a percentage on **base price per kg** (after wastage), and then added to produce final price per kg.
+
 ---
 
 ## Charge Rates (constants)
@@ -161,8 +175,12 @@ Pure function: `utils/calculators/gravureRate.js` → `calculateGravureRate(form
   totalCost,           // materialCost + chargesPerKg
   wastagePercent,      // from form input
   wastageAmount,       // totalCost × (wastage% / 100)
-  adjustedTotal,       // totalCost + wastageAmount
-  pricePerKg,          // adjustedTotal / totalMaterialQty — THE FINAL ANSWER
+  preServiceTotal,     // totalCost + wastageAmount
+  basePricePerKg,      // preServiceTotal / totalMaterialQty
+  servicePercent,      // from form input
+  serviceAmount,       // basePricePerKg × (service% / 100)
+  adjustedTotal,       // preServiceTotal + (serviceAmount × totalMaterialQty)
+  pricePerKg,          // basePricePerKg + serviceAmount — THE FINAL ANSWER
 }
 ```
 
@@ -175,8 +193,10 @@ Pure function: `utils/calculators/gravureRate.js` → `calculateGravureRate(form
 5. **Pouch** — lookup `POUCH_RATE_BY_SIZE[pouchSize]`, fallback to 15
 6. **Total cost** = `totalMaterialCost + printingRate + laminationRate + slittingRate + pouchRate`
 7. **Wastage** = `totalCost × (wastage% / 100)`
-8. **Adjusted total** = `totalCost + wastageAmount`
-9. **Price per kg** = `adjustedTotal / totalMaterialQty`
+8. **Total (with wastage)** = `totalCost + wastageAmount`
+9. **Base price per kg** = `preServiceTotal / totalMaterialQty`
+10. **Service per kg** = `basePricePerKg × (service% / 100)`
+11. **Final price per kg** = `basePricePerKg + serviceAmount`
 
 > **Note:** Charges (printing, lamination, slitting, pouch) are flat per-kg rates added to material cost — they are NOT multiplied by material quantity. Only wastage is applied as a percentage on the full total.
 
@@ -205,6 +225,27 @@ Pure function: `utils/calculators/gravureRate.js` → `calculateGravureRate(form
 │   (breakdown)       │  Sections: Materials → Printing → Charges → Adjustments → Total
 └─────────────────────┘
 ```
+
+---
+
+## Print Output Notes
+
+`GravurePrintLayout.jsx` maps the same calculated result into the shared `PrintInvoice` shell with a quote-focused presentation:
+
+- Header includes **Date & Time** (top-right)
+- Left party panel includes **Customer** and **Prepared By**
+- Meta grid shows only processed quote context:
+  - Lamination / Slitting / Pouch / Total Weight
+  - Assigned process companies (Print Co., Lam Co., Slit Co.)
+  - Price / Kg
+- Items table hides the generic TOTAL row for gravure print (`showTotalRow={false}`)
+- Adjustment area includes a **Rate Derivation** label and rows for:
+  - Wastage
+  - Total Cost
+  - Base Price / Kg
+  - Service / Kg
+
+This keeps the print quote compact and client-facing while preserving calculation traceability.
 
 ---
 

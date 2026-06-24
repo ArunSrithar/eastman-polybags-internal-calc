@@ -97,7 +97,10 @@ function resolveCompanyPricingSnapshot(form, rates, companies) {
  * calculateGravureRate(form, rates?)
  *
  * Formula:
- *   Price per kg = (Total Cost × (1 + wastage%)) / Total Material Qty
+ *   Total (with wastage) = Total Cost × (1 + wastage%)
+ *   Base Price per kg    = Total (with wastage) / Total Material Qty
+ *   Service per kg       = Base Price per kg × (service% / 100)
+ *   Final Price per kg   = Base Price per kg + Service per kg
  *
  * Where Total Cost = material cost + printing + lamination + slitting + pouch charges
  * (non-material charges are per-kg rates × total material qty)
@@ -176,10 +179,13 @@ export function calculateGravureRate(form, rates, companies) {
   const wastageAmount = totalCost * (wastagePercent / 100);
   const preServiceTotal = totalCost + wastageAmount;
 
+  const basePricePerKg = preServiceTotal / totalMaterialQty;
+
   const servicePercent = parseFloat(form.service) || 0;
-  const serviceAmount = preServiceTotal * (servicePercent / 100);
-  const adjustedTotal = preServiceTotal + serviceAmount;
-  const pricePerKg = adjustedTotal / totalMaterialQty;
+  // Service is treated as a per-kg surcharge based on base price/kg.
+  const serviceAmount = basePricePerKg * (servicePercent / 100);
+  const pricePerKg = basePricePerKg + serviceAmount;
+  const adjustedTotal = preServiceTotal + serviceAmount * totalMaterialQty;
 
   return {
     materialLines,
@@ -194,6 +200,7 @@ export function calculateGravureRate(form, rates, companies) {
     wastagePercent,
     wastageAmount,
     preServiceTotal,
+    basePricePerKg,
     servicePercent,
     serviceAmount,
     adjustedTotal,

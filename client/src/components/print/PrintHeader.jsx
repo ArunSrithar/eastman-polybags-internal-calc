@@ -40,7 +40,7 @@ export default function PrintHeader({
         }}
       >
         {/* Company block */}
-        <div style={{ maxWidth: "55%" }}>
+        <div style={{ maxWidth: "55%", paddingTop: "2px" }}>
           <div
             style={{
               fontFamily: "Georgia, 'Times New Roman', serif",
@@ -56,7 +56,7 @@ export default function PrintHeader({
           {COMPANY.address.map((line, i) => (
             <div
               key={i}
-              style={{ fontSize: "9px", color: P.muted, lineHeight: "1.7" }}
+              style={{ fontSize: "9px", color: P.muted, lineHeight: "1.85" }}
             >
               {line}
             </div>
@@ -70,7 +70,15 @@ export default function PrintHeader({
         </div>
 
         {/* Document wordmark */}
-        <div style={{ textAlign: "right" }}>
+        <div
+          style={{
+            textAlign: "right",
+            minWidth: "290px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+          }}
+        >
           <div
             style={{
               fontFamily: "Arial, Helvetica, sans-serif",
@@ -98,15 +106,25 @@ export default function PrintHeader({
             </div>
           ) : null}
           {documentDate ? (
-            <div style={{ fontSize: "10px", color: P.muted, marginTop: "2px" }}>
+            <div
+              style={{
+                fontSize: "11px",
+                color: P.text,
+                marginTop: "12px",
+                fontWeight: "500",
+                lineHeight: "1",
+              }}
+            >
               <span
                 style={{
                   textTransform: "uppercase",
-                  letterSpacing: "0.4px",
+                  letterSpacing: "0.5px",
                   fontSize: "8px",
+                  color: P.muted,
+                  marginRight: "6px",
                 }}
               >
-                Date.
+                Date & Time
               </span>{" "}
               {documentDate}
             </div>

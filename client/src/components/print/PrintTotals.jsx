@@ -54,10 +54,11 @@ export default function PrintTotals({
             style={{
               textTransform: "uppercase",
               letterSpacing: "0.6px",
-              color: P.muted,
-              fontWeight: pricePerKgProminent ? "800" : "700",
-              fontSize: pricePerKgProminent ? "11px" : "8px",
+              color: P.text,
+              fontWeight: "700",
+              fontSize: "11px",
               marginLeft: `${pricePerKgLabelIndent}px`,
+              paddingLeft: "56px",
             }}
           >
             {pricePerKgLabel}
