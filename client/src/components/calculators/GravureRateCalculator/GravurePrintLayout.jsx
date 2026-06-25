@@ -24,6 +24,8 @@ export default function GravurePrintLayout({ result, form }) {
     laminationRatePerKg,
     slittingRatePerKg,
     pouchRatePerKg,
+    slittingCharge,
+    pouchCharge,
     wastagePercent,
     wastageAmount,
     preServiceTotal,
@@ -37,10 +39,17 @@ export default function GravurePrintLayout({ result, form }) {
   } = result;
 
   const normalColors = Number(form.normalColors || 0);
-  const metallicColors = Number(form.metallicColors || 0);
+  const metallicColorsEnabled =
+    typeof form.metallicColorsEnabled === "boolean"
+      ? form.metallicColorsEnabled
+      : Number(form.metallicColors || 0) > 0;
+  const metallicColors = metallicColorsEnabled ? 1 : 0;
+  const mattFinishColors = form.mattFinish ? 1 : 0;
   const normalColorRate = Number(selectedRates?.normalColorRate ?? 0);
   const metallicColorRate = Number(selectedRates?.metallicColorRate ?? 0);
   const mattFinishRate = Number(selectedRates?.mattFinishRate ?? 0);
+  const slittingAmount = Number(slittingCharge ?? slittingRatePerKg ?? 0);
+  const pouchAmount = Number(pouchCharge ?? pouchRatePerKg ?? 0);
 
   function companySubtitle(name) {
     const visibleName = visibleCompanyName(name);
@@ -105,14 +114,14 @@ export default function GravurePrintLayout({ result, form }) {
         amount: normalColors * normalColorRate,
       }
       : null,
-    metallicColors > 0
+    metallicColorsEnabled
       ? {
         key: "printing-metallic",
         label: "Metallic Colors",
         subtitle: companySubtitle(selectedCompanies?.metallicColor),
-        qty: metallicColors,
-        price: metallicColorRate,
-        amount: metallicColors * metallicColorRate,
+        qty: null,
+        price: null,
+        amount: metallicColorRate,
       }
       : null,
     form.mattFinish
@@ -143,24 +152,24 @@ export default function GravurePrintLayout({ result, form }) {
       }
       : null,
     /* Slitting */
-    slittingRatePerKg > 0
+    slittingAmount > 0
       ? {
         key: "slitting",
         label: "Slitting",
         subtitle: companySubtitle(selectedCompanies?.slitting),
-        qty: null,
-        price: null,
-        amount: slittingRatePerKg,
+        qty: totalMaterialQty,
+        price: slittingRatePerKg,
+        amount: slittingAmount,
       }
       : null,
     /* Pouch making */
-    pouchRatePerKg > 0
+    pouchAmount > 0
       ? {
         key: "pouch",
         label: `Pouch Making (${form.pouchSize})`,
-        qty: null,
-        price: null,
-        amount: pouchRatePerKg,
+        qty: totalMaterialQty,
+        price: pouchRatePerKg,
+        amount: pouchAmount,
       }
       : null,
   ].filter(Boolean);
@@ -206,9 +215,16 @@ export default function GravurePrintLayout({ result, form }) {
 
   const slittingLabel = form.slitting ? "Yes" : "No";
   const pouchLabel = form.pouchSize || "—";
+  const colorExpression = `${normalColors} + ${metallicColors} + ${mattFinishColors}`;
 
   /* Only show: lamination decision, company assignments, and price/kg result */
   const metaRows = [
+    {
+      label: "No. Of Colors",
+      value: colorExpression,
+      label2: "",
+      value2: "",
+    },
     {
       label: "Lamination",
       value: laminationLabel,

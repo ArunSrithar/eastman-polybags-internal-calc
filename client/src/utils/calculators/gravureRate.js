@@ -103,7 +103,6 @@ function resolveCompanyPricingSnapshot(form, rates, companies) {
  *   Final Price per kg   = Base Price per kg + Service per kg
  *
  * Where Total Cost = material cost + printing + lamination + slitting + pouch charges
- * (non-material charges are per-kg rates × total material qty)
  *
  * @param {object} form  — form state from GravureForm
  * @param {object} [rates] — { normalColorRate, metallicColorRate, mattFinishRate,
@@ -145,10 +144,13 @@ export function calculateGravureRate(form, rates, companies) {
 
   // ── Per-kg charge rates ──────────────────────────────────────────────────
   const normalColors = parseInt(form.normalColors) || 0;
-  const metallicColors = parseInt(form.metallicColors) || 0;
+  const metallicColorsEnabled =
+    typeof form.metallicColorsEnabled === "boolean"
+      ? form.metallicColorsEnabled
+      : (parseInt(form.metallicColors) || 0) > 0;
   const printingRatePerKg =
     normalColors * effectiveRates.normalColorRate +
-    metallicColors * effectiveRates.metallicColorRate +
+    (metallicColorsEnabled ? effectiveRates.metallicColorRate : 0) +
     (form.mattFinish ? effectiveRates.mattFinishRate : 0);
 
   const laminationRatePerKg =
@@ -164,16 +166,19 @@ export function calculateGravureRate(form, rates, companies) {
     ? (effectiveRates.pouchRates[form.pouchSize] ?? DEFAULT_POUCH_RATE)
     : 0;
 
-  // ── Per-kg charge sums (NOT multiplied by qty) ──────────────────────────
-  // The formula: (materialCost + chargesPerKg + wastage) / qty = pricePerKg
-  const totalChargesPerKg =
+  // Slitting and pouch rates come from DB as per-kg rates, so convert to
+  // total process charge based on the current total material quantity.
+  const slittingCharge = slittingRatePerKg * totalMaterialQty;
+  const pouchCharge = pouchRatePerKg * totalMaterialQty;
+
+  const totalCharges =
     printingRatePerKg +
     laminationRatePerKg +
-    slittingRatePerKg +
-    pouchRatePerKg;
+    slittingCharge +
+    pouchCharge;
 
   // ── Totals ───────────────────────────────────────────────────────────────
-  const totalCost = totalMaterialCost + totalChargesPerKg;
+  const totalCost = totalMaterialCost + totalCharges;
 
   const wastagePercent = parseFloat(form.wastage) || 0;
   const wastageAmount = totalCost * (wastagePercent / 100);
@@ -195,7 +200,10 @@ export function calculateGravureRate(form, rates, companies) {
     laminationRatePerKg,
     slittingRatePerKg,
     pouchRatePerKg,
-    totalChargesPerKg,
+    slittingCharge,
+    pouchCharge,
+    totalCharges,
+    totalChargesPerKg: totalCharges,
     totalCost,
     wastagePercent,
     wastageAmount,

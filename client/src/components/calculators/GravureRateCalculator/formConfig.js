@@ -89,7 +89,7 @@ export function makeInitialForm() {
       ),
     },
     normalColors: "0",
-    metallicColors: "0",
+    metallicColorsEnabled: false,
     mattFinish: false,
     lamination: "none",
     slitting: false,

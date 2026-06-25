@@ -5,6 +5,8 @@
  *   label     string
  *   value     string
  *   onChange  fn(value)
+ *   onBlur    fn(event) (optional)
+ *   onKeyDown fn(event) (optional)
  *   min       number    (optional)
  *   max       number    (optional)
  *   width     string    Tailwind width class (default "w-20")
@@ -14,6 +16,8 @@ export default function NumberField({
   label,
   value,
   onChange,
+  onBlur,
+  onKeyDown,
   min,
   max,
   width = "w-20",
@@ -36,6 +40,8 @@ export default function NumberField({
         max={max}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
+        onKeyDown={onKeyDown}
         disabled={disabled}
         placeholder={placeholder}
         className="flex-1 bg-transparent px-3 py-2 text-sm text-center outline-none input-no-spinner w-0"
@@ -51,6 +57,8 @@ export default function NumberField({
       max={max}
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      onBlur={onBlur}
+      onKeyDown={onKeyDown}
       disabled={disabled}
       placeholder={placeholder}
       className={`input-base ${width} text-center input-no-spinner ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}

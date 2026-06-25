@@ -25,6 +25,8 @@ export default function GravureResult({ result, form, status, date }) {
     laminationRatePerKg,
     slittingRatePerKg,
     pouchRatePerKg,
+    slittingCharge,
+    pouchCharge,
     totalCost,
     wastagePercent,
     wastageAmount,
@@ -42,7 +44,10 @@ export default function GravureResult({ result, form, status, date }) {
   const mattFinishRate = selectedRates?.mattFinishRate ?? 0;
 
   const normalColors = parseInt(form.normalColors) || 0;
-  const metallicColors = parseInt(form.metallicColors) || 0;
+  const metallicColorsEnabled =
+    typeof form.metallicColorsEnabled === "boolean"
+      ? form.metallicColorsEnabled
+      : (parseInt(form.metallicColors) || 0) > 0;
   const hasMattFinish = form.mattFinish;
   const laminationType =
     form.lamination === "single"
@@ -52,9 +57,10 @@ export default function GravureResult({ result, form, status, date }) {
         : null;
 
   const hasPrinting = printingRatePerKg > 0;
-  const otherChargesPerKg =
-    laminationRatePerKg + slittingRatePerKg + pouchRatePerKg;
-  const hasOtherCharges = otherChargesPerKg > 0;
+  const slittingAmount = slittingCharge ?? slittingRatePerKg;
+  const pouchAmount = pouchCharge ?? pouchRatePerKg;
+  const otherChargesTotal = laminationRatePerKg + slittingAmount + pouchAmount;
+  const hasOtherCharges = otherChargesTotal > 0;
   const hasWastage = wastagePercent > 0;
   const hasService = servicePercent > 0;
 
@@ -139,13 +145,10 @@ export default function GravureResult({ result, form, status, date }) {
               amount={normalColors * normalColorRate}
             />
           ) : null}
-          {metallicColors > 0 ? (
+          {metallicColorsEnabled ? (
             <ItemRow
               label={companyLabel("Metallic Colors", selectedCompanies?.metallicColor)}
-              rate={metallicColorRate}
-              qty={metallicColors}
-              unit="clr"
-              amount={metallicColors * metallicColorRate}
+              amount={metallicColorRate}
             />
           ) : null}
           {hasMattFinish ? (
@@ -176,21 +179,25 @@ export default function GravureResult({ result, form, status, date }) {
               amount={laminationRatePerKg}
             />
           ) : null}
-          {slittingRatePerKg > 0 ? (
+          {slittingAmount > 0 ? (
             <ItemRow
               label={companyLabel("Slitting", selectedCompanies?.slitting)}
-              amount={slittingRatePerKg}
+              rate={slittingRatePerKg}
+              qty={totalMaterialQty}
+              amount={slittingAmount}
             />
           ) : null}
-          {pouchRatePerKg > 0 ? (
+          {pouchAmount > 0 ? (
             <ItemRow
               label={`Pouch Making (${form.pouchSize})`}
-              amount={pouchRatePerKg}
+              rate={pouchRatePerKg}
+              qty={totalMaterialQty}
+              amount={pouchAmount}
             />
           ) : null}
           <SectionSubtotal
             label="Other charges subtotal"
-            amount={otherChargesPerKg}
+            amount={otherChargesTotal}
           />
         </>
       ) : null}

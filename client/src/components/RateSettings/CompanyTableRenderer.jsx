@@ -7,7 +7,7 @@ const DEFAULT_COMPANY = "Eastman Color Printers";
 const PROCESS_PAIRS = [
     [
         { key: "normalColor", label: "Normal Color", unit: "₹/color" },
-        { key: "metallicColor", label: "Metallic Color", unit: "₹/color" },
+        { key: "metallicColor", label: "Metallic Color", unit: "" },
     ],
     [
         { key: "singleLamination", label: "Single Lamination", unit: "₹/kg" },
@@ -84,7 +84,9 @@ function ProcessCell({ company, processDef, handlers, canEdit, readOnly }) {
                         disabled={!canEdit || readOnly || !isAvailable}
                         className="flex-1 bg-transparent px-2 py-2 text-sm text-left outline-none input-no-spinner w-0 tabular-nums"
                     />
-                    <span className="px-2 text-label-3 text-xs shrink-0">{unitSuffix}</span>
+                    {unitSuffix ? (
+                        <span className="px-2 text-label-3 text-xs shrink-0">{unitSuffix}</span>
+                    ) : null}
                 </div>
             </div>
         </div>

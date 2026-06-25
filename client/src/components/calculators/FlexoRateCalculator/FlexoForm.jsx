@@ -2,7 +2,6 @@ import { useState, useImperativeHandle, forwardRef } from "react";
 import FormStack from "../../form/FormStack";
 import FormSection from "../../form/FormSection";
 import TextField from "../../form/TextField";
-import NumberField from "../../form/NumberField";
 import ToggleField from "../../form/ToggleField";
 import RadioField from "../../form/RadioField";
 import SelectField from "../../form/SelectField";
@@ -13,6 +12,7 @@ import {
   PRINTING_COLORS_OPTIONS,
 } from "./formConfig";
 import { useFlexoSettings } from "../../../context/FlexoSettingsContext";
+import { useAuth } from "../../../context/AuthContext";
 import { compareDimensions } from "../../../utils/dimensionUtils";
 
 const MATERIAL_TYPE_OPTIONS = CONVERSION_MATERIAL_TYPES.map((t) => ({
@@ -31,7 +31,10 @@ export default forwardRef(function FlexoForm(
   ref,
 ) {
   const [form, setForm] = useState(() => makeInitialForm());
-  const { settings } = useFlexoSettings();
+  const [savingPriceByMaterial, setSavingPriceByMaterial] = useState({});
+  const { settings, updateMaterialPrice } = useFlexoSettings();
+  const { canEditPrices } = useAuth();
+  const canEditMaterialPrice = canEditPrices("flexo-rate-calc");
 
   // Derive roll size options from live enabled rollSizeRates for selected material, sorted numerically
   const liveRollSizeOptions = Object.entries(
@@ -47,11 +50,14 @@ export default forwardRef(function FlexoForm(
     .map(([key]) => key)
     .sort(compareDimensions);
 
+  function getLiveMaterialPrice(materialKey) {
+    if (!materialKey) return 0;
+    return settings?.materials?.[materialKey]?.priceHistory?.[0]?.price ?? 0;
+  }
+
   function withLiveMaterialPrice(nextForm) {
     if (!nextForm.conversionMaterial) return nextForm;
-    const liveMaterialPrice =
-      settings?.materials?.[nextForm.conversionMaterial]?.priceHistory?.[0]
-        ?.price ?? 0;
+    const liveMaterialPrice = getLiveMaterialPrice(nextForm.conversionMaterial);
 
     return {
       ...nextForm,
@@ -68,9 +74,25 @@ export default forwardRef(function FlexoForm(
   useImperativeHandle(ref, () => ({ reset: resetForm }));
 
   function setField(key, val) {
-    const next = withLiveMaterialPrice({ ...form, [key]: val });
+    const next = { ...form, [key]: val };
     setForm(next);
     onProceed?.(next);
+  }
+
+  async function handleMaterialPriceSave(material, value) {
+    const price = parseFloat(value);
+    if (!material || !Number.isFinite(price) || price < 0) return;
+
+    const current = getLiveMaterialPrice(material);
+    if (String(current) === String(price)) return;
+    if (savingPriceByMaterial[material]) return;
+
+    setSavingPriceByMaterial((prev) => ({ ...prev, [material]: true }));
+    try {
+      await updateMaterialPrice(material, price);
+    } finally {
+      setSavingPriceByMaterial((prev) => ({ ...prev, [material]: false }));
+    }
   }
 
   return (
@@ -102,14 +124,21 @@ export default forwardRef(function FlexoForm(
             onProceed?.(next);
           }}
         />
-        <NumberField
+        <SelectField
           label="Material Price"
-          value={form.materialPrice}
-          onChange={(v) => setField("materialPrice", v)}
-          min={0}
+          placeholder="₹ price"
+          inline
           unit="₹"
           width="w-48"
-          disabled
+          storageKey={`flexo-price-history-${form.conversionMaterial}`}
+          defaultOptions={(settings?.materials?.[form.conversionMaterial]?.priceHistory ?? []).map((e) => String(e.price)).filter((v, i, a) => a.indexOf(v) === i)}
+          value={form.conversionMaterial ? String(getLiveMaterialPrice(form.conversionMaterial) || "") : ""}
+          onChange={(v) => {
+            setField("materialPrice", v);
+            handleMaterialPriceSave(form.conversionMaterial, v);
+          }}
+          disabled={!canEditMaterialPrice || !form.conversionMaterial || Boolean(savingPriceByMaterial[form.conversionMaterial])}
+          persistOptions={false}
         />
         <SelectField
           label="Roll Size"

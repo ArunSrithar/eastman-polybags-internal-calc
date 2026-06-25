@@ -2,7 +2,7 @@ import { fmt } from "../../../utils/format";
 
 const PROCESS_RATE_UNITS = {
   normalColor: "/color",
-  metallicColor: "/color",
+  metallicColor: "",
   mattFinish: "/kg",
   singleLamination: "/kg",
   doubleLamination: "/kg",

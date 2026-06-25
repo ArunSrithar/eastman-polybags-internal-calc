@@ -84,10 +84,10 @@ Four materials, each with a toggle + three sub-fields:
 | Field           | Type   | Range | Rate constant         | Rate (₹/kg) |
 | --------------- | ------ | ----- | --------------------- | ----------- |
 | Normal Colors   | Number | 0–12  | `NORMAL_COLOR_RATE`   | 5 per color |
-| Metallic Colors | Number | 0–12  | `METALLIC_COLOR_RATE` | 8 per color |
-| Matt Finish     | Toggle | —     | `MATT_FINISH_RATE`    | 3 flat      |
+| Metallic Colors | Toggle | —     | `METALLIC_COLOR_RATE` | 8 when ON   |
+| Matt Finish     | Toggle | —     | `MATT_FINISH_RATE`    | 3 when ON   |
 
-**Printing rate per kg** = `(normalColors × 5) + (metallicColors × 8) + (mattFinish ? 3 : 0)`
+**Printing rate per kg** = `(normalColors × 5) + (metallicEnabled ? 8 : 0) + (mattFinish ? 3 : 0)`
 
 ### 5. Lamination
 
@@ -169,10 +169,12 @@ Pure function: `utils/calculators/gravureRate.js` → `calculateGravureRate(form
   totalMaterialCost,   // sum of (price × qty) for enabled materials
   printingRatePerKg,   // printing charge total (₹/kg)
   laminationRatePerKg, // lamination charge (₹/kg)
-  slittingRatePerKg,   // slitting charge (₹/kg)
-  pouchRatePerKg,      // pouch making charge (₹/kg)
-  totalChargesPerKg,   // sum of all per-kg charges
-  totalCost,           // materialCost + chargesPerKg
+  slittingRatePerKg,   // slitting unit rate (₹/kg)
+  pouchRatePerKg,      // pouch unit rate (₹/kg)
+  slittingCharge,      // slitting total = slittingRatePerKg × totalMaterialQty
+  pouchCharge,         // pouch total = pouchRatePerKg × totalMaterialQty
+  totalCharges,        // printing + lamination + slittingCharge + pouchCharge
+  totalCost,           // materialCost + totalCharges
   wastagePercent,      // from form input
   wastageAmount,       // totalCost × (wastage% / 100)
   preServiceTotal,     // totalCost + wastageAmount
@@ -187,18 +189,18 @@ Pure function: `utils/calculators/gravureRate.js` → `calculateGravureRate(form
 ### Step-by-step
 
 1. **Materials** — for each enabled material: `amount = price × qty`. Sum all amounts → `totalMaterialCost`. Sum all qty → `totalMaterialQty`. If qty is 0, return `null`.
-2. **Printing** — `normalColors × 5 + metallicColors × 8 + (mattFinish ? 3 : 0)`
+2. **Printing** — `normalColors × 5 + (metallicEnabled ? 8 : 0) + (mattFinish ? 3 : 0)`
 3. **Lamination** — lookup by radio: none = 0, single = 12, double = 20
-4. **Slitting** — toggle: on = 4, off = 0
-5. **Pouch** — lookup `POUCH_RATE_BY_SIZE[pouchSize]`, fallback to 15
-6. **Total cost** = `totalMaterialCost + printingRate + laminationRate + slittingRate + pouchRate`
+4. **Slitting** — unit rate by toggle, then total: `slittingRatePerKg × totalMaterialQty`
+5. **Pouch** — lookup unit rate `POUCH_RATE_BY_SIZE[pouchSize]`, then total: `pouchRatePerKg × totalMaterialQty`
+6. **Total cost** = `totalMaterialCost + printingRatePerKg + laminationRatePerKg + slittingCharge + pouchCharge`
 7. **Wastage** = `totalCost × (wastage% / 100)`
 8. **Total (with wastage)** = `totalCost + wastageAmount`
 9. **Base price per kg** = `preServiceTotal / totalMaterialQty`
 10. **Service per kg** = `basePricePerKg × (service% / 100)`
 11. **Final price per kg** = `basePricePerKg + serviceAmount`
 
-> **Note:** Charges (printing, lamination, slitting, pouch) are flat per-kg rates added to material cost — they are NOT multiplied by material quantity. Only wastage is applied as a percentage on the full total.
+> **Note:** Slitting and pouch rates are stored as per-kg values and converted to total charges using total material kg. Wastage is applied as a percentage on the full total.
 
 ---
 

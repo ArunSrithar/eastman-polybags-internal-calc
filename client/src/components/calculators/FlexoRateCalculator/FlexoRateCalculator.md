@@ -51,7 +51,12 @@ Where:
 | Type     | Number input     |
 | Unit     | ₹               |
 | Required | Yes (> 0)        |
-| Default  | Empty            |
+| Default  | Auto-loaded from selected conversion material |
+
+Material price is editable in the calculator only for roles with `editPrices`
+permission on `flexo-rate-calc`. On blur / Enter, updates are saved to the
+selected material's settings entry. Users without permission see this field as
+read-only.
 
 ### 3. Conversion Material
 

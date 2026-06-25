@@ -270,15 +270,16 @@ export default forwardRef(function GravureForm(
           renderCompanyOption={renderNormalCompanyOption}
           companyDisabled={Number(form.normalColors || 0) <= 0}
         />
-        <ProcessCountCompanyRow
+        <ToggleCompanyRow
           label="Metallic Colors"
-          value={form.metallicColors}
-          onValueChange={(v) => setField("metallicColors", v)}
+          on={form.metallicColorsEnabled}
+          onToggle={() =>
+            setField("metallicColorsEnabled", !form.metallicColorsEnabled)
+          }
           companyValue={form.metallicColorCompany}
           onCompanyChange={(v) => setField("metallicColorCompany", v)}
           companyOptions={metallicCompanyOptions}
           renderCompanyOption={renderMetallicCompanyOption}
-          companyDisabled={Number(form.metallicColors || 0) <= 0}
         />
         <ToggleCompanyRow
           label="Matt Finish"

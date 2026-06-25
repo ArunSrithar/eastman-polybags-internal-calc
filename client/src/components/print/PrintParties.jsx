@@ -43,41 +43,27 @@ export default function PrintParties({
               style={{
                 width: "38%",
                 backgroundColor: P.panel,
-                padding: "10px 14px",
+                padding: "0",
                 verticalAlign: "top",
                 borderRight: `1px solid ${P.rule}`,
+                position: "relative",
               }}
             >
               <div
                 style={{
-                  fontSize: "8px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.7px",
-                  color: P.muted,
-                  marginBottom: "6px",
+                  display: "flex",
+                  flexDirection: "column",
+                  position: "absolute",
+                  inset: 0,
                 }}
               >
-                {partyPrimaryLabel}
-              </div>
-              <div
-                style={{
-                  fontSize: "13px",
-                  fontWeight: "700",
-                  color: P.text,
-                  marginBottom: hasSecondary ? "12px" : "0",
-                }}
-              >
-                {firstPartyValue || "—"}
-              </div>
-              {hasSecondary ? (
-                <>
-                  <div
-                    style={{
-                      height: "1px",
-                      backgroundColor: P.rule,
-                      marginBottom: "8px",
-                    }}
-                  />
+                <div
+                  style={{
+                    flex: hasSecondary ? 1 : "none",
+                    padding: "10px 14px",
+                    borderBottom: hasSecondary ? `1px solid ${P.rule}` : "none",
+                  }}
+                >
                   <div
                     style={{
                       fontSize: "8px",
@@ -87,15 +73,44 @@ export default function PrintParties({
                       marginBottom: "6px",
                     }}
                   >
-                    {partySecondaryLabel}
+                    {partyPrimaryLabel}
                   </div>
                   <div
-                    style={{ fontSize: "13px", fontWeight: "700", color: P.text }}
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: "700",
+                      color: P.text,
+                    }}
                   >
-                    {secondPartyValue || "—"}
+                    {firstPartyValue || "—"}
                   </div>
-                </>
-              ) : null}
+                </div>
+                {hasSecondary ? (
+                  <div
+                    style={{
+                      flex: 1,
+                      padding: "10px 14px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "8px",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.7px",
+                        color: P.muted,
+                        marginBottom: "6px",
+                      }}
+                    >
+                      {partySecondaryLabel}
+                    </div>
+                    <div
+                      style={{ fontSize: "13px", fontWeight: "700", color: P.text }}
+                    >
+                      {secondPartyValue || "—"}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </td>
 
             {/* ── Meta grid ── */}

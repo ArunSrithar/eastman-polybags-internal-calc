@@ -27,6 +27,7 @@ export default function CreatableSelect({
   disabled = false,
   persistOptions = true,
   sanitizeInput,
+  hideArrow = false,
 }) {
   function getOptionValue(opt) {
     return typeof opt === "string" ? opt : opt?.value ?? "";
@@ -274,19 +275,21 @@ export default function CreatableSelect({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         disabled={disabled}
-        className={`input-base pr-7 ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
+        className={`input-base ${hideArrow ? "" : "pr-7"} ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
       />
-      <span
-        className={`absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none transition-all duration-150 ${disabled
-          ? "text-label-4 rotate-0"
-          : open
-            ? "text-tint rotate-180"
-            : "text-label-3 rotate-0"
-          }`}
-        aria-hidden="true"
-      >
-        <ChevronDownIcon className="size-3" />
-      </span>
+      {hideArrow ? null : (
+        <span
+          className={`absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none transition-all duration-150 ${disabled
+            ? "text-label-4 rotate-0"
+            : open
+              ? "text-tint rotate-180"
+              : "text-label-3 rotate-0"
+            }`}
+          aria-hidden="true"
+        >
+          <ChevronDownIcon className="size-3" />
+        </span>
+      )}
 
       {open && filtered.length > 0
         ? createPortal(
