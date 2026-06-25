@@ -54,23 +54,29 @@ export function addMaterialOption(materialKey, type, value) {
   });
 }
 
-// ── Pouches CRUD ───────────────────────────────────────────────────────────
-export function addPouch(length, breadth, rate) {
-  return request(`${API_BASE}/pouches`, {
+// ── Pouches CRUD (company-scoped) ─────────────────────────────────────────
+export function listCompanyPouches(companyId) {
+  return request(`${API_BASE}/companies/${companyId}/pouches`);
+}
+
+export function addCompanyPouch(companyId, length, breadth, types) {
+  return request(`${API_BASE}/companies/${companyId}/pouches`, {
     method: "POST",
-    body: JSON.stringify({ length, breadth, rate }),
+    body: JSON.stringify({ length, breadth, types }),
   });
 }
 
-export function updatePouch(id, fields) {
-  return request(`${API_BASE}/pouches/${id}`, {
+export function updateCompanyPouch(companyId, id, fields) {
+  return request(`${API_BASE}/companies/${companyId}/pouches/${id}`, {
     method: "PUT",
     body: JSON.stringify(fields),
   });
 }
 
-export function deletePouch(id) {
-  return request(`${API_BASE}/pouches/${id}`, { method: "DELETE" });
+export function deleteCompanyPouch(companyId, id) {
+  return request(`${API_BASE}/companies/${companyId}/pouches/${id}`, {
+    method: "DELETE",
+  });
 }
 
 // ── Charge rates ───────────────────────────────────────────────────────────

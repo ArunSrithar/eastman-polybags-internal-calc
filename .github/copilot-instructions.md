@@ -172,7 +172,7 @@ client/src/
 │   │
 │   ├── overlays/                🔲 All pending
 │   │
-│   ├── RateSettings/            ✅ Gravure Price Settings (11 files, see GravurePriceSettings.md)
+│   ├── RateSettings/            ✅ Gravure Price Settings + chunked pouch editor (`pouch/` folder)
 │   │
 │   └── calculators/             ✅ All 3 calculators complete
 │       ├── SavedQuotesView.jsx          ✅ Shared saved quotes 2-col layout (list + breakdown)
@@ -207,6 +207,7 @@ client/src/
 │   ├── gravureRates.js      ✅ Printing/lam/slitting rates, pouch lookup, sample quotes
 │   ├── flexoRateCalc.js     ✅ Conversion/printing/gusset rate lookups, toggle rates, cutting/wastage, sample quotes
 │   ├── jobCost.js           ✅ Line item definitions, default prices, dropdown seeds, sample quotes
+│   ├── pouchTypes.js        ✅ Shared pouch type options/defaults/label helpers
 │   └── invoiceColors.js     ✅ Shared SECTION_COLORS for invoice section labels (blue, green, purple, orange)
 │
 ├── utils/

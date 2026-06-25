@@ -14,7 +14,9 @@ import {
 
 const buildPayload = (name, form, calc) => ({
   quoteName: name,
+  pouchCompany: form.pouchCompany,
   pouchSize: form.pouchSize,
+  pouchType: form.pouchType,
   pricePerKg: calc.pricePerKg,
   form: {
     ...form,

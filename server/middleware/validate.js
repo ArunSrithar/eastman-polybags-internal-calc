@@ -67,6 +67,81 @@ export function validateString(field) {
   };
 }
 
+export function validateObject(field) {
+  return (req, res, next) => {
+    const val = req.body[field];
+    if (
+      val == null ||
+      typeof val !== "object" ||
+      Array.isArray(val)
+    ) {
+      return res.status(400).json({ error: `${field} must be an object` });
+    }
+    next();
+  };
+}
+
+const POUCH_TYPE_KEYS = [
+  "normalPouch",
+  "normalWithZipLock",
+  "standUpPouch",
+  "standUpWithZipLock",
+];
+
+export function validatePouchTypes(req, res, next) {
+  const { types } = req.body;
+  if (!types || typeof types !== "object" || Array.isArray(types)) {
+    return res.status(400).json({ error: "types must be an object" });
+  }
+
+  let hasField = false;
+  for (const [typeKey, typeValue] of Object.entries(types)) {
+    if (!POUCH_TYPE_KEYS.includes(typeKey)) {
+      return res.status(400).json({ error: `Invalid pouch type: ${typeKey}` });
+    }
+
+    if (
+      !typeValue ||
+      typeof typeValue !== "object" ||
+      Array.isArray(typeValue)
+    ) {
+      return res
+        .status(400)
+        .json({ error: `types.${typeKey} must be an object` });
+    }
+
+    if (typeValue.price !== undefined) {
+      hasField = true;
+      if (
+        typeof typeValue.price !== "number" ||
+        !Number.isFinite(typeValue.price) ||
+        typeValue.price < 0
+      ) {
+        return res.status(400).json({
+          error: `types.${typeKey}.price must be a non-negative number`,
+        });
+      }
+    }
+
+    if (typeValue.isAvailable !== undefined) {
+      hasField = true;
+      if (typeof typeValue.isAvailable !== "boolean") {
+        return res.status(400).json({
+          error: `types.${typeKey}.isAvailable must be a boolean`,
+        });
+      }
+    }
+  }
+
+  if (!hasField) {
+    return res.status(400).json({
+      error: "types must include at least one price or isAvailable field",
+    });
+  }
+
+  next();
+}
+
 // ── Flexo validators ───────────────────────────────────────────────────────
 
 export function validateFlexoMaterial(req, res, next) {

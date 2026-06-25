@@ -8,10 +8,12 @@ import MaterialPriceTable from "./MaterialPriceTable";
 import PouchTable from "./PouchTable";
 import CompaniesContainer from "./CompaniesContainer";
 import CompanyTableRenderer from "./CompanyTableRenderer";
+import { useAuth } from "../../context/AuthContext";
 
 export default function GravurePriceSettings() {
   const {
     settings,
+    companies,
     loading,
     updateMaterialPrice,
     addPouch,
@@ -19,6 +21,8 @@ export default function GravurePriceSettings() {
     removePouch,
   } = useGravureSettings();
   const [toast, showToast] = useToast();
+  const { canEditPrices } = useAuth();
+  const canEdit = canEditPrices("gravure");
   const [activeTab, setActiveTab] = useState(ALL_TABS[0]);
   const [adding, setAdding] = useState(false);
 
@@ -50,12 +54,12 @@ export default function GravurePriceSettings() {
     }
   }
 
-  async function handleAddPouch(length, breadth, rate) {
+  async function handleAddPouch(companyId, length, breadth, types) {
     try {
-      await addPouch(length, breadth, rate);
+      await addPouch(companyId, length, breadth, types);
       showToast(
         "Pouch Added",
-        `New size ${length}×${breadth} added at ₹${rate} per bag`,
+        `New size ${length}×${breadth} added`,
       );
       setAdding(false);
     } catch (err) {
@@ -63,19 +67,18 @@ export default function GravurePriceSettings() {
     }
   }
 
-  async function handleEditPouch(id, fields) {
+  async function handleEditPouch(companyId, id, fields) {
     try {
-      await editPouch(id, fields);
-      if (!("enabled" in fields))
-        showToast("Pouch Updated", "Size and rate saved successfully");
+      await editPouch(companyId, id, fields);
+      showToast("Pouch Updated", "Pouch type rate saved successfully");
     } catch (err) {
       showToast("Update Failed", err.message, "error");
     }
   }
 
-  async function handleDeletePouch(id) {
+  async function handleDeletePouch(companyId, id) {
     try {
-      await removePouch(id);
+      await removePouch(companyId, id);
       showToast("Pouch Deleted", "Pouch size removed from settings");
     } catch (err) {
       showToast("Delete Failed", err.message, "error");
@@ -100,13 +103,12 @@ export default function GravurePriceSettings() {
       case "pouch":
         return (
           <PouchTable
-            settings={settings}
-            onEdit={handleEditPouch}
+            companies={companies}
+            pouches={settings.pouches ?? []}
+            onUpdate={handleEditPouch}
             onDelete={handleDeletePouch}
-            adding={adding}
             onAdd={handleAddPouch}
-            onCancelAdd={() => setAdding(false)}
-            onAddStart={() => setAdding(true)}
+            canEdit={canEdit}
           />
         );
       case "companies":

@@ -83,9 +83,11 @@ export default function CreatableSelect({
     left: 0,
     width: 0,
     openAbove: false,
+    maxHeight: 220,
   });
   const wrapRef = useRef(null);
   const inputRef = useRef(null);
+  const menuRef = useRef(null);
   const optionRefs = useRef([]);
 
   useEffect(() => {
@@ -95,15 +97,20 @@ export default function CreatableSelect({
   function computePosition() {
     if (!wrapRef.current) return;
     const r = wrapRef.current.getBoundingClientRect();
-    const maxH = 200;
+    const maxH = 260;
     const spaceBelow = window.innerHeight - r.bottom - 8;
-    const openAbove = spaceBelow < Math.min(maxH, 100);
+    const spaceAbove = r.top - 8;
+    const openAbove = spaceBelow < 140 && spaceAbove > spaceBelow;
+    const available = openAbove ? spaceAbove : spaceBelow;
+    const maxHeight = Math.max(120, Math.min(maxH, available));
+
     setDropPos({
       top: openAbove ? undefined : r.bottom + 4,
       bottom: openAbove ? window.innerHeight - r.top + 4 : undefined,
       left: r.left,
       width: r.width,
       openAbove,
+      maxHeight,
     });
   }
 
@@ -116,17 +123,21 @@ export default function CreatableSelect({
   useEffect(() => {
     if (!open) return;
 
-    function closeDropdown() {
-      setOpen(false);
+    function handleViewportChange(event) {
+      const target = event?.target;
+      if (target && menuRef.current?.contains(target)) {
+        return;
+      }
+      computePosition();
     }
 
-    // Close on any parent/window scroll to avoid a detached floating menu.
-    window.addEventListener("scroll", closeDropdown, true);
-    window.addEventListener("resize", closeDropdown);
+    // Keep dropdown anchored during viewport/container scrolling.
+    window.addEventListener("scroll", handleViewportChange, true);
+    window.addEventListener("resize", handleViewportChange);
 
     return () => {
-      window.removeEventListener("scroll", closeDropdown, true);
-      window.removeEventListener("resize", closeDropdown);
+      window.removeEventListener("scroll", handleViewportChange, true);
+      window.removeEventListener("resize", handleViewportChange);
     };
   }, [open]);
 
@@ -294,6 +305,7 @@ export default function CreatableSelect({
       {open && filtered.length > 0
         ? createPortal(
           <ul
+            ref={menuRef}
             className={`dropdown-menu ${dropPos.openAbove ? "dropdown-menu-up" : "dropdown-menu-down"
               }`}
             style={{
@@ -301,6 +313,7 @@ export default function CreatableSelect({
               bottom: dropPos.bottom,
               left: dropPos.left,
               width: dropPos.width,
+              maxHeight: `${dropPos.maxHeight}px`,
             }}
           >
             {filtered.map((opt, idx) => {

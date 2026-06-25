@@ -6,6 +6,8 @@ import {
   validateNumber,
   validateString,
   validateOptionType,
+  validateObject,
+  validatePouchTypes,
 } from "../middleware/validate.js";
 import { requirePermission } from "../middleware/authorize.js";
 
@@ -36,19 +38,36 @@ router.post(
   ctrl.addMaterialOption,
 );
 
-// Pouches
+// Pouches (company-scoped)
+router.get(
+  "/companies/:companyId/pouches",
+  needCalculate,
+  ctrl.listCompanyPouches,
+);
+
 router.post(
-  "/pouches",
+  "/companies/:companyId/pouches",
   needEditPrices,
   validateString("length"),
   validateString("breadth"),
-  validateNumber("rate"),
-  ctrl.createPouch,
+  validateObject("types"),
+  validatePouchTypes,
+  ctrl.createCompanyPouch,
 );
 
-router.put("/pouches/:id", needEditPrices, ctrl.updatePouch);
+router.put(
+  "/companies/:companyId/pouches/:id",
+  needEditPrices,
+  validateObject("types"),
+  validatePouchTypes,
+  ctrl.updateCompanyPouch,
+);
 
-router.delete("/pouches/:id", needEditPrices, ctrl.deletePouch);
+router.delete(
+  "/companies/:companyId/pouches/:id",
+  needEditPrices,
+  ctrl.deleteCompanyPouch,
+);
 
 // Charge rates
 router.put(

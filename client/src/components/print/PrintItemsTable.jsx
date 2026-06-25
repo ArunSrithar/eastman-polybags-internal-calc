@@ -27,7 +27,7 @@ const MIN_ROWS = 8;
 
 function hCell(align, width) {
   return {
-    padding: "8px 10px",
+    padding: "9px 10px",
     textAlign: align,
     fontSize: "9px",
     textTransform: "uppercase",
@@ -40,7 +40,7 @@ function hCell(align, width) {
 
 function dCell(align, color) {
   return {
-    padding: "5px 10px",
+    padding: "6px 10px",
     textAlign: align,
     fontSize: "10px",
     color: color || P.text,
@@ -82,7 +82,7 @@ export default function PrintItemsTable({
         {/* ── Header ── */}
         <thead>
           <tr style={{ borderBottom: `2px solid ${P.ruleStrong}` }}>
-            <th style={hCell("center", "46px")}>SI No.</th>
+            <th style={hCell("center", "56px")}>SI No.</th>
             <th style={hCell("left")}>Description of Goods</th>
             <th style={hCell("center", "80px")}>Quantity</th>
             <th style={hCell("right", "70px")}>Rate / Kg</th>
@@ -106,18 +106,19 @@ export default function PrintItemsTable({
                 {row.subtitle ? (
                   <div
                     style={{
-                      marginTop: "2px",
-                      fontSize: "9px",
-                      fontWeight: "400",
-                      color: P.muted,
+                      marginTop: "3px",
+                      fontSize: "9.5px",
+                      fontWeight: "500",
+                      color: P.text,
                       textTransform: "none",
+                      lineHeight: "1.3",
                     }}
                   >
                     {row.subtitle}
                   </div>
                 ) : null}
               </td>
-              <td style={{ ...dCell("center"), padding: "5px 6px" }}>
+              <td style={{ ...dCell("center"), padding: "6px 6px" }}>
                 {(() => {
                   const parts = getQtyParts(row);
                   if (!parts) return null;
@@ -147,7 +148,7 @@ export default function PrintItemsTable({
           {Array.from({ length: blankRows }).map((_, i) => (
             <tr
               key={`blank-${i}`}
-              style={{ height: "22px", borderBottom: `1px solid ${P.rule}` }}
+              style={{ height: "24px", borderBottom: `1px solid ${P.rule}` }}
             >
               <td />
               <td />
@@ -202,7 +203,7 @@ export default function PrintItemsTable({
                 <td
                   colSpan={3}
                   style={{
-                    padding: "5px 10px",
+                    padding: "6px 10px",
                     textAlign: "right",
                     fontStyle: row.bold ? "normal" : "italic",
                     fontWeight: row.bold ? "700" : "400",
@@ -214,7 +215,7 @@ export default function PrintItemsTable({
                 </td>
                 <td
                   style={{
-                    padding: "5px 10px",
+                    padding: "6px 10px",
                     textAlign: "right",
                     fontVariantNumeric: "tabular-nums",
                     fontWeight: row.bold ? "700" : "400",

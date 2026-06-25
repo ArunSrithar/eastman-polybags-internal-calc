@@ -71,52 +71,7 @@ function buildGravureDefaults(now) {
     ...value,
   }));
 
-  const pouchDocs = [
-    {
-      _id: "ps-1",
-      length: "4",
-      breadth: "6",
-      rate: 15,
-      enabled: true,
-      createdBy: "Admin",
-      createdAt: asIso(now),
-      modifiedBy: null,
-      modifiedAt: null,
-    },
-    {
-      _id: "ps-2",
-      length: "5",
-      breadth: "7",
-      rate: 18,
-      enabled: true,
-      createdBy: "Admin",
-      createdAt: asIso(now),
-      modifiedBy: null,
-      modifiedAt: null,
-    },
-    {
-      _id: "ps-3",
-      length: "6",
-      breadth: "8",
-      rate: 20,
-      enabled: true,
-      createdBy: "Admin",
-      createdAt: asIso(now),
-      modifiedBy: null,
-      modifiedAt: null,
-    },
-    {
-      _id: "ps-4",
-      length: "7",
-      breadth: "10",
-      rate: 25,
-      enabled: true,
-      createdBy: "Admin",
-      createdAt: asIso(now),
-      modifiedBy: null,
-      modifiedAt: null,
-    },
-  ];
+  const pouchDocs = [];
 
   const chargeRateDocs = [
     {
@@ -248,7 +203,9 @@ export async function seedIfMissing() {
       buildGravureDefaults(now);
 
     await GravureMaterial.insertMany(materialDocs);
-    await GravurePouch.insertMany(pouchDocs);
+    if (pouchDocs.length > 0) {
+      await GravurePouch.insertMany(pouchDocs);
+    }
     await GravureChargeRate.insertMany(chargeRateDocs);
 
     console.log("Seeded Gravure MongoDB defaults");

@@ -33,7 +33,12 @@ export default function PrintParties({
 
   return (
     <div
-      style={{ borderRadius: "8px", overflow: "hidden", marginBottom: "14px" }}
+      style={{
+        borderRadius: "8px",
+        overflow: "hidden",
+        marginBottom: "14px",
+        border: `1px solid ${P.rule}`,
+      }}
     >
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <tbody>
@@ -41,7 +46,7 @@ export default function PrintParties({
             {/* ── Bill To / Ship To — grey panel ── */}
             <td
               style={{
-                width: "38%",
+                width: "30%",
                 backgroundColor: P.panel,
                 padding: "0",
                 verticalAlign: "top",
@@ -80,6 +85,8 @@ export default function PrintParties({
                       fontSize: "13px",
                       fontWeight: "700",
                       color: P.text,
+                      wordBreak: "break-all",
+                      overflowWrap: "anywhere",
                     }}
                   >
                     {firstPartyValue || "—"}
@@ -104,7 +111,13 @@ export default function PrintParties({
                       {partySecondaryLabel}
                     </div>
                     <div
-                      style={{ fontSize: "13px", fontWeight: "700", color: P.text }}
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: "700",
+                        color: P.text,
+                        wordBreak: "break-all",
+                        overflowWrap: "anywhere",
+                      }}
                     >
                       {secondPartyValue || "—"}
                     </div>
@@ -116,7 +129,7 @@ export default function PrintParties({
             {/* ── Meta grid ── */}
             <td
               style={{
-                width: "62%",
+                width: "70%",
                 backgroundColor: P.panel,
                 padding: "0",
                 verticalAlign: "top",
@@ -125,7 +138,9 @@ export default function PrintParties({
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <tbody>
                   {metaRows.map((row, i) => {
-                    const isPriceRow =
+                    const isTotalWeightLabel =
+                      String(row.label || "").toLowerCase() === "total weight";
+                    const isPricePerKgLabel =
                       String(row.label2 || "").toLowerCase() === "price / kg";
 
                     return (
@@ -139,10 +154,11 @@ export default function PrintParties({
                         <td
                           style={{
                             padding: `${cellPadY} ${cellPadX}`,
-                            fontSize: "8px",
+                            fontSize: "9px",
                             textTransform: "uppercase",
                             letterSpacing: "0.5px",
                             color: P.muted,
+                            fontWeight: isTotalWeightLabel ? "700" : "500",
                             width: "25%",
                             whiteSpace: "nowrap",
                           }}
@@ -157,6 +173,7 @@ export default function PrintParties({
                             color: P.text,
                             width: "25%",
                             borderRight: `1px solid ${P.rule}`,
+                            whiteSpace: "nowrap",
                           }}
                         >
                           {row.value || ""}
@@ -164,11 +181,11 @@ export default function PrintParties({
                         <td
                           style={{
                             padding: `${cellPadY} ${cellPadX}`,
-                            fontSize: "8px",
+                            fontSize: "9px",
                             textTransform: "uppercase",
                             letterSpacing: "0.5px",
-                            color: isPriceRow ? P.text : P.muted,
-                            fontWeight: isPriceRow ? "700" : "500",
+                            color: P.muted,
+                            fontWeight: isPricePerKgLabel ? "700" : "500",
                             width: "25%",
                             whiteSpace: "nowrap",
                           }}
@@ -178,10 +195,11 @@ export default function PrintParties({
                         <td
                           style={{
                             padding: `${cellPadY} ${cellPadX}`,
-                            fontSize: isPriceRow ? "12px" : "10px",
-                            fontWeight: isPriceRow ? "700" : "600",
+                            fontSize: "10px",
+                            fontWeight: "600",
                             color: P.text,
                             width: "25%",
+                            whiteSpace: "nowrap",
                           }}
                         >
                           {row.value2 || ""}

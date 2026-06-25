@@ -82,9 +82,9 @@ export default function PrintTotals({
       <div
         style={{
           border: `1px solid ${P.rule}`,
-          borderTop: "none",
+          borderTop: `1px solid ${P.ruleStrong}`,
           borderRadius: "0 0 8px 8px",
-          padding: "8px 10px",
+          padding: "9px 10px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-start",
@@ -97,17 +97,18 @@ export default function PrintTotals({
               {/* Total amount in words */}
               <div
                 style={{
-                  fontSize: "8px",
+                  fontSize: "8.5px",
                   textTransform: "uppercase",
                   letterSpacing: "0.5px",
                   color: P.muted,
                   marginBottom: "3px",
+                  fontWeight: "600",
                 }}
               >
                 Amount Chargeable (in words)
               </div>
               <div
-                style={{ fontWeight: "700", fontSize: "10px", color: P.text }}
+                style={{ fontWeight: "700", fontSize: "11px", color: P.text }}
               >
                 {amountWords}
               </div>

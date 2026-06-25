@@ -1,5 +1,15 @@
 # Gravure Rate Calculator
 
+## Update — 2026-06-26
+
+- Pouch selection is now 3-part: `pouchCompany`, `pouchSize`, and `pouchType`.
+- Pouch UI flow now has two rows:
+  - Row 1: company selector (only companies that provide pouch sizes)
+  - Row 2: equal-width pouch size selector + pouch type selector
+- Company and pouch size selectors are bidirectionally filtered and can be selected in any order.
+- Pouch type selector stays disabled until both company and size are selected, and only enabled types are shown.
+- Pouch rate resolution in calculation now uses selected company + size + type (with legacy fallback for old quotes that only stored size).
+
 > Internal calculator for estimating per-kg printing rates for gravure (rotogravure) packaging jobs. Used daily by the Eastman Colour Printers team to generate customer quotes.
 
 Reference: [`Gravure Rate Calculation.jpeg`](../../../assets/reference_bills/Gravure%20Rate%20Calculation.jpeg)

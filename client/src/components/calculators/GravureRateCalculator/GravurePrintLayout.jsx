@@ -4,6 +4,7 @@ import PrintInvoice from "../../print/PrintInvoice";
 import { CompanyIcon } from "../../ui/Icons";
 import { isOwnGravureCompany, visibleCompanyName } from "./companyDisplay";
 import { useAuth } from "../../../context/AuthContext";
+import { getPouchTypeLabel } from "../../../constants/pouchTypes";
 
 /**
  * GravurePrintLayout — thin wrapper that maps Gravure result + form data
@@ -167,7 +168,8 @@ export default function GravurePrintLayout({ result, form }) {
     pouchAmount > 0
       ? {
         key: "pouch",
-        label: `Pouch Making (${form.pouchSize})`,
+        label: `Pouch Making (${form.pouchSize}${form.pouchType ? ` · ${getPouchTypeLabel(form.pouchType)}` : ""})`,
+        subtitle: companySubtitle(selectedCompanies?.pouch),
         qty: totalMaterialQty,
         price: pouchRatePerKg,
         amount: pouchAmount,
@@ -216,37 +218,38 @@ export default function GravurePrintLayout({ result, form }) {
 
   const slittingLabel = form.slitting ? "Yes" : "No";
   const pouchLabel = form.pouchSize || "—";
+  const laminationCompany =
+    form.lamination === "single"
+      ? companyMetaValue(selectedCompanies?.singleLamination)
+      : form.lamination === "double"
+        ? companyMetaValue(selectedCompanies?.doubleLamination)
+        : "—";
   const colorExpression = `${normalColors} + ${metallicColors} + ${mattFinishColors}`;
 
-  /* Only show: lamination decision, company assignments, and price/kg result */
+  /* Print metadata block in paired 2-column rows. */
   const metaRows = [
     {
-      label: "No. Of Colors",
-      value: colorExpression,
-      label2: "",
-      value2: "",
+      label: "Pouch Size",
+      value: pouchLabel,
+      label2: "No. Of Colours",
+      value2: colorExpression,
+    },
+    {
+      label: "Pouch Type",
+      value: form.pouchType ? getPouchTypeLabel(form.pouchType) : "—",
+      label2: "Pouch Co.",
+      value2: companyMetaValue(selectedCompanies?.pouch),
     },
     {
       label: "Lamination",
       value: laminationLabel,
-      label2: "Print Co.",
-      value2: companyMetaValue(selectedCompanies?.normalColor),
+      label2: "Lamination Co.",
+      value2: laminationCompany,
     },
     {
       label: "Slitting",
       value: slittingLabel,
-      label2: "Lam Co.",
-      value2:
-        form.lamination === "single"
-          ? companyMetaValue(selectedCompanies?.singleLamination)
-          : form.lamination === "double"
-            ? companyMetaValue(selectedCompanies?.doubleLamination)
-            : "—",
-    },
-    {
-      label: "Pouch",
-      value: pouchLabel,
-      label2: "Slit Co.",
+      label2: "Slitting Co.",
       value2: companyMetaValue(selectedCompanies?.slitting),
     },
     {

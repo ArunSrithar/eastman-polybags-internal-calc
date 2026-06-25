@@ -18,6 +18,7 @@ const FALLBACK_RATES = {
   doubleLamRate: DOUBLE_LAM_RATE,
   slittingRate: SLITTING_RATE,
   pouchRates: POUCH_RATE_BY_SIZE,
+  pouches: [],
 };
 
 export const DEFAULT_GRAVURE_COMPANY_NAME = "Eastman Color Printers";
@@ -72,6 +73,7 @@ function resolveCompanyPricingSnapshot(form, rates, companies) {
     doubleLamination:
       form.doubleLaminationCompany || DEFAULT_GRAVURE_COMPANY_NAME,
     slitting: form.slittingCompany || DEFAULT_GRAVURE_COMPANY_NAME,
+    pouch: form.pouchCompany || "",
   };
 
   const resolvedRates = Object.entries(PROCESS_RATE_KEYS).reduce(
@@ -91,6 +93,50 @@ function resolveCompanyPricingSnapshot(form, rates, companies) {
     companies: companiesByProcess,
     rates: resolvedRates,
   };
+}
+
+function resolvePouchRate(form, rates, companies, selectedCompanyName) {
+  if (!form.pouchSize) return 0;
+
+  const hasPouchCompanyField = Object.prototype.hasOwnProperty.call(
+    form,
+    "pouchCompany",
+  );
+  const hasPouchTypeField = Object.prototype.hasOwnProperty.call(
+    form,
+    "pouchType",
+  );
+
+  // New form behavior: do not apply pouch charge until company + type are selected.
+  if (hasPouchCompanyField || hasPouchTypeField) {
+    if (!selectedCompanyName || !form.pouchType) {
+      return 0;
+    }
+  } else if (!selectedCompanyName || !form.pouchType) {
+    // Backward-compatibility for old saved quotes that only had pouchSize.
+    return rates?.pouchRates?.[form.pouchSize] ?? 0;
+  }
+
+  const pouchType = form.pouchType || "normalPouch";
+  const company = findCompany(companies, selectedCompanyName);
+  const companyId = company?.id;
+
+  if (companyId && Array.isArray(rates?.pouches) && rates.pouches.length > 0) {
+    const pouch = rates.pouches.find(
+      (entry) =>
+        entry?.companyId === companyId &&
+        `${entry.length} x ${entry.breadth}` === form.pouchSize,
+    );
+
+    const typeConfig = pouch?.types?.[pouchType];
+    if (typeConfig?.isAvailable === false) return 0;
+
+    if (Number.isFinite(typeConfig?.price)) {
+      return typeConfig.price;
+    }
+  }
+
+  return rates?.pouchRates?.[form.pouchSize] ?? DEFAULT_POUCH_RATE;
 }
 
 /**
@@ -163,7 +209,12 @@ export function calculateGravureRate(form, rates, companies) {
   const slittingRatePerKg = form.slitting ? effectiveRates.slittingRate : 0;
 
   const pouchRatePerKg = form.pouchSize
-    ? (effectiveRates.pouchRates[form.pouchSize] ?? DEFAULT_POUCH_RATE)
+    ? resolvePouchRate(
+        form,
+        effectiveRates,
+        companies,
+        companyPricingSnapshot.companies.pouch,
+      )
     : 0;
 
   // Slitting and pouch rates come from DB as per-kg rates, so convert to
@@ -215,6 +266,7 @@ export function calculateGravureRate(form, rates, companies) {
     pricePerKg,
     selectedRates: companyPricingSnapshot.rates,
     selectedCompanies: companyPricingSnapshot.companies,
+    selectedPouchType: form.pouchType || "normalPouch",
     companyRateSnapshot: companyPricingSnapshot,
   };
 }

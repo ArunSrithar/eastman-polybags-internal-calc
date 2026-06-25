@@ -22,6 +22,12 @@ const DEFAULT_COMPANY_RATE_IDS = {
   doubleLamination: "doubleLamRate",
   slitting: "slittingRate",
 };
+const POUCH_TYPE_KEYS = [
+  "normalPouch",
+  "normalWithZipLock",
+  "standUpPouch",
+  "standUpWithZipLock",
+];
 
 function toMaterialResponse(doc) {
   if (!doc) return null;
@@ -113,6 +119,8 @@ async function ensureDefaultCompany() {
 /* ── Settings ───────────────────────────────────────────────────────────── */
 
 export async function getSettings() {
+  await ensureDefaultCompany();
+
   const [materialsDocs, pouchDocs, chargeRateDocs] = await Promise.all([
     GravureMaterial.find().lean(),
     GravurePouch.find().sort({ createdAt: 1 }).lean(),
@@ -131,7 +139,12 @@ export async function getSettings() {
 
   return {
     materials,
-    pouches: pouchDocs.map(toPouchResponse),
+    pouches: pouchDocs
+      .filter((doc) => doc.companyId)
+      .map((doc) => ({
+        ...toPouchResponse(doc),
+        companyId: doc.companyId?.toString?.() ?? doc.companyId,
+      })),
     ...chargeRates,
   };
 }
@@ -208,35 +221,78 @@ export async function addMaterialOption(materialKey, type, value) {
 
 /* ── Pouches ────────────────────────────────────────────────────────────── */
 
-export async function createPouch(length, breadth, rate) {
+export async function createPouch(companyId, length, breadth, types, userId) {
+  const company = await GravureCompany.findOne({
+    _id: companyId,
+    isActive: true,
+  })
+    .select("_id")
+    .lean();
+
+  if (!company) {
+    throw makeNotFoundError("Company not found");
+  }
+
+  const changedBy = await resolveChangedBy(userId);
   const now = new Date();
+
+  const normalizedTypes = POUCH_TYPE_KEYS.reduce((acc, key) => {
+    const src = types?.[key] ?? {};
+    const nextPrice = Number(src.price);
+    acc[key] = {
+      price: Number.isFinite(nextPrice) && nextPrice >= 0 ? nextPrice : 0,
+      isAvailable: src.isAvailable !== false,
+    };
+    return acc;
+  }, {});
+
   const created = await GravurePouch.create({
+    companyId,
     length,
     breadth,
-    rate,
-    enabled: true,
-    createdBy: CHANGED_BY,
+    types: normalizedTypes,
+    createdBy: changedBy,
     createdAt: now,
     modifiedBy: null,
     modifiedAt: null,
   });
 
-  return toPouchResponse(created.toObject());
+  const doc = created.toObject();
+  return {
+    ...toPouchResponse(doc),
+    companyId: doc.companyId?.toString?.() ?? doc.companyId,
+  };
 }
 
-export async function updatePouch(id, fields) {
+export async function updatePouch(companyId, id, fields, userId) {
+  const changedBy = await resolveChangedBy(userId);
   const patch = {
-    modifiedBy: CHANGED_BY,
+    modifiedBy: changedBy,
     modifiedAt: new Date(),
   };
 
-  if (fields.length !== undefined) patch.length = fields.length;
-  if (fields.breadth !== undefined) patch.breadth = fields.breadth;
-  if (fields.rate !== undefined) patch.rate = fields.rate;
-  if (fields.enabled !== undefined) patch.enabled = !!fields.enabled;
+  if (fields.types && typeof fields.types === "object") {
+    for (const key of POUCH_TYPE_KEYS) {
+      const typePatch = fields.types[key];
+      if (!typePatch || typeof typePatch !== "object") continue;
 
-  const updated = await GravurePouch.findByIdAndUpdate(
-    id,
+      if (typePatch.price !== undefined) {
+        patch[`types.${key}.price`] = Number(typePatch.price);
+      }
+      if (typePatch.isAvailable !== undefined) {
+        patch[`types.${key}.isAvailable`] = !!typePatch.isAvailable;
+      }
+    }
+  }
+
+  if (Object.keys(patch).length === 2) {
+    const err = new Error("At least one pouch type field is required");
+    err.status = 400;
+    throw err;
+  }
+
+  const updated = await GravurePouch.findOneAndUpdate(
+    { _id: id, companyId },
     { $set: patch },
     {
       new: true,
@@ -245,12 +301,26 @@ export async function updatePouch(id, fields) {
   );
 
   if (!updated) return null;
-  return toPouchResponse(updated);
+  return {
+    ...toPouchResponse(updated),
+    companyId: updated.companyId?.toString?.() ?? updated.companyId,
+  };
 }
 
-export async function deletePouch(id) {
-  const deleted = await GravurePouch.findByIdAndDelete(id).lean();
+export async function deletePouch(companyId, id) {
+  const deleted = await GravurePouch.findOneAndDelete({
+    _id: id,
+    companyId,
+  }).lean();
   return !!deleted;
+}
+
+export async function listCompanyPouches(companyId) {
+  const docs = await GravurePouch.find({ companyId }).sort({ createdAt: 1 }).lean();
+  return docs.map((doc) => ({
+    ...toPouchResponse(doc),
+    companyId: doc.companyId?.toString?.() ?? doc.companyId,
+  }));
 }
 
 /* ── Charge rates ───────────────────────────────────────────────────────── */

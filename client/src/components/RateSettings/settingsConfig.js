@@ -24,7 +24,7 @@ export const COMPANIES_TAB = {
   type: "companies",
 };
 
-export const ALL_TABS = [...MATERIAL_TABS, POUCH_TAB, COMPANIES_TAB];
+export const ALL_TABS = [...MATERIAL_TABS, COMPANIES_TAB, POUCH_TAB];
 
 /* Pouch table column definitions */
 export const POUCH_COLUMNS = [

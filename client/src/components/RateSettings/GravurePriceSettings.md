@@ -2,6 +2,26 @@
 
 Admin panel for managing daily-fluctuating rates used by the Gravure Rate Calculator. Provides a tabbed interface for 3 data categories — material prices, pouch sizes, and charge rates — backed by a REST API with MongoDB persistence.
 
+## Update — 2026-06-26
+
+- Pouch settings are now company-scoped; global pouch rates are deprecated.
+- `Pouches` tab is positioned immediately after `Companies & Charges`.
+- Pouch settings UI was split into focused components under `RateSettings/pouch/` for maintainability:
+  - `PouchCompanyColumn.jsx`
+  - `PouchSizesColumn.jsx`
+  - `PouchTypeRatesColumn.jsx`
+  - `sizeLabel.js`
+- Shared pouch type labels/defaults are centralized in `client/src/constants/pouchTypes.js` and reused by settings + calculator + print components.
+- Pouches tab now uses a 3-column layout:
+  - Companies list
+  - Company-specific pouch size list (add via width + height, delete only)
+  - Selected size pouch-type editor (4 toggle + rate rows)
+- Pouch API is now nested under company routes:
+  - `GET /api/gravure/companies/:companyId/pouches`
+  - `POST /api/gravure/companies/:companyId/pouches`
+  - `PUT /api/gravure/companies/:companyId/pouches/:id`
+  - `DELETE /api/gravure/companies/:companyId/pouches/:id`
+
 ---
 
 ## Overview

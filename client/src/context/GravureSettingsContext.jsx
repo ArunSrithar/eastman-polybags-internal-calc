@@ -9,9 +9,9 @@ import {
   fetchGravureSettings,
   updateMaterialPrice as apiUpdateMaterialPrice,
   addMaterialOption as apiAddMaterialOption,
-  addPouch as apiAddPouch,
-  updatePouch as apiUpdatePouch,
-  deletePouch as apiDeletePouch,
+  addCompanyPouch as apiAddCompanyPouch,
+  updateCompanyPouch as apiUpdateCompanyPouch,
+  deleteCompanyPouch as apiDeleteCompanyPouch,
   updateChargeRate as apiUpdateChargeRate,
   getCompanies as apiGetCompanies,
   createCompany as apiCreateCompany,
@@ -113,9 +113,11 @@ function buildFallbackSettings() {
 // ── Build rates object for calculateGravureRate ───────────────────────────
 export function buildRatesFromSettings(settings) {
   const pouchRates = {};
-  for (const p of settings.pouches) {
-    if (p.enabled === false) continue;
-    pouchRates[`${p.length} x ${p.breadth}`] = p.rate;
+  for (const p of settings.pouches ?? []) {
+    const rate = p?.types?.normalPouch?.price;
+    const enabled = p?.types?.normalPouch?.isAvailable !== false;
+    if (!enabled || !Number.isFinite(rate)) continue;
+    pouchRates[`${p.length} x ${p.breadth}`] = rate;
   }
   return {
     normalColorRate: getCurrentRate(settings.normalColorRate),
@@ -125,6 +127,7 @@ export function buildRatesFromSettings(settings) {
     doubleLamRate: getCurrentRate(settings.doubleLamRate),
     slittingRate: getCurrentRate(settings.slittingRate),
     pouchRates,
+    pouches: settings.pouches ?? [],
   };
 }
 
@@ -193,24 +196,24 @@ export function GravureSettingsProvider({ children, skip = false }) {
   }, []);
 
   const addPouch = useCallback(
-    async (length, breadth, rate) => {
-      await apiAddPouch(length, breadth, rate);
+    async (companyId, length, breadth, types) => {
+      await apiAddCompanyPouch(companyId, length, breadth, types);
       await refresh();
     },
     [refresh],
   );
 
   const editPouch = useCallback(
-    async (id, fields) => {
-      await apiUpdatePouch(id, fields);
+    async (companyId, id, fields) => {
+      await apiUpdateCompanyPouch(companyId, id, fields);
       await refresh();
     },
     [refresh],
   );
 
   const removePouch = useCallback(
-    async (id) => {
-      await apiDeletePouch(id);
+    async (companyId, id) => {
+      await apiDeleteCompanyPouch(companyId, id);
       await refresh();
     },
     [refresh],

@@ -9,6 +9,7 @@ import FormStack from "../../form/FormStack";
 import FormSection from "../../form/FormSection";
 import TextField from "../../form/TextField";
 import SelectField from "../../form/SelectField";
+import CreatableSelect from "../../ui/CreatableSelect";
 import MaterialRow from "./MaterialRow";
 import ProcessCountCompanyRow from "./formRows/ProcessCountCompanyRow";
 import ToggleCompanyRow from "./formRows/ToggleCompanyRow";
@@ -25,12 +26,15 @@ import {
   calculateBoppQtyFromMicron,
 } from "./formConfig";
 import { fmt } from "../../../utils/format";
-import { POUCH_RATE_BY_SIZE } from "../../../constants/gravureRates";
 import {
   useGravureSettings,
   getCurrentPrice,
 } from "../../../context/GravureSettingsContext";
 import { useAuth } from "../../../context/AuthContext";
+import {
+  POUCH_TYPE_OPTIONS,
+  getPouchTypeLabel,
+} from "../../../constants/pouchTypes";
 
 const LAMINATION_OPTIONS = [
   { value: "none", label: "No Lamination" },
@@ -85,22 +89,115 @@ export default forwardRef(function GravureForm(
     "slitting",
   );
 
-  // Derive pouch size options from settings (only enabled pouches)
-  const pouchSizeOptions = settings?.pouches
-    ?.filter((p) => p.enabled !== false)
-    .map((p) => `${p.length} x ${p.breadth}`) ?? [
-      "4 x 6",
-      "5 x 7",
-      "6 x 8",
-      "7 x 10",
-    ];
+  const activeCompanies = (companies ?? []).filter(
+    (company) => company.isActive !== false,
+  );
+  const companyByName = new Map(activeCompanies.map((c) => [c.name, c]));
+  const activeCompanyById = new Map(activeCompanies.map((c) => [c.id, c]));
+  const allPouchEntries = (settings?.pouches ?? []).filter(
+    (entry) => entry.companyId && activeCompanyById.has(entry.companyId),
+  );
 
-  const pouchRateBySize =
-    settings?.pouches?.reduce((acc, p) => {
-      if (p.enabled === false) return acc;
-      acc[`${p.length} x ${p.breadth}`] = p.rate;
-      return acc;
-    }, {}) ?? POUCH_RATE_BY_SIZE;
+  function toSize(entry) {
+    return `${entry.length} x ${entry.breadth}`;
+  }
+
+  function findPouchEntry(companyName, size) {
+    if (!companyName || !size) return null;
+    const company = companyByName.get(companyName);
+    if (!company) return null;
+
+    return (
+      allPouchEntries.find(
+        (entry) => entry.companyId === company.id && toSize(entry) === size,
+      ) ?? null
+    );
+  }
+
+  const allSizeOptions = Array.from(
+    new Set(allPouchEntries.map((entry) => toSize(entry))),
+  ).sort((a, b) => a.localeCompare(b));
+
+  const filteredCompanyOptions = activeCompanies
+    .filter((company) => {
+      const provided = allPouchEntries.filter((entry) => entry.companyId === company.id);
+      if (provided.length === 0) return false;
+      if (!form.pouchSize) return true;
+      return provided.some((entry) => toSize(entry) === form.pouchSize);
+    })
+    .map((company) => ({ value: company.name, label: company.name }));
+
+  const filteredSizeOptions = form.pouchCompany
+    ? Array.from(
+        new Set(
+          allPouchEntries
+            .filter((entry) => {
+              const company = companyByName.get(form.pouchCompany);
+              if (!company) return false;
+              return entry.companyId === company.id;
+            })
+            .map((entry) => toSize(entry)),
+        ),
+      ).sort((a, b) => a.localeCompare(b))
+    : allSizeOptions;
+
+  const selectedPouchEntry = findPouchEntry(form.pouchCompany, form.pouchSize);
+
+  const filteredTypeOptions = selectedPouchEntry
+    ? POUCH_TYPE_OPTIONS.filter(
+        (type) => selectedPouchEntry?.types?.[type.value]?.isAvailable !== false,
+      )
+    : [];
+
+  function handlePouchCompanyChange(nextCompany) {
+    let nextSize = form.pouchSize;
+    if (nextSize && !findPouchEntry(nextCompany, nextSize)) {
+      nextSize = "";
+    }
+
+    let nextType = form.pouchType;
+    const nextEntry = findPouchEntry(nextCompany, nextSize);
+    if (!nextEntry || nextEntry?.types?.[nextType]?.isAvailable === false) {
+      nextType = "";
+    }
+
+    const next = {
+      ...form,
+      pouchCompany: nextCompany,
+      pouchSize: nextSize,
+      pouchType: nextType,
+    };
+    setForm(next);
+    onProceed?.(next);
+  }
+
+  function handlePouchSizeChange(nextSize) {
+    let nextCompany = form.pouchCompany;
+    if (nextCompany && !findPouchEntry(nextCompany, nextSize)) {
+      nextCompany = "";
+    }
+
+    let nextType = form.pouchType;
+    const nextEntry = findPouchEntry(nextCompany, nextSize);
+    if (!nextEntry || nextEntry?.types?.[nextType]?.isAvailable === false) {
+      nextType = "";
+    }
+
+    const next = {
+      ...form,
+      pouchCompany: nextCompany,
+      pouchSize: nextSize,
+      pouchType: nextType,
+    };
+    setForm(next);
+    onProceed?.(next);
+  }
+
+  function handlePouchTypeChange(nextType) {
+    const next = { ...form, pouchType: nextType };
+    setForm(next);
+    onProceed?.(next);
+  }
 
   // Sync material prices from settings into form state
   const didSyncPrices = useRef(false);
@@ -340,25 +437,54 @@ export default forwardRef(function GravureForm(
 
       <FormSection>
         <SelectField
-          label="Pouch Size"
-          placeholder="Search pouch size…"
-          storageKey="gravure-pouch-sizes"
-          defaultOptions={pouchSizeOptions}
-          value={form.pouchSize}
-          onChange={(v) => setField("pouchSize", v)}
+          label="Pouch Company"
+          placeholder="Select company"
+          value={form.pouchCompany}
+          onChange={handlePouchCompanyChange}
+          options={filteredCompanyOptions}
           creatable={false}
-          renderOption={(size) => {
-            const rate = pouchRateBySize[size];
-            return (
-              <span className="flex items-center justify-between gap-4">
-                <span>{size}</span>
-                <span className="text-xs text-label-3 tabular-nums">
-                  {rate != null ? `₹${fmt(rate)}` : "Custom"}
-                </span>
-              </span>
-            );
-          }}
         />
+        <div className="card-section pt-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <p className="field-label mb-1.5">Pouch Size</p>
+              <CreatableSelect
+                defaultOptions={filteredSizeOptions}
+                value={form.pouchSize}
+                onChange={handlePouchSizeChange}
+                placeholder="Search pouch size..."
+                creatable={false}
+                persistOptions={false}
+              />
+            </div>
+            <div>
+              <p className="field-label mb-1.5">Pouch Type</p>
+              <CreatableSelect
+                defaultOptions={filteredTypeOptions}
+                value={form.pouchType}
+                onChange={handlePouchTypeChange}
+                placeholder="Select pouch type..."
+                creatable={false}
+                persistOptions={false}
+                disabled={!form.pouchCompany || !form.pouchSize}
+                formatLabel={getPouchTypeLabel}
+                renderOption={(opt) => {
+                  const typeKey = typeof opt === "string" ? opt : opt?.value;
+                  const label = typeof opt === "string" ? opt : opt?.label ?? typeKey;
+                  const price = selectedPouchEntry?.types?.[typeKey]?.price;
+                  return (
+                    <span className="flex items-center justify-between gap-4">
+                      <span>{label}</span>
+                      <span className="text-xs text-label-3 tabular-nums">
+                        {Number.isFinite(price) ? `₹${fmt(price)}/kg` : "-"}
+                      </span>
+                    </span>
+                  );
+                }}
+              />
+            </div>
+          </div>
+        </div>
       </FormSection>
 
       <FormSection>

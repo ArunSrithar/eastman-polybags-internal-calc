@@ -55,7 +55,9 @@ export function makeInitialForm() {
   const boppMicron = s("bopp", "micron");
   return {
     quoteName: "",
+    pouchCompany: "",
     pouchSize: "",
+    pouchType: "",
     normalColorCompany: DEFAULT_GRAVURE_COMPANY_NAME,
     metallicColorCompany: DEFAULT_GRAVURE_COMPANY_NAME,
     mattFinishCompany: DEFAULT_GRAVURE_COMPANY_NAME,

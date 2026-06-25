@@ -11,6 +11,7 @@ import SectionSubtotal from "../../invoice/SectionSubtotal";
 import WastageRow from "../../invoice/WastageRow";
 import { SECTION_COLORS } from "../../../constants/invoiceColors";
 import { visibleCompanyName } from "./companyDisplay";
+import { getPouchTypeLabel } from "../../../constants/pouchTypes";
 
 /* ─── Main component ─────────────────────────────────────────────────────── */
 
@@ -37,6 +38,7 @@ export default function GravureResult({ result, form, status, date }) {
     pricePerKg,
     selectedRates,
     selectedCompanies,
+    selectedPouchType,
   } = result;
 
   const normalColorRate = selectedRates?.normalColorRate ?? 0;
@@ -189,7 +191,10 @@ export default function GravureResult({ result, form, status, date }) {
           ) : null}
           {pouchAmount > 0 ? (
             <ItemRow
-              label={`Pouch Making (${form.pouchSize})`}
+              label={companyLabel(
+                `Pouch Making (${form.pouchSize}${form.pouchType ? ` · ${getPouchTypeLabel(selectedPouchType)}` : ""})`,
+                selectedCompanies?.pouch,
+              )}
               rate={pouchRatePerKg}
               qty={totalMaterialQty}
               amount={pouchAmount}

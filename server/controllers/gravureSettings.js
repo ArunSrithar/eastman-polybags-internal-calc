@@ -34,19 +34,39 @@ export async function addMaterialOption(req, res, next) {
   }
 }
 
-export async function createPouch(req, res, next) {
+export async function listCompanyPouches(req, res, next) {
   try {
-    const { length, breadth, rate } = req.body;
-    const pouch = await service.createPouch(length, breadth, rate);
+    const pouches = await service.listCompanyPouches(req.params.companyId);
+    res.json(pouches);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function createCompanyPouch(req, res, next) {
+  try {
+    const { length, breadth, types } = req.body;
+    const pouch = await service.createPouch(
+      req.params.companyId,
+      length,
+      breadth,
+      types,
+      req.user?.userId,
+    );
     res.status(201).json(pouch);
   } catch (err) {
     next(err);
   }
 }
 
-export async function updatePouch(req, res, next) {
+export async function updateCompanyPouch(req, res, next) {
   try {
-    const pouch = await service.updatePouch(req.params.id, req.body);
+    const pouch = await service.updatePouch(
+      req.params.companyId,
+      req.params.id,
+      req.body,
+      req.user?.userId,
+    );
     if (!pouch) {
       return res
         .status(404)
@@ -58,9 +78,9 @@ export async function updatePouch(req, res, next) {
   }
 }
 
-export async function deletePouch(req, res, next) {
+export async function deleteCompanyPouch(req, res, next) {
   try {
-    const deleted = await service.deletePouch(req.params.id);
+    const deleted = await service.deletePouch(req.params.companyId, req.params.id);
     if (!deleted) {
       return res
         .status(404)
