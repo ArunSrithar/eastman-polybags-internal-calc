@@ -10,6 +10,15 @@ import { fmt } from "../../utils/format";
  * @param {number}    amount — line total (₹)
  */
 export default function ItemRow({ label, rate, qty, unit = "kg", amount }) {
+  const hasQty = qty != null && qty !== "";
+  const qtyNumber = Number(qty);
+  const formattedQty =
+    hasQty && Number.isFinite(qtyNumber)
+      ? unit === "clr"
+        ? String(Math.trunc(qtyNumber))
+        : fmt(qtyNumber)
+      : "";
+
   return (
     <div className="invoice-grid items-baseline px-6 py-1.5">
       <div className="min-w-0">
@@ -19,7 +28,7 @@ export default function ItemRow({ label, rate, qty, unit = "kg", amount }) {
         {rate ? `₹${fmt(rate)}` : ""}
       </span>
       <span className="invoice-col-qty text-right text-xs text-label-2 tabular-nums">
-        {qty ? `${fmt(qty)} ${unit}` : ""}
+        {formattedQty ? `${formattedQty} ${unit}` : ""}
       </span>
       <span className="invoice-col-amount text-right text-sm font-medium text-label tabular-nums">
         ₹{fmt(amount)}

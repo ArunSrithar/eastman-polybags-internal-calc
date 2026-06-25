@@ -38,7 +38,7 @@ export default function GravurePrintLayout({ result, form }) {
     selectedRates,
   } = result;
 
-  const normalColors = Number(form.normalColors || 0);
+  const normalColors = parseInt(form.normalColors, 10) || 0;
   const metallicColorsEnabled =
     typeof form.metallicColorsEnabled === "boolean"
       ? form.metallicColorsEnabled
@@ -110,6 +110,7 @@ export default function GravurePrintLayout({ result, form }) {
         label: "Normal Colors",
         subtitle: companySubtitle(selectedCompanies?.normalColor),
         qty: normalColors,
+        unit: "clr",
         price: normalColorRate,
         amount: normalColors * normalColorRate,
       }

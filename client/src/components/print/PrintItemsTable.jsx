@@ -61,6 +61,15 @@ export default function PrintItemsTable({
   const blankRows = Math.max(0, minRows - items.length);
   const hasAdjustmentRows = adjustments.some((row) => row.type !== "divider");
 
+  function getQtyParts(row) {
+    if (row.qty == null || row.qty === "") return null;
+    const qtyNumber = Number(row.qty);
+    if (!Number.isFinite(qtyNumber)) return null;
+    const unit = row.unit || "Kgs";
+    const num = unit === "clr" ? String(Math.trunc(qtyNumber)) : fmt(qtyNumber);
+    return { num, unit };
+  }
+
   return (
     <div
       style={{
@@ -108,8 +117,17 @@ export default function PrintItemsTable({
                   </div>
                 ) : null}
               </td>
-              <td style={dCell("center")}>
-                {row.qty != null ? `${fmt(row.qty)} Kgs` : ""}
+              <td style={{ ...dCell("center"), padding: "5px 6px" }}>
+                {(() => {
+                  const parts = getQtyParts(row);
+                  if (!parts) return null;
+                  return (
+                    <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
+                      <span style={{ flex: "1", textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{parts.num}</span>
+                      <span style={{ width: "26px", textAlign: "left", color: P.muted }}>{parts.unit}</span>
+                    </div>
+                  );
+                })()}
               </td>
               <td style={dCell("right")}>
                 {row.price != null ? fmt(row.price) : ""}
@@ -235,13 +253,17 @@ export default function PrintItemsTable({
               </td>
               <td
                 style={{
-                  padding: "9px 10px",
+                  padding: "9px 6px",
                   fontWeight: totalRowProminent ? "600" : "500",
-                  textAlign: "center",
                   color: P.text,
                 }}
               >
-                {totalQty > 0 ? `${fmt(totalQty)} Kgs` : ""}
+                {totalQty > 0 ? (
+                  <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
+                    <span style={{ flex: "1", textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{fmt(totalQty)}</span>
+                    <span style={{ width: "26px", textAlign: "left", color: P.muted }}>Kgs</span>
+                  </div>
+                ) : null}
               </td>
               <td />
               <td

@@ -10,6 +10,22 @@ export default function ProcessCountCompanyRow({
   renderCompanyOption,
   companyDisabled,
 }) {
+  function handleCountChange(rawValue) {
+    if (rawValue === "") {
+      onValueChange("");
+      return;
+    }
+
+    const parsed = parseInt(rawValue, 10);
+    if (!Number.isFinite(parsed)) {
+      onValueChange("0");
+      return;
+    }
+
+    const clamped = Math.max(0, Math.min(12, parsed));
+    onValueChange(String(clamped));
+  }
+
   return (
     <div className="card-section">
       <div className="grid grid-cols-[16rem_4.5rem_minmax(0,1fr)] items-center gap-2 min-w-0">
@@ -19,8 +35,9 @@ export default function ProcessCountCompanyRow({
             type="number"
             min={0}
             max={12}
+            step={1}
             value={value}
-            onChange={(e) => onValueChange(e.target.value)}
+            onChange={(e) => handleCountChange(e.target.value)}
             className="input-base w-24 text-center input-no-spinner"
           />
         </div>
