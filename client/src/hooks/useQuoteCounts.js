@@ -8,6 +8,7 @@ const STORAGE_KEY_TO_CALC = {
   gravure: "gravure",
   "flexo-rate-calc": "flexo",
   "job-cost": "job-cost",
+  "flexo-job-cost": "flexo-job-cost",
 };
 
 const ALL_KEYS = Object.values(QUOTE_STORAGE_KEYS);

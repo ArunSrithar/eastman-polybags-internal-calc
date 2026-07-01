@@ -51,7 +51,7 @@ export default function NavItem({
       {hasSubItems ? (
         <div
           className={`overflow-hidden transition-all duration-200 ${
-            isExpanded ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+            isExpanded ? "max-h-52 opacity-100" : "max-h-0 opacity-0"
           }`}
         >
           <ul className="mt-0.5 ml-5 space-y-0.5 border-l border-separator dark:border-separator pl-3">

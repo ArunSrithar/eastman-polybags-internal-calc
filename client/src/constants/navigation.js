@@ -60,6 +60,23 @@ export const NAV_ITEMS = [
           description: "Track price changes for Gravure material rates.",
         },
       },
+      {
+        id: "gravure-job-cost",
+        label: "Job Cost",
+        icon: JobCostIcon,
+        path: "/gravure/job-cost/",
+      },
+      {
+        id: "gravure-job-cost-quotes",
+        label: "Saved Job Costs",
+        icon: QuotesIcon,
+        badgeKey: "job-cost",
+        path: "/gravure/job-cost/quotes/",
+        meta: {
+          title: "Gravure — Job Cost Quotes",
+          description: "View and manage saved Gravure job cost quotes.",
+        },
+      },
     ],
   },
   {
@@ -94,28 +111,21 @@ export const NAV_ITEMS = [
           description: "Track price changes for Flexo material rates.",
         },
       },
-    ],
-  },
-  {
-    id: "job-cost",
-    label: "Job Cost",
-    icon: JobCostIcon,
-    subItems: [
       {
-        id: "job-cost",
-        label: "Calculator",
-        icon: CalculatorSubIcon,
-        path: "/job-cost/",
+        id: "flexo-job-cost",
+        label: "Job Cost",
+        icon: JobCostIcon,
+        path: "/flexo/job-cost/",
       },
       {
-        id: "job-cost-quotes",
-        label: "Saved Quotes",
+        id: "flexo-job-cost-quotes",
+        label: "Saved Job Costs",
         icon: QuotesIcon,
-        badgeKey: "job-cost",
-        path: "/job-cost/quotes/",
+        badgeKey: "flexo-job-cost",
+        path: "/flexo/job-cost/quotes/",
         meta: {
-          title: "Job Cost — Saved Quotes",
-          description: "View and manage saved Job Cost quotes.",
+          title: "Flexo — Saved Job Costs",
+          description: "View and manage saved Flexo job cost quotes.",
         },
       },
     ],
@@ -158,7 +168,10 @@ export const NAV_ITEMS = [
 function buildLookups(items) {
   const viewToPath = {};
   const viewMeta = {};
-  const quoteKeys = {};
+  // Collect all unique badgeKey values across all sub-items (identity map).
+  // Using a Set avoids the collision bug where multiple sub-items under the
+  // same parent would overwrite each other.
+  const allBadgeKeys = new Set();
   for (const item of items) {
     if (item.path) viewToPath[item.id] = item.path;
     if (item.meta) viewMeta[item.id] = item.meta;
@@ -166,10 +179,12 @@ function buildLookups(items) {
       for (const sub of item.subItems) {
         if (sub.path) viewToPath[sub.id] = sub.path;
         if (sub.meta) viewMeta[sub.id] = sub.meta;
-        if (sub.badgeKey) quoteKeys[item.id] = sub.badgeKey;
+        if (sub.badgeKey) allBadgeKeys.add(sub.badgeKey);
       }
     }
   }
+  const quoteKeys = {};
+  for (const key of allBadgeKeys) quoteKeys[key] = key;
   return { viewToPath, viewMeta, quoteKeys };
 }
 
@@ -197,11 +212,13 @@ export const VIEW_PERMISSIONS = {
   gravure: { type: "calculate", calcKey: "gravure" },
   "gravure-quotes": { type: "viewQuotes", calcKey: "gravure" },
   "gravure-settings": { type: "editPrices", calcKey: "gravure" },
+  "gravure-job-cost": { type: "calculate", calcKey: "job-cost" },
+  "gravure-job-cost-quotes": { type: "viewQuotes", calcKey: "job-cost" },
   flexo: { type: "calculate", calcKey: "flexo" },
   "flexo-quotes": { type: "viewQuotes", calcKey: "flexo" },
   "flexo-settings": { type: "editPrices", calcKey: "flexo" },
-  "job-cost": { type: "calculate", calcKey: "job-cost" },
-  "job-cost-quotes": { type: "viewQuotes", calcKey: "job-cost" },
+  "flexo-job-cost": { type: "calculate", calcKey: "flexo-job-cost" },
+  "flexo-job-cost-quotes": { type: "viewQuotes", calcKey: "flexo-job-cost" },
   roles: { type: "manageUsers" },
   users: { type: "manageUsers" },
 };

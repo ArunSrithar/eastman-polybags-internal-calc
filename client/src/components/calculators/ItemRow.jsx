@@ -1,4 +1,4 @@
-import IOSToggle from "../../ui/IOSToggle";
+import IOSToggle from "../ui/IOSToggle";
 
 /**
  * ItemRow — toggleable line item with optional qty + price inputs.

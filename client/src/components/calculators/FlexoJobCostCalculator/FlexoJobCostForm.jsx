@@ -4,19 +4,24 @@ import FormSection from "../../form/FormSection";
 import TextField from "../../form/TextField";
 import NumberField from "../../form/NumberField";
 import SelectField from "../../form/SelectField";
+import RadioField from "../../form/RadioField";
 import DateField from "../../form/DateField";
 import ItemRow from "../ItemRow";
 import {
   makeInitialForm,
-  MATERIAL_ITEMS,
-  CHARGE_ITEMS,
+  PROCESSING_ITEMS,
   FLAT_ITEMS,
   DROPDOWN_SEEDS,
-  storeFlatChargePrice,
 } from "./formConfig";
 
-/* ─── JobCostForm ────────────────────────────────────────────────────────── */
-export default forwardRef(function JobCostForm(
+const MATERIAL_TYPE_OPTIONS = [
+  { value: "PP", label: "PP" },
+  { value: "HM", label: "HM" },
+  { value: "LD", label: "LD" },
+];
+
+/* ─── FlexoJobCostForm ───────────────────────────────────────────────────── */
+export default forwardRef(function FlexoJobCostForm(
   { onProceed, saveError = null },
   ref,
 ) {
@@ -37,13 +42,6 @@ export default forwardRef(function JobCostForm(
   }
 
   function setItem(itemKey, field, val) {
-    if (
-      field === "price" &&
-      (itemKey === "packingCharges" || itemKey === "transportCharge")
-    ) {
-      storeFlatChargePrice(itemKey, val);
-    }
-
     const next = {
       ...form,
       items: {
@@ -72,7 +70,7 @@ export default forwardRef(function JobCostForm(
 
   return (
     <FormStack>
-      {/* ── Customer & Job Details ── */}
+      {/* ── Customer & Quote Name ── */}
       <FormSection>
         <TextField
           label="Customer / Quote Name"
@@ -83,11 +81,14 @@ export default forwardRef(function JobCostForm(
         />
       </FormSection>
 
+      {/* ── Job Details ── */}
       <FormSection title="Job Details">
-        <DateField
-          label="Job Card Date"
-          value={form.jobCardDate}
-          onChange={(v) => setField("jobCardDate", v)}
+        <TextField
+          label="Invoice No"
+          placeholder="e.g. INV-001"
+          inline
+          value={form.invNo}
+          onChange={(v) => setField("invNo", v)}
         />
         <TextField
           label="Job Card No"
@@ -96,32 +97,20 @@ export default forwardRef(function JobCostForm(
           value={form.jobCardNo}
           onChange={(v) => setField("jobCardNo", v)}
         />
-        <SelectField
-          label="Job Work Company"
-          placeholder="Select or type"
-          inline
-          width="flex-1"
-          storageKey="job-cost-companies"
-          defaultOptions={DROPDOWN_SEEDS.jobWorkCompanies}
-          value={form.jobWorkCompany}
-          onChange={(v) => setField("jobWorkCompany", v)}
-        />
-        <TextField
-          label="Billing No"
-          placeholder="e.g. B-001"
-          inline
-          value={form.billingNo}
-          onChange={(v) => setField("billingNo", v)}
-        />
         <DateField
-          label="Billing Date"
-          value={form.billingDate}
-          onChange={(v) => setField("billingDate", v)}
+          label="Job Card Date"
+          value={form.jobCardDate}
+          onChange={(v) => setField("jobCardDate", v)}
         />
         <DateField
           label="Dispatch Date"
           value={form.dispatchDate}
           onChange={(v) => setField("dispatchDate", v)}
+        />
+        <DateField
+          label="Billing Date"
+          value={form.billingDate}
+          onChange={(v) => setField("billingDate", v)}
         />
         <NumberField
           label="Billing Rate"
@@ -140,42 +129,88 @@ export default forwardRef(function JobCostForm(
           min={0}
           placeholder="0"
         />
+        <SelectField
+          label="Job Work Place"
+          placeholder="Select or type"
+          inline
+          width="flex-1"
+          storageKey="flexo-job-cost-workplaces"
+          defaultOptions={DROPDOWN_SEEDS.jobWorkPlaces}
+          value={form.jobWorkPlace}
+          onChange={(v) => setField("jobWorkPlace", v)}
+        />
       </FormSection>
 
       {/* ── Specifications ── */}
       <FormSection title="Specifications">
-        <TextField
-          label="Film"
-          placeholder="e.g. PET / BOPP"
-          inline
-          value={form.film}
-          onChange={(v) => setField("film", v)}
+        <RadioField
+          name="materialType"
+          label="Material Type"
+          options={MATERIAL_TYPE_OPTIONS}
+          value={form.materialType}
+          onChange={(v) => setField("materialType", v)}
+        />
+        <NumberField
+          label="Material Price"
+          unit="₹"
+          width="w-40"
+          value={form.items.material.price}
+          onChange={(v) => setItem("material", "price", v)}
+          min={0}
+          placeholder="0.00"
+        />
+        <NumberField
+          label="Material Qty"
+          unit="kg"
+          width="w-48"
+          value={form.items.material.qty}
+          onChange={(v) => setItem("material", "qty", v)}
+          min={0}
+          placeholder="0.00"
         />
         <SelectField
-          label="Micron"
+          label="Roll Size"
           placeholder="Select"
           inline
           width="w-40"
-          storageKey="job-cost-microns"
-          defaultOptions={DROPDOWN_SEEDS.microns}
+          storageKey="flexo-job-cost-roll-sizes"
+          defaultOptions={DROPDOWN_SEEDS.rollSizes}
+          value={form.rollSizeSpec}
+          onChange={(v) => setField("rollSizeSpec", v)}
+        />
+        <NumberField
+          label="Micron"
+          width="w-40"
           value={form.micron}
           onChange={(v) => setField("micron", v)}
+          min={0}
+          placeholder="0"
         />
         <SelectField
-          label="No. of Colours"
+          label="Print Colours"
+          placeholder="Select"
+          inline
+          width="w-48"
+          storageKey="flexo-job-cost-print-colors"
+          defaultOptions={DROPDOWN_SEEDS.printColors}
+          value={form.printColors}
+          onChange={(v) => setField("printColors", v)}
+        />
+        <SelectField
+          label="Cover Size"
           placeholder="Select"
           inline
           width="w-40"
-          storageKey="job-cost-colours"
-          defaultOptions={DROPDOWN_SEEDS.colours}
-          value={form.noOfColours}
-          onChange={(v) => setField("noOfColours", v)}
+          storageKey="flexo-job-cost-cover-sizes"
+          defaultOptions={DROPDOWN_SEEDS.coverSizes}
+          value={form.coverSize}
+          onChange={(v) => setField("coverSize", v)}
         />
       </FormSection>
 
-      {/* ── Materials (items 0–3) ── */}
-      <FormSection title="Materials">
-        {MATERIAL_ITEMS.map((def) => (
+      {/* ── Processing Charges ── */}
+      <FormSection title="Processing Charges">
+        {PROCESSING_ITEMS.map((def) => (
           <ItemRow
             key={def.key}
             def={def}
@@ -184,32 +219,6 @@ export default forwardRef(function JobCostForm(
             onChange={(field, val) => setItem(def.key, field, val)}
           />
         ))}
-      </FormSection>
-
-      {/* ── Charges (items 4–7) ── */}
-      <FormSection title="Charges">
-        {CHARGE_ITEMS.map((def) => (
-          <ItemRow
-            key={def.key}
-            def={def}
-            item={form.items[def.key]}
-            onToggle={() => toggleItem(def.key)}
-            onChange={(field, val) => setItem(def.key, field, val)}
-          />
-        ))}
-      </FormSection>
-
-      {/* ── Wastage ── */}
-      <FormSection>
-        <SelectField
-          label="Wastage"
-          placeholder="0"
-          inline
-          unit="%"
-          defaultOptions={["0", "1", "2", "3", "4", "5", "8", "10"]}
-          value={form.wastage}
-          onChange={(v) => setField("wastage", v)}
-        />
       </FormSection>
 
       {/* ── Weights ── */}
@@ -234,7 +243,7 @@ export default forwardRef(function JobCostForm(
         />
       </FormSection>
 
-      {/* ── Flat Charges (packing + transport) ── */}
+      {/* ── Other Charges ── */}
       <FormSection title="Other Charges">
         {FLAT_ITEMS.map((def) => (
           <ItemRow

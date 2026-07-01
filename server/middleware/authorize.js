@@ -10,6 +10,7 @@ export const CALC_KEY_TO_PERMISSION = {
   gravure: "gravure",
   flexo: "flexo",
   "flexo-rate-calc": "flexo",
+  "flexo-job-cost": "flexo",
   "job-cost": "jobCost",
 };
 

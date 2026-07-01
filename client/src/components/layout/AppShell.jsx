@@ -11,6 +11,8 @@ import FlexoRateCalculator from "../calculators/FlexoRateCalculator/FlexoRateCal
 import FlexoSavedQuotes from "../calculators/FlexoRateCalculator/FlexoSavedQuotes";
 import JobCostCalculator from "../calculators/JobCostCalculator/JobCostCalculator";
 import JobCostSavedQuotes from "../calculators/JobCostCalculator/JobCostSavedQuotes";
+import FlexoJobCostCalculator from "../calculators/FlexoJobCostCalculator/FlexoJobCostCalculator";
+import FlexoJobCostSavedQuotes from "../calculators/FlexoJobCostCalculator/FlexoJobCostSavedQuotes";
 import GravurePriceSettings from "../RateSettings/GravurePriceSettings";
 import FlexoPriceSettings from "../RateSettings/FlexoPriceSettings";
 import UserManagement from "../admin/UserManagement";
@@ -21,11 +23,13 @@ const PERSISTENT_VIEWS = {
   gravure: GravureRateCalculator,
   "gravure-quotes": GravureSavedQuotes,
   "gravure-settings": GravurePriceSettings,
+  "gravure-job-cost": JobCostCalculator,
+  "gravure-job-cost-quotes": JobCostSavedQuotes,
   flexo: FlexoRateCalculator,
   "flexo-quotes": FlexoSavedQuotes,
   "flexo-settings": FlexoPriceSettings,
-  "job-cost": JobCostCalculator,
-  "job-cost-quotes": JobCostSavedQuotes,
+  "flexo-job-cost": FlexoJobCostCalculator,
+  "flexo-job-cost-quotes": FlexoJobCostSavedQuotes,
   roles: RolesManagement,
   users: UserManagement,
 };
