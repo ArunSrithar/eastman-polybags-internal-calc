@@ -7,6 +7,10 @@ import { makeInitialForm } from "./formConfig";
 import { calculateJobCost } from "../../../utils/calculators/jobCost";
 import useCalculator from "../../../hooks/useCalculator";
 import { useAuth } from "../../../context/AuthContext";
+import {
+  useGravureSettings,
+  buildRatesFromSettings,
+} from "../../../context/GravureSettingsContext";
 
 const buildPayload = (name, form, calc) => ({
   quoteName: name,
@@ -16,6 +20,10 @@ const buildPayload = (name, form, calc) => ({
 
 export default function JobCostCalculator() {
   const { canSaveQuote } = useAuth();
+  const { settings, companies, loading, companiesLoading } = useGravureSettings();
+
+  const rates = settings ? buildRatesFromSettings(settings) : null;
+
   const {
     form,
     result,
@@ -29,10 +37,18 @@ export default function JobCostCalculator() {
   } = useCalculator({
     calcKey: "job-cost",
     calculateFn: calculateJobCost,
-    makeInitialForm,
+    makeInitialForm: () => makeInitialForm(rates, settings),
     buildPayload,
     toastMessage: "Saved the job cost calculation successfully",
   });
+
+  if (loading || companiesLoading) {
+    return (
+      <div className="calc-shell flex items-center justify-center min-h-[40vh]">
+        <div className="text-label-3 text-sm animate-pulse">Loading settings…</div>
+      </div>
+    );
+  }
 
   return (
     <div className="calc-shell">
