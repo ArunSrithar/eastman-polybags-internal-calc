@@ -7,6 +7,7 @@ import { makeInitialForm } from "./formConfig";
 import { calculateFlexoJobCost } from "../../../utils/calculators/flexoJobCost";
 import useCalculator from "../../../hooks/useCalculator";
 import { useAuth } from "../../../context/AuthContext";
+import { useFlexoSettings } from "../../../context/FlexoSettingsContext";
 
 const buildPayload = (name, form, calc) => ({
   quoteName: name,
@@ -16,6 +17,8 @@ const buildPayload = (name, form, calc) => ({
 
 export default function FlexoJobCostCalculator() {
   const { canSaveQuote } = useAuth();
+  const { settings, loading } = useFlexoSettings();
+
   const {
     form,
     result,
@@ -29,10 +32,18 @@ export default function FlexoJobCostCalculator() {
   } = useCalculator({
     calcKey: "flexo-job-cost",
     calculateFn: calculateFlexoJobCost,
-    makeInitialForm,
+    makeInitialForm: () => makeInitialForm(settings),
     buildPayload,
     toastMessage: "Saved the Flexo job cost calculation successfully",
   });
+
+  if (loading) {
+    return (
+      <div className="calc-shell flex items-center justify-center min-h-[40vh]">
+        <div className="text-label-3 text-sm animate-pulse">Loading settings…</div>
+      </div>
+    );
+  }
 
   return (
     <div className="calc-shell">
