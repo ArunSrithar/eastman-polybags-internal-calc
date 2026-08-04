@@ -4,14 +4,43 @@ import PrintInvoice from "../../print/PrintInvoice";
 
 const FLAT_KEYS = new Set(["packingCharges", "transportCharge"]);
 
-/**
- * JobCostPrintLayout — thin wrapper that maps Job Cost result + form data
- * into the reusable PrintInvoice shell.
- *
- * For Gravure and Flexo print layouts, follow the same pattern:
- *   1. Build `items`, `adjustments`, `metaRows`, `totalQty` from your result/form
- *   2. Render <PrintInvoice documentTitle="..." ... />
- */
+/* ─── Charge subtitle builders ───────────────────────────────────────────── */
+
+function printingSubtitle(p) {
+  if (!p) return undefined;
+  const parts = [];
+  if (p.normalColors && p.normalColorCompany)
+    parts.push(`${p.normalColors} Normal Colors — ${p.normalColorCompany}`);
+  else if (p.normalColorCompany)
+    parts.push(`Normal Colors — ${p.normalColorCompany}`);
+  if (p.metallicEnabled && p.metallicColorCompany)
+    parts.push(`Metallic — ${p.metallicColorCompany}`);
+  if (p.mattFinishCompany)
+    parts.push(`Matt Finish — ${p.mattFinishCompany}`);
+  return parts.join("  •  ") || undefined;
+}
+
+function laminationSubtitle(l) {
+  if (!l) return undefined;
+  return [l.laminationType, l.laminationCompany].filter(Boolean).join(" — ") || undefined;
+}
+
+function slittingSubtitle(s) {
+  return s?.slittingCompany || undefined;
+}
+
+function pouchSubtitle(p) {
+  if (!p) return undefined;
+  return [p.pouchCompany, p.pouchSize ? `Size: ${p.pouchSize}` : ""].filter(Boolean).join(" — ") || undefined;
+}
+
+const SUBTITLE_BUILDERS = {
+  printingCharges:    (form) => printingSubtitle(form?.items?.printingCharges),
+  laminationCharges:  (form) => laminationSubtitle(form?.items?.laminationCharges),
+  slittingCharges:    (form) => slittingSubtitle(form?.items?.slittingCharges),
+  pouchMakingCharges: (form) => pouchSubtitle(form?.items?.pouchMakingCharges),
+};
+
 export default function JobCostPrintLayout({ result, form }) {
   if (!result) return null;
 
@@ -45,6 +74,7 @@ export default function JobCostPrintLayout({ result, form }) {
     .map((item) => ({
       key: item.key,
       label: item.label,
+      subtitle: SUBTITLE_BUILDERS[item.key]?.(form),
       qty: item.hasQty && item.qty > 0 ? item.qty : null,
       price: item.hasQty ? item.price : null,
       amount: item.amount,
