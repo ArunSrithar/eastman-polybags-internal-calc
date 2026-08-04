@@ -90,6 +90,12 @@ export default function FlexoJobCostPrintLayout({ result, form }) {
       value2: form.printColors,
     },
     {
+      label: "Cover Size",
+      value: form.coverSize,
+      label2: "Billing Rate",
+      value2: form.billingRate ? `₹ ${fmt(form.billingRate)}` : "",
+    },
+    {
       label: "Dispatch Weight",
       value: dispatchWeight > 0 ? `${fmt(dispatchWeight)} Kgs` : "",
       label2: "Finished Weight",
