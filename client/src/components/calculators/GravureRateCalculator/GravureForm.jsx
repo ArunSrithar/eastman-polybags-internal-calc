@@ -443,6 +443,7 @@ export default forwardRef(function GravureForm(
           onChange={handlePouchCompanyChange}
           options={filteredCompanyOptions}
           creatable={false}
+          emptyMessage="No companies found"
         />
         <div className="card-section pt-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -455,6 +456,7 @@ export default forwardRef(function GravureForm(
                 placeholder="Search pouch size..."
                 creatable={false}
                 persistOptions={false}
+                emptyMessage="No pouch sizes found"
               />
             </div>
             <div>
@@ -466,6 +468,7 @@ export default forwardRef(function GravureForm(
                 placeholder="Select pouch type..."
                 creatable={false}
                 persistOptions={false}
+                emptyMessage="No pouch types found"
                 disabled={!form.pouchCompany || !form.pouchSize}
                 formatLabel={getPouchTypeLabel}
                 renderOption={(opt) => {

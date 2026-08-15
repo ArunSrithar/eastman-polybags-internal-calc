@@ -1,10 +1,19 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo, useId } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDownIcon } from "./Icons";
+import { ChevronDownIcon, SearchIcon } from "./Icons";
 
 /**
  * CreatableSelect — dropdown that allows typing new values.
  * New values are persisted to localStorage and added to the dropdown list.
+ *
+ * Two render modes:
+ *   - Combobox mode (default): the trigger is a text input that is both the
+ *     display value and the search box. Typing filters the list and (when
+ *     `creatable`) can commit a brand-new value.
+ *   - Picker mode (`searchInMenu`, defaults to `!creatable`): the trigger is
+ *     a read-only button. The search box lives inside the open menu and is
+ *     auto-focused, so the full option list is always visible on open
+ *     instead of being pre-filtered down to the current selection.
  *
  * Props:
  *   storageKey      string     localStorage key to persist option list
@@ -13,6 +22,8 @@ import { ChevronDownIcon } from "./Icons";
  *   onChange        fn(val)    called on select or new entry
  *   placeholder     string
  *   className       string     extra classes on the outer wrapper
+ *   searchInMenu    bool       use picker mode (read-only trigger + menu search)
+ *   emptyMessage    string     shown in picker mode when no options match
  */
 export default function CreatableSelect({
   storageKey,
@@ -28,6 +39,8 @@ export default function CreatableSelect({
   persistOptions = true,
   sanitizeInput,
   hideArrow = false,
+  searchInMenu = !creatable,
+  emptyMessage = "No matches found",
 }) {
   function getOptionValue(opt) {
     return typeof opt === "string" ? opt : opt?.value ?? "";
@@ -75,6 +88,7 @@ export default function CreatableSelect({
   }, [defaultKey, defaultOptions]);
 
   const [inputVal, setInputVal] = useState(value);
+  const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [dropPos, setDropPos] = useState({
@@ -87,8 +101,11 @@ export default function CreatableSelect({
   });
   const wrapRef = useRef(null);
   const inputRef = useRef(null);
+  const triggerRef = useRef(null);
+  const searchRef = useRef(null);
   const menuRef = useRef(null);
   const optionRefs = useRef([]);
+  const listboxId = useId();
 
   useEffect(() => {
     setInputVal(value);
@@ -98,11 +115,13 @@ export default function CreatableSelect({
     if (!wrapRef.current) return;
     const r = wrapRef.current.getBoundingClientRect();
     const maxH = 260;
+    const openThreshold = searchInMenu ? 200 : 140;
+    const minHeight = searchInMenu ? 180 : 120;
     const spaceBelow = window.innerHeight - r.bottom - 8;
     const spaceAbove = r.top - 8;
-    const openAbove = spaceBelow < 140 && spaceAbove > spaceBelow;
+    const openAbove = spaceBelow < openThreshold && spaceAbove > spaceBelow;
     const available = openAbove ? spaceAbove : spaceBelow;
-    const maxHeight = Math.max(120, Math.min(maxH, available));
+    const maxHeight = Math.max(minHeight, Math.min(maxH, available));
 
     setDropPos({
       top: openAbove ? undefined : r.bottom + 4,
@@ -117,6 +136,7 @@ export default function CreatableSelect({
   function openDropdown() {
     if (disabled) return;
     computePosition();
+    if (searchInMenu) setQuery("");
     setOpen(true);
   }
 
@@ -140,6 +160,27 @@ export default function CreatableSelect({
       window.removeEventListener("resize", handleViewportChange);
     };
   }, [open]);
+
+  // Picker mode: focus the in-menu search box as soon as the menu opens.
+  useEffect(() => {
+    if (!open || !searchInMenu) return;
+    searchRef.current?.focus();
+  }, [open, searchInMenu]);
+
+  // Picker mode: close on any click outside the trigger and the portal menu.
+  useEffect(() => {
+    if (!open || !searchInMenu) return;
+
+    function handleDocMouseDown(e) {
+      const target = e.target;
+      if (wrapRef.current?.contains(target)) return;
+      if (menuRef.current?.contains(target)) return;
+      setOpen(false);
+    }
+
+    document.addEventListener("mousedown", handleDocMouseDown);
+    return () => document.removeEventListener("mousedown", handleDocMouseDown);
+  }, [open, searchInMenu]);
 
   function commitValue(val) {
     if (disabled) {
@@ -181,6 +222,7 @@ export default function CreatableSelect({
     setInputVal(optionValue);
     onChange?.(optionValue);
     setOpen(false);
+    if (searchInMenu) triggerRef.current?.focus();
   }
 
   function moveActive(direction, total) {
@@ -192,6 +234,17 @@ export default function CreatableSelect({
     const next = (activeIndex + direction + total) % total;
     setActiveIndex(next);
   }
+
+  const filtered = useMemo(() => {
+    const needle = String((searchInMenu ? query : inputVal) || "").toLowerCase();
+    if (!needle) return options;
+    return options.filter((opt) => {
+      const valueText = getOptionValue(opt).toLowerCase();
+      const labelText = getOptionLabel(opt).toLowerCase();
+      return valueText.includes(needle) || labelText.includes(needle);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options, query, inputVal, searchInMenu]);
 
   function handleKeyDown(e) {
     if (e.key === "ArrowDown") {
@@ -227,6 +280,44 @@ export default function CreatableSelect({
     }
   }
 
+  function handleTriggerKeyDown(e) {
+    if (disabled) return;
+    if (
+      e.key === "ArrowDown" ||
+      e.key === "ArrowUp" ||
+      e.key === "Enter" ||
+      e.key === " "
+    ) {
+      e.preventDefault();
+      if (!open) openDropdown();
+    }
+  }
+
+  function handleSearchKeyDown(e) {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      moveActive(1, filtered.length);
+      return;
+    }
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      moveActive(-1, filtered.length);
+      return;
+    }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (activeIndex >= 0 && filtered[activeIndex]) {
+        handleSelect(filtered[activeIndex]);
+      }
+      return;
+    }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      setOpen(false);
+      triggerRef.current?.focus();
+    }
+  }
+
   function handleBlur() {
     if (disabled) return;
     // Delay to allow click on dropdown option to fire first
@@ -235,59 +326,119 @@ export default function CreatableSelect({
     }, 150);
   }
 
-  const filtered = options.filter((opt) => {
-    const valueText = getOptionValue(opt).toLowerCase();
-    const labelText = getOptionLabel(opt).toLowerCase();
-    const needle = String(inputVal || "").toLowerCase();
-    return valueText.includes(needle) || labelText.includes(needle);
-  });
-
+  // Reset the active row only on the open transition — matching the current
+  // selection (or the first row) — so live typing/arrow-key nav afterward
+  // isn't clobbered by this effect re-running on every render.
   useEffect(() => {
     if (!open) {
       setActiveIndex(-1);
       return;
     }
-
     const selectedIndex = filtered.findIndex(
       (opt) => getOptionValue(opt) === value,
     );
     setActiveIndex(
       selectedIndex >= 0 ? selectedIndex : filtered.length > 0 ? 0 : -1,
     );
-  }, [open, filtered, value]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   useEffect(() => {
     if (!open || activeIndex < 0) return;
     optionRefs.current[activeIndex]?.scrollIntoView({ block: "nearest" });
   }, [open, activeIndex]);
 
+  function renderOptionRow(opt, idx) {
+    const optionValue = getOptionValue(opt);
+    const disabledOption = isOptionDisabled(opt);
+    const optionLabel = renderOption ? renderOption(opt) : getOptionLabel(opt);
+
+    return (
+      <li key={optionValue || String(idx)} role="presentation">
+        <button
+          ref={(node) => {
+            optionRefs.current[idx] = node;
+          }}
+          type="button"
+          role="option"
+          aria-selected={optionValue === value}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            if (disabledOption) return;
+            handleSelect(opt);
+          }}
+          onMouseEnter={() => {
+            if (!disabledOption) setActiveIndex(idx);
+          }}
+          disabled={disabledOption}
+          className={`dropdown-option ${
+            idx === activeIndex
+              ? "dropdown-option-active"
+              : optionValue === value
+                ? "text-tint font-medium"
+                : "text-label"
+          } ${disabledOption ? "opacity-50 cursor-not-allowed" : ""}`}
+        >
+          {optionLabel}
+        </button>
+      </li>
+    );
+  }
+
   return (
     <div ref={wrapRef} className={`relative ${className}`}>
-      <input
-        ref={inputRef}
-        type="text"
-        value={
-          formatLabel
-            ? open
-              ? inputVal
-              : value
-                ? formatLabel(value)
-                : inputVal
-            : inputVal
-        }
-        onChange={(e) => {
-          const raw = e.target.value;
-          const next = sanitizeInput ? sanitizeInput(raw) : raw;
-          setInputVal(next);
-          if (!open) openDropdown();
-        }}
-        onFocus={openDropdown}
-        onBlur={handleBlur}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder}
-        disabled={disabled}
-        className={`input-base ${hideArrow ? "" : "pr-7"} ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
-      />
+      {searchInMenu ? (
+        <button
+          ref={triggerRef}
+          type="button"
+          role="combobox"
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-controls={listboxId}
+          onClick={() => (open ? setOpen(false) : openDropdown())}
+          onKeyDown={handleTriggerKeyDown}
+          disabled={disabled}
+          className={`input-base text-left truncate ${hideArrow ? "" : "pr-7"} ${
+            disabled ? "opacity-60 cursor-not-allowed" : ""
+          }`}
+        >
+          {value ? (
+            formatLabel ? (
+              formatLabel(value)
+            ) : (
+              value
+            )
+          ) : (
+            <span className="text-label-3">{placeholder}</span>
+          )}
+        </button>
+      ) : (
+        <input
+          ref={inputRef}
+          type="text"
+          value={
+            formatLabel
+              ? open
+                ? inputVal
+                : value
+                  ? formatLabel(value)
+                  : inputVal
+              : inputVal
+          }
+          onChange={(e) => {
+            const raw = e.target.value;
+            const next = sanitizeInput ? sanitizeInput(raw) : raw;
+            setInputVal(next);
+            if (!open) openDropdown();
+          }}
+          onFocus={openDropdown}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          disabled={disabled}
+          className={`input-base ${hideArrow ? "" : "pr-7"} ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
+        />
+      )}
       {hideArrow ? null : (
         <span
           className={`absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none transition-all duration-150 ${disabled
@@ -302,56 +453,62 @@ export default function CreatableSelect({
         </span>
       )}
 
-      {open && filtered.length > 0
+      {open && (searchInMenu || filtered.length > 0)
         ? createPortal(
-          <ul
-            ref={menuRef}
-            className={`dropdown-menu ${dropPos.openAbove ? "dropdown-menu-up" : "dropdown-menu-down"
-              }`}
-            style={{
-              top: dropPos.top,
-              bottom: dropPos.bottom,
-              left: dropPos.left,
-              width: dropPos.width,
-              maxHeight: `${dropPos.maxHeight}px`,
-            }}
-          >
-            {filtered.map((opt, idx) => {
-              const optionValue = getOptionValue(opt);
-              const disabledOption = isOptionDisabled(opt);
-              const optionLabel = renderOption
-                ? renderOption(opt)
-                : getOptionLabel(opt);
-
-              return (
-                <li key={optionValue || String(idx)}>
-                  <button
-                    ref={(node) => {
-                      optionRefs.current[idx] = node;
-                    }}
-                    type="button"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      if (disabledOption) return;
-                      handleSelect(opt);
-                    }}
-                    onMouseEnter={() => {
-                      if (!disabledOption) setActiveIndex(idx);
-                    }}
-                    disabled={disabledOption}
-                    className={`dropdown-option ${idx === activeIndex
-                      ? "dropdown-option-active"
-                      : optionValue === value
-                        ? "text-tint font-medium"
-                        : "text-label"
-                      } ${disabledOption ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    {optionLabel}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>,
+          searchInMenu ? (
+            <div
+              ref={menuRef}
+              className={`dropdown-panel ${dropPos.openAbove ? "dropdown-menu-up" : "dropdown-menu-down"
+                }`}
+              style={{
+                top: dropPos.top,
+                bottom: dropPos.bottom,
+                left: dropPos.left,
+                width: dropPos.width,
+                maxHeight: `${dropPos.maxHeight}px`,
+              }}
+            >
+              <div className="dropdown-search">
+                <SearchIcon className="size-4 text-label-3 shrink-0" />
+                <input
+                  ref={searchRef}
+                  type="text"
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setActiveIndex(0);
+                  }}
+                  onKeyDown={handleSearchKeyDown}
+                  placeholder="Search…"
+                  className="bg-transparent outline-none text-sm text-label placeholder:text-label-3 w-full"
+                />
+              </div>
+              <ul id={listboxId} role="listbox" className="dropdown-list">
+                {filtered.length === 0 ? (
+                  <li className="dropdown-empty" role="presentation">
+                    {emptyMessage}
+                  </li>
+                ) : (
+                  filtered.map((opt, idx) => renderOptionRow(opt, idx))
+                )}
+              </ul>
+            </div>
+          ) : (
+            <ul
+              ref={menuRef}
+              className={`dropdown-menu ${dropPos.openAbove ? "dropdown-menu-up" : "dropdown-menu-down"
+                }`}
+              style={{
+                top: dropPos.top,
+                bottom: dropPos.bottom,
+                left: dropPos.left,
+                width: dropPos.width,
+                maxHeight: `${dropPos.maxHeight}px`,
+              }}
+            >
+              {filtered.map((opt, idx) => renderOptionRow(opt, idx))}
+            </ul>
+          ),
           document.body,
         )
         : null}

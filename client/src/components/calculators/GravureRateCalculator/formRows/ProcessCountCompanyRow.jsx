@@ -52,6 +52,7 @@ export default function ProcessCountCompanyRow({
             creatable={false}
             disabled={companyDisabled}
             persistOptions={false}
+            emptyMessage="No companies found"
           />
         </div>
       </div>

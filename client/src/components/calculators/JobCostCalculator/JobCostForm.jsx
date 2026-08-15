@@ -597,6 +597,7 @@ export default forwardRef(function JobCostForm(
           onChange={handlePouchCompanyChange}
           options={filteredPouchCompanyOptions}
           creatable={false}
+          emptyMessage="No companies found"
         />
         <div className="card-section pt-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -609,6 +610,7 @@ export default forwardRef(function JobCostForm(
                 placeholder="Search pouch size..."
                 creatable={false}
                 persistOptions={false}
+                emptyMessage="No pouch sizes found"
                 disabled={!pouchItem.pouchCompany}
               />
             </div>

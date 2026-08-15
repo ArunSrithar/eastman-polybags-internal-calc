@@ -17,6 +17,8 @@ export default function SelectField({
   options,
   disabled = false,
   helperText,
+  searchInMenu,
+  emptyMessage,
 }) {
   const selectOptions = options ?? defaultOptions ?? [];
 
@@ -67,6 +69,8 @@ export default function SelectField({
       renderOption={renderOption}
       creatable={creatable}
       disabled={disabled}
+      searchInMenu={searchInMenu}
+      emptyMessage={emptyMessage}
     />
   );
 

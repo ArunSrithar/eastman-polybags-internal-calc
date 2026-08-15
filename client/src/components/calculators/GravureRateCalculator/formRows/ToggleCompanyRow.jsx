@@ -28,6 +28,7 @@ export default function ToggleCompanyRow({
             creatable={false}
             disabled={!on}
             persistOptions={false}
+            emptyMessage="No companies found"
           />
         </div>
       </div>

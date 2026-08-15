@@ -36,6 +36,7 @@ export default function LaminationCompanyRow({
             creatable={false}
             disabled={lamination === "none"}
             persistOptions={false}
+            emptyMessage="No companies found"
           />
         </div>
       </div>
