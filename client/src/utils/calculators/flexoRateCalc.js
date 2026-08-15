@@ -23,6 +23,12 @@ function findCompanyCoverSize(companyCoverSizes, companyId, coverSize) {
   );
 }
 
+// A rate switched off in settings contributes nothing to the quote.
+function cellPrice(cell) {
+  if (!cell || cell.isAvailable === false) return 0;
+  return cell.price ?? 0;
+}
+
 /**
  * calculateFlexoRate(form, rates?, companies?, companyCoverSizes?)
  *
@@ -78,7 +84,7 @@ export function calculateFlexoRate(form, rates, companies, companyCoverSizes) {
     : null;
   const gussetRate = form.gusset
     ? gussetCompany
-      ? (gussetCoverSizeDoc?.gussetRate?.price ?? 0)
+      ? cellPrice(gussetCoverSizeDoc?.gussetRate)
       : (GUSSET_RATES[form.coverSize] ?? 0)
     : 0;
 
@@ -88,21 +94,21 @@ export function calculateFlexoRate(form, rates, companies, companyCoverSizes) {
     : null;
   const cuttingSizeRate = form.cutting
     ? cuttingCompany
-      ? (cuttingCoverSizeDoc?.cuttingRate?.price ?? 0)
+      ? cellPrice(cuttingCoverSizeDoc?.cuttingRate)
       : (CUTTING_RATES[form.coverSize] ?? 0)
     : 0;
 
   const punchingCompany = findCompany(companies, form.punchingCompany);
   const punchingRate = form.punching
     ? punchingCompany
-      ? (punchingCompany.charges?.punching?.price ?? 0)
+      ? cellPrice(punchingCompany.charges?.punching)
       : PUNCHING_RATE
     : 0;
 
   const opackCompany = findCompany(companies, form.opackCompany);
   const opackRate = form.opack
     ? opackCompany
-      ? (opackCompany.charges?.opack?.price ?? 0)
+      ? cellPrice(opackCompany.charges?.opack)
       : OPACK_RATE
     : 0;
 

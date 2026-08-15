@@ -27,60 +27,28 @@ export const ROLL_SIZE_TABS = [
   },
 ];
 
-export const COVER_SIZES_TAB = {
-  id: "coverSizes",
-  label: "Cover Sizes",
-  type: "coverSizes",
-};
-
-export const PRINTING_TAB = {
-  id: "printing",
-  label: "Printing Charges",
-  type: "matrix",
-};
-
-export const LOOKUP_TABS = [
-  {
-    id: "gusset",
-    label: "Gusset Charges",
-    type: "lookup",
-    dataKey: "gussetRates",
-    dimensionLabel: "Cover Size",
-  },
-  {
-    id: "cutting",
-    label: "Cutting Charges",
-    type: "lookup",
-    dataKey: "cuttingRates",
-    dimensionLabel: "Cover Size",
-  },
-];
-
-export const CHARGE_TABS = [
-  { id: "punchingRate", label: "Punching", type: "charge", chargeKey: "punching" },
-  { id: "opackRate", label: "Opack", type: "charge", chargeKey: "opack" },
-];
-
 export const COMPANIES_TAB = {
   id: "companies",
   label: "Companies",
   type: "companies",
 };
 
-// Tab types whose data is scoped per-company rather than global
-export const COMPANY_SCOPED_TAB_TYPES = ["coverSizes", "matrix", "lookup", "charge"];
+// Cover sizes plus every rate they carry (printing colours, gusset, cutting)
+// are edited together on one company-scoped 3-column screen.
+export const COVER_SIZE_RATES_TAB = {
+  id: "coverSizeRates",
+  label: "Cover Sizes",
+  type: "coverSizeRates",
+};
 
 export const FLEXO_TABS = [
   ...CONVERSION_TABS,
   ...ROLL_SIZE_TABS,
   COMPANIES_TAB,
-  COVER_SIZES_TAB,
-  PRINTING_TAB,
-  ...LOOKUP_TABS,
-  ...CHARGE_TABS,
+  COVER_SIZE_RATES_TAB,
 ];
 
-/* Column definitions for lookup/conversion tables */
+/* Column definitions for the roll size lookup table */
 export const LOOKUP_COLUMNS = [
   { key: "sno", label: "S.No", className: "w-14" },
   { key: "dimension", label: "Dimension" },
@@ -90,13 +58,5 @@ export const LOOKUP_COLUMNS = [
   { key: "actions", label: "", className: "w-24" },
 ];
 
-/* Matrix labels for Printing tab */
-export const PRINTING_ROW_KEYS = [
-  "8x10",
-  "10x12",
-  "12x14",
-  "14x16",
-  "16x18",
-  "18x20",
-];
+/* Printing colour counts a cover size carries a rate for */
 export const PRINTING_COL_KEYS = ["1", "2", "3", "4", "5", "6", "7", "8"];

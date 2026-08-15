@@ -1,4 +1,4 @@
-export default function PouchCompanyColumn({
+export default function FlexoCompanyColumn({
   companies,
   selectedCompanyId,
   onSelectCompany,
@@ -10,7 +10,9 @@ export default function PouchCompanyColumn({
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto p-2 space-y-1">
         {companies.length === 0 ? (
-          <div className="card-section text-sm text-label-3">No companies found</div>
+          <div className="card-section text-sm text-label-3">
+            No companies found
+          </div>
         ) : (
           companies.map((company) => {
             const selected = company.id === selectedCompanyId;
@@ -21,7 +23,9 @@ export default function PouchCompanyColumn({
                 className={`w-full text-left rounded-lg px-3 py-2.5 transition-colors cursor-pointer ${selected ? "bg-tint/10 text-tint" : "hover:bg-fill text-label"}`}
                 onClick={() => onSelectCompany(company.id)}
               >
-                <span className="text-sm font-medium truncate">{company.name}</span>
+                <span className="text-sm font-medium truncate">
+                  {company.name}
+                </span>
               </button>
             );
           })

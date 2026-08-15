@@ -1,13 +1,15 @@
-import { CheckIcon, PlusIcon, TrashIcon } from "../../ui/Icons";
-import sizeLabel from "./sizeLabel";
+import { CheckIcon, CloseIcon, PlusIcon, TrashIcon } from "../../ui/Icons";
+import IOSToggle from "../../ui/IOSToggle";
+import { formatDimension } from "../../../utils/dimensionUtils";
 
-export default function PouchSizesColumn({
+export default function FlexoSizeListColumn({
   canEdit,
   selectedCompany,
-  pouches,
-  selectedPouchId,
-  onSelectPouch,
-  onDeletePouch,
+  coverSizes,
+  selectedCoverSizeId,
+  onSelectCoverSize,
+  onToggleCoverSize,
+  onDeleteCoverSize,
   addingSize,
   onStartAdd,
   widthInput,
@@ -16,14 +18,17 @@ export default function PouchSizesColumn({
   onHeightChange,
   onSizeInputKeyDown,
   onConfirmAdd,
+  onCancelAdd,
 }) {
   return (
     <section className="card overflow-hidden min-h-[22rem] flex flex-col">
       <div className="card-section border-b border-separator flex items-center justify-between gap-2">
-        <p className="text-sm font-semibold text-label">Pouch Sizes</p>
+        <p className="text-sm font-semibold text-label">Cover Sizes</p>
         <div className="flex items-center gap-2 min-w-0">
           {selectedCompany ? (
-            <span className="text-xs text-label-3 truncate">{selectedCompany.name}</span>
+            <span className="text-xs text-label-3 truncate">
+              {selectedCompany.name}
+            </span>
           ) : null}
           {canEdit ? (
             <button
@@ -49,7 +54,8 @@ export default function PouchSizesColumn({
                 onChange={(event) => onWidthChange(event.target.value)}
                 onKeyDown={onSizeInputKeyDown}
                 placeholder="W"
-                className="input-base py-1.5 text-sm"
+                autoFocus
+                className="input-base py-1.5 text-sm flex-1 min-w-0"
                 disabled={!canEdit || !selectedCompany}
               />
               <span className="text-label-3">x</span>
@@ -59,7 +65,7 @@ export default function PouchSizesColumn({
                 onChange={(event) => onHeightChange(event.target.value)}
                 onKeyDown={onSizeInputKeyDown}
                 placeholder="H"
-                className="input-base py-1.5 text-sm"
+                className="input-base py-1.5 text-sm flex-1 min-w-0"
                 disabled={!canEdit || !selectedCompany}
               />
               <button
@@ -67,41 +73,58 @@ export default function PouchSizesColumn({
                 onClick={onConfirmAdd}
                 className="table-action-btn text-tint hover:bg-tint/10 shrink-0"
                 disabled={!canEdit || !selectedCompany}
-                aria-label="Create pouch size"
+                aria-label="Create cover size"
                 title="Create (Enter)"
               >
                 <CheckIcon className="size-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={onCancelAdd}
+                className="table-action-btn text-label-3 hover:bg-fill shrink-0"
+                aria-label="Cancel"
+                title="Cancel (Esc)"
+              >
+                <CloseIcon />
               </button>
             </div>
           </div>
         ) : null}
 
-        {pouches.length === 0 ? (
-          <div className="card-section text-sm text-label-3">No pouch sizes for this company</div>
+        {coverSizes.length === 0 ? (
+          <div className="card-section text-sm text-label-3">
+            No cover sizes for this company
+          </div>
         ) : (
-          pouches.map((pouch) => {
-            const selected = pouch.id === selectedPouchId;
+          coverSizes.map((coverSize) => {
+            const selected = coverSize.id === selectedCoverSizeId;
+            const enabled = coverSize.enabled !== false;
             return (
               <div
-                key={pouch.id}
-                className={`rounded-lg px-3 py-2 transition-colors ${selected ? "bg-tint/10 text-tint" : "hover:bg-fill text-label"}`}
+                key={coverSize.id}
+                className={`rounded-lg px-3 py-2 transition-colors ${selected ? "bg-tint/10" : "hover:bg-fill"}`}
               >
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <IOSToggle
+                    on={enabled}
+                    onToggle={() => onToggleCoverSize(coverSize.id, !enabled)}
+                    disabled={!canEdit}
+                  />
                   <button
                     type="button"
-                    onClick={() => onSelectPouch(pouch.id)}
-                    className={`text-sm font-medium text-left flex-1 cursor-pointer ${selected ? "text-tint" : "text-label"}`}
+                    onClick={() => onSelectCoverSize(coverSize.id)}
+                    className={`text-sm font-medium text-left flex-1 min-w-0 truncate cursor-pointer ${selected ? "text-tint" : enabled ? "text-label" : "text-label-3"}`}
                   >
-                    {sizeLabel(pouch)}
+                    {formatDimension(coverSize.coverSize)}
                   </button>
                   {canEdit ? (
                     <button
                       type="button"
-                      onClick={() => onDeletePouch(pouch.id)}
-                      className="table-action-btn text-red-500 hover:bg-red-500/10"
-                      aria-label={`Delete ${sizeLabel(pouch)}`}
+                      onClick={() => onDeleteCoverSize(coverSize.id)}
+                      className="table-action-btn text-red-500 hover:bg-red-500/10 shrink-0"
+                      aria-label={`Delete ${coverSize.coverSize}`}
                     >
-                      <TrashIcon className="size-3.5" />
+                      <TrashIcon />
                     </button>
                   ) : null}
                 </div>

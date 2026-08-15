@@ -28,6 +28,18 @@ import {
 
 /* ─── Price compute helpers ──────────────────────────────────────────────── */
 
+// A rate switched off in settings contributes nothing to the job cost.
+function cellPrice(cell) {
+  if (!cell || cell.isAvailable === false) return 0;
+  return cell.price ?? 0;
+}
+
+function findCoverSizeDoc(companyCoverSizes, company, coverSize) {
+  return (companyCoverSizes?.[company.id] ?? []).find(
+    (cs) => cs.coverSize === coverSize,
+  );
+}
+
 function computeRollSizePrice(materialType, rollSizeSpec, settings) {
   if (!materialType || !rollSizeSpec || !settings) return 0;
   // Prefer the newer rollSizeRates model; fall back to conversionRates
@@ -46,9 +58,7 @@ function computePrintingPrice(
 ) {
   if (!coverSize || !printColors) return 0;
   if (company) {
-    const doc = (companyCoverSizes?.[company.id] ?? []).find(
-      (cs) => cs.coverSize === coverSize,
-    );
+    const doc = findCoverSizeDoc(companyCoverSizes, company, coverSize);
     return doc?.printingColors?.[String(printColors)]?.price ?? 0;
   }
   if (!settings) return 0;
@@ -58,10 +68,8 @@ function computePrintingPrice(
 function computeGussetPrice(coverSize, settings, company, companyCoverSizes) {
   if (!coverSize) return 0;
   if (company) {
-    const doc = (companyCoverSizes?.[company.id] ?? []).find(
-      (cs) => cs.coverSize === coverSize,
-    );
-    return doc?.gussetRate?.price ?? 0;
+    const doc = findCoverSizeDoc(companyCoverSizes, company, coverSize);
+    return cellPrice(doc?.gussetRate);
   }
   if (!settings) return 0;
   return getCurrentRate(settings.gussetRates?.[coverSize]);
@@ -70,22 +78,20 @@ function computeGussetPrice(coverSize, settings, company, companyCoverSizes) {
 function computeCuttingPrice(coverSize, settings, company, companyCoverSizes) {
   if (!coverSize) return 0;
   if (company) {
-    const doc = (companyCoverSizes?.[company.id] ?? []).find(
-      (cs) => cs.coverSize === coverSize,
-    );
-    return doc?.cuttingRate?.price ?? 0;
+    const doc = findCoverSizeDoc(companyCoverSizes, company, coverSize);
+    return cellPrice(doc?.cuttingRate);
   }
   if (!settings) return 0;
   return getCurrentRate(settings.cuttingRates?.[coverSize]);
 }
 
 function computeOpaquePrice(settings, company) {
-  if (company) return company.charges?.opack?.price ?? 0;
+  if (company) return cellPrice(company.charges?.opack);
   return getCurrentRate(settings?.opackRate);
 }
 
 function computePunchingPrice(settings, company) {
-  if (company) return company.charges?.punching?.price ?? 0;
+  if (company) return cellPrice(company.charges?.punching);
   return getCurrentRate(settings?.punchingRate);
 }
 
@@ -168,9 +174,12 @@ export default forwardRef(function FlexoJobCostForm(
     form.punchingCompany,
   );
 
+  // Cover sizes are company-scoped only — nothing to fall back to until a
+  // printing company is selected (the static seed list this used to fall
+  // back to isn't backed by any real rate data).
   const liveCoverSizeOptions = printingCompanyObj
     ? getCompanyCoverSizeOptions(companyCoverSizes, printingCompanyObj.id)
-    : DROPDOWN_SEEDS.coverSizes;
+    : [];
 
   // Fetch cover sizes for any company selected across printing/gusset/cutting
   useEffect(() => {
@@ -493,13 +502,14 @@ export default forwardRef(function FlexoJobCostForm(
         />
         <SelectField
           label="Cover Size"
-          placeholder="Select"
+          placeholder={printingCompanyObj ? "Select" : "Select a company first"}
           inline
           width="w-40"
           storageKey="flexo-job-cost-cover-sizes"
           defaultOptions={liveCoverSizeOptions}
           value={form.coverSize}
           onChange={(v) => setField("coverSize", v)}
+          disabled={!printingCompanyObj}
         />
       </FormSection>
 

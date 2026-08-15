@@ -13,7 +13,6 @@ import {
 } from "./formConfig";
 import { useFlexoSettings } from "../../../context/FlexoSettingsContext";
 import { useAuth } from "../../../context/AuthContext";
-import { compareDimensions } from "../../../utils/dimensionUtils";
 import {
   getFlexoCompanyOptions,
   makeFlexoChargeOptionRenderer,
@@ -90,16 +89,12 @@ export default forwardRef(function FlexoForm(
     .map(([key]) => key)
     .sort((a, b) => parseFloat(a) - parseFloat(b));
 
-  // Derive cover size options from live printingRates (sorted W then H), filtered to enabled only
-  const globalCoverSizeOptions = Object.entries(settings?.printingRates ?? {})
-    .filter(([, entry]) => entry.enabled !== false)
-    .map(([key]) => key)
-    .sort(compareDimensions);
-
-  // When a printing company is selected, scope cover sizes to that company
+  // Cover sizes are company-scoped only — nothing to fall back to until a
+  // printing company is selected (the global rate tables this used to read
+  // from are no longer editable anywhere).
   const liveCoverSizeOptions = printingCompanyObj
     ? getCompanyCoverSizeOptions(companyCoverSizes, printingCompanyObj.id)
-    : globalCoverSizeOptions;
+    : [];
 
   function getLiveMaterialPrice(materialKey) {
     if (!materialKey) return 0;
@@ -195,6 +190,7 @@ export default forwardRef(function FlexoForm(
           label="Roll Size"
           placeholder="Search roll size…"
           inline
+          width="w-48"
           storageKey="flexo-roll-sizes"
           defaultOptions={liveRollSizeOptions}
           value={form.rollSize}
@@ -216,13 +212,18 @@ export default forwardRef(function FlexoForm(
         />
         <SelectField
           label="Cover Size"
-          placeholder="Search cover size…"
+          placeholder={
+            printingCompanyObj
+              ? "Search cover size…"
+              : "Select a company first"
+          }
           storageKey="flexo-cover-sizes"
           defaultOptions={liveCoverSizeOptions}
           value={form.coverSize}
           onChange={(v) => setField("coverSize", v)}
           formatLabel={(v) => v.replace(/\s*[xX×]\s*/, " x ")}
           creatable={false}
+          disabled={!printingCompanyObj}
         />
         <RadioField
           name="printingColors"

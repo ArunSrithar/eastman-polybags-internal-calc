@@ -32,5 +32,4 @@ export const DROPDOWN_SEEDS = {
   jobWorkPlaces: ["R.K. Power", "Company B", "Company C"],
   rollSizes: ['4"', '5"', '6"', '7"', '8"', '9"', '10"', '12"'],
   printColors: ["1 Colour", "2 Colour", "3 Colour", "4 Colour", "Multicolour"],
-  coverSizes: ["8x10", "10x12", "12x14", "14x16", "16x18", "18x20"],
 };
