@@ -20,8 +20,27 @@ const PROCESSING_KEYS = new Set([
   "punching",
 ]);
 
+const COMPANY_FIELD = {
+  printing: "printingCompany",
+  gusset: "gussetCompany",
+  cutting: "cuttingCompany",
+  opaque: "opackCompany",
+  punching: "punchingCompany",
+};
+
 function sumSection(items) {
   return items.reduce((s, i) => s + i.amount, 0);
+}
+
+function processingLabel(item, form) {
+  const companyName = form[COMPANY_FIELD[item.key]];
+  if (!companyName) return item.label;
+  return (
+    <>
+      {item.label}
+      <span className="text-label-3 italic"> · {companyName}</span>
+    </>
+  );
 }
 
 function formatFlatLabel(item, finishedWeight) {
@@ -121,7 +140,7 @@ export default function FlexoJobCostResult({ result, form, status, date }) {
           {processing.map((item) => (
             <ItemRow
               key={item.key}
-              label={item.label}
+              label={processingLabel(item, form)}
               rate={item.price}
               qty={item.qty}
               amount={item.amount}

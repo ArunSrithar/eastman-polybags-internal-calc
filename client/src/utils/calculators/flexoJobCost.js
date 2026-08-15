@@ -61,5 +61,12 @@ export function calculateFlexoJobCost(form) {
     finishedWeight,
     dispatchWeight,
     costOfJob,
+    selectedCompanies: {
+      printing: form.printingCompany || null,
+      gusset: form.gussetCompany || null,
+      cutting: form.cuttingCompany || null,
+      opaque: form.opackCompany || null,
+      punching: form.punchingCompany || null,
+    },
   };
 }

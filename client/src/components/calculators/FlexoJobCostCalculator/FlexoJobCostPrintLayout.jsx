@@ -4,6 +4,14 @@ import PrintInvoice from "../../print/PrintInvoice";
 
 const FLAT_KEYS = new Set(["packingCharges", "transportCharges"]);
 
+const COMPANY_FIELD = {
+  printing: "printingCompany",
+  gusset: "gussetCompany",
+  cutting: "cuttingCompany",
+  opaque: "opackCompany",
+  punching: "punchingCompany",
+};
+
 /**
  * FlexoJobCostPrintLayout — maps Flexo Job Cost result + form data
  * into the reusable PrintInvoice shell.
@@ -34,13 +42,16 @@ export default function FlexoJobCostPrintLayout({ result, form }) {
   /* ── Line items (exclude flat charges) ── */
   const items = enabledItems
     .filter((item) => !FLAT_KEYS.has(item.key))
-    .map((item) => ({
-      key: item.key,
-      label: item.label,
-      qty: item.hasQty && item.qty > 0 ? item.qty : null,
-      price: item.hasQty ? item.price : null,
-      amount: item.amount,
-    }));
+    .map((item) => {
+      const companyName = form[COMPANY_FIELD[item.key]];
+      return {
+        key: item.key,
+        label: companyName ? `${item.label} · ${companyName}` : item.label,
+        qty: item.hasQty && item.qty > 0 ? item.qty : null,
+        price: item.hasQty ? item.price : null,
+        amount: item.amount,
+      };
+    });
 
   /* ── Flat charges → adjustment rows ── */
   const flatItems = enabledItems.filter((item) => FLAT_KEYS.has(item.key));

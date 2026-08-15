@@ -19,6 +19,12 @@ import {
 } from "../../../context/FlexoSettingsContext";
 import { fmt } from "../../../utils/format";
 import ItemRow from "../ItemRow";
+import {
+  getFlexoCompanyOptions,
+  makeFlexoChargeOptionRenderer,
+  findFlexoCompanyByName,
+  getCompanyCoverSizeOptions,
+} from "../FlexoRateCalculator/processCompanyOptions";
 
 /* ─── Price compute helpers ──────────────────────────────────────────────── */
 
@@ -31,26 +37,55 @@ function computeRollSizePrice(materialType, rollSizeSpec, settings) {
   return getCurrentRate(convCell);
 }
 
-function computePrintingPrice(coverSize, printColors, settings) {
-  if (!coverSize || !printColors || !settings) return 0;
+function computePrintingPrice(
+  coverSize,
+  printColors,
+  settings,
+  company,
+  companyCoverSizes,
+) {
+  if (!coverSize || !printColors) return 0;
+  if (company) {
+    const doc = (companyCoverSizes?.[company.id] ?? []).find(
+      (cs) => cs.coverSize === coverSize,
+    );
+    return doc?.printingColors?.[String(printColors)]?.price ?? 0;
+  }
+  if (!settings) return 0;
   return getCurrentRate(settings.printingRates?.[coverSize]?.[String(printColors)]);
 }
 
-function computeGussetPrice(coverSize, settings) {
-  if (!coverSize || !settings) return 0;
+function computeGussetPrice(coverSize, settings, company, companyCoverSizes) {
+  if (!coverSize) return 0;
+  if (company) {
+    const doc = (companyCoverSizes?.[company.id] ?? []).find(
+      (cs) => cs.coverSize === coverSize,
+    );
+    return doc?.gussetRate?.price ?? 0;
+  }
+  if (!settings) return 0;
   return getCurrentRate(settings.gussetRates?.[coverSize]);
 }
 
-function computeCuttingPrice(coverSize, settings) {
-  if (!coverSize || !settings) return 0;
+function computeCuttingPrice(coverSize, settings, company, companyCoverSizes) {
+  if (!coverSize) return 0;
+  if (company) {
+    const doc = (companyCoverSizes?.[company.id] ?? []).find(
+      (cs) => cs.coverSize === coverSize,
+    );
+    return doc?.cuttingRate?.price ?? 0;
+  }
+  if (!settings) return 0;
   return getCurrentRate(settings.cuttingRates?.[coverSize]);
 }
 
-function computeOpaquePrice(settings) {
+function computeOpaquePrice(settings, company) {
+  if (company) return company.charges?.opack?.price ?? 0;
   return getCurrentRate(settings?.opackRate);
 }
 
-function computePunchingPrice(settings) {
+function computePunchingPrice(settings, company) {
+  if (company) return company.charges?.punching?.price ?? 0;
   return getCurrentRate(settings?.punchingRate);
 }
 
@@ -105,10 +140,59 @@ export default forwardRef(function FlexoJobCostForm(
   { onProceed, saveError = null },
   ref,
 ) {
-  const { settings } = useFlexoSettings();
+  const { settings, companies, companyCoverSizes, fetchCompanyCoverSizes } =
+    useFlexoSettings();
   const [form, setForm] = useState(() => makeInitialForm(settings));
 
   const pendingSyncRef = useRef(null);
+
+  const companyOptions = getFlexoCompanyOptions(companies);
+  const punchingOptionRenderer = makeFlexoChargeOptionRenderer(
+    companies,
+    "punching",
+  );
+  const opackOptionRenderer = makeFlexoChargeOptionRenderer(companies, "opack");
+
+  const printingCompanyObj = findFlexoCompanyByName(
+    companies,
+    form.printingCompany,
+  );
+  const gussetCompanyObj = findFlexoCompanyByName(companies, form.gussetCompany);
+  const cuttingCompanyObj = findFlexoCompanyByName(
+    companies,
+    form.cuttingCompany,
+  );
+  const opackCompanyObj = findFlexoCompanyByName(companies, form.opackCompany);
+  const punchingCompanyObj = findFlexoCompanyByName(
+    companies,
+    form.punchingCompany,
+  );
+
+  const liveCoverSizeOptions = printingCompanyObj
+    ? getCompanyCoverSizeOptions(companyCoverSizes, printingCompanyObj.id)
+    : DROPDOWN_SEEDS.coverSizes;
+
+  // Fetch cover sizes for any company selected across printing/gusset/cutting
+  useEffect(() => {
+    for (const companyName of [
+      form.printingCompany,
+      form.gussetCompany,
+      form.cuttingCompany,
+    ]) {
+      if (!companyName) continue;
+      const company = findFlexoCompanyByName(companies, companyName);
+      if (company && !companyCoverSizes[company.id]) {
+        fetchCompanyCoverSizes(company.id);
+      }
+    }
+  }, [
+    form.printingCompany,
+    form.gussetCompany,
+    form.cuttingCompany,
+    companies,
+    companyCoverSizes,
+    fetchCompanyCoverSizes,
+  ]);
 
   // Auto-fill material price when materialType changes or settings load
   useEffect(() => {
@@ -130,16 +214,28 @@ export default forwardRef(function FlexoJobCostForm(
     });
   }, [form.materialType, settings?.materials]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-fill processing charge prices from spec fields + settings
+  // Auto-fill processing charge prices from spec fields + settings (company-aware)
   useEffect(() => {
     if (!settings) return;
     const newPrices = {
       rollSize: String(computeRollSizePrice(form.materialType, form.rollSizeSpec, settings)),
-      printing: String(computePrintingPrice(form.coverSize, form.printColors, settings)),
-      gusset: String(computeGussetPrice(form.coverSize, settings)),
-      cutting: String(computeCuttingPrice(form.coverSize, settings)),
-      opaque: String(computeOpaquePrice(settings)),
-      punching: String(computePunchingPrice(settings)),
+      printing: String(
+        computePrintingPrice(
+          form.coverSize,
+          form.printColors,
+          settings,
+          printingCompanyObj,
+          companyCoverSizes,
+        ),
+      ),
+      gusset: String(
+        computeGussetPrice(form.coverSize, settings, gussetCompanyObj, companyCoverSizes),
+      ),
+      cutting: String(
+        computeCuttingPrice(form.coverSize, settings, cuttingCompanyObj, companyCoverSizes),
+      ),
+      opaque: String(computeOpaquePrice(settings, opackCompanyObj)),
+      punching: String(computePunchingPrice(settings, punchingCompanyObj)),
     };
     setForm((prev) => {
       const nextItems = { ...prev.items };
@@ -155,7 +251,19 @@ export default forwardRef(function FlexoJobCostForm(
       pendingSyncRef.current = next;
       return next;
     });
-  }, [form.materialType, form.rollSizeSpec, form.coverSize, form.printColors, settings]);
+  }, [
+    form.materialType,
+    form.rollSizeSpec,
+    form.coverSize,
+    form.printColors,
+    settings,
+    printingCompanyObj,
+    gussetCompanyObj,
+    cuttingCompanyObj,
+    opackCompanyObj,
+    punchingCompanyObj,
+    companyCoverSizes,
+  ]);
 
   // Auto-derive processing charge qty from material qty
   const totalMaterialQty = parseFloat(form.items.material?.qty) || 0;
@@ -373,12 +481,23 @@ export default forwardRef(function FlexoJobCostForm(
           onChange={(v) => setField("printColors", v)}
         />
         <SelectField
+          label="Printing Company"
+          placeholder="Select company"
+          inline
+          width="w-48"
+          defaultOptions={companyOptions}
+          value={form.printingCompany}
+          onChange={(v) => setField("printingCompany", v)}
+          creatable={false}
+          persistOptions={false}
+        />
+        <SelectField
           label="Cover Size"
           placeholder="Select"
           inline
           width="w-40"
           storageKey="flexo-job-cost-cover-sizes"
-          defaultOptions={DROPDOWN_SEEDS.coverSizes}
+          defaultOptions={liveCoverSizeOptions}
           value={form.coverSize}
           onChange={(v) => setField("coverSize", v)}
         />
@@ -416,6 +535,17 @@ export default forwardRef(function FlexoJobCostForm(
           price={form.items.gusset.price}
           onPriceChange={(v) => setProcessingPrice("gusset", v)}
         />
+        <SelectField
+          label="Company"
+          placeholder="Select company"
+          inline
+          width="w-48"
+          defaultOptions={companyOptions}
+          value={form.gussetCompany}
+          onChange={(v) => setField("gussetCompany", v)}
+          creatable={false}
+          persistOptions={false}
+        />
       </FormSection>
 
       <FormSection title="Cutting">
@@ -426,6 +556,17 @@ export default forwardRef(function FlexoJobCostForm(
           totalQty={totalMaterialQty}
           price={form.items.cutting.price}
           onPriceChange={(v) => setProcessingPrice("cutting", v)}
+        />
+        <SelectField
+          label="Company"
+          placeholder="Select company"
+          inline
+          width="w-48"
+          defaultOptions={companyOptions}
+          value={form.cuttingCompany}
+          onChange={(v) => setField("cuttingCompany", v)}
+          creatable={false}
+          persistOptions={false}
         />
       </FormSection>
 
@@ -438,6 +579,18 @@ export default forwardRef(function FlexoJobCostForm(
           price={form.items.opaque.price}
           onPriceChange={(v) => setProcessingPrice("opaque", v)}
         />
+        <SelectField
+          label="Company"
+          placeholder="Select company"
+          inline
+          width="w-48"
+          defaultOptions={companyOptions}
+          value={form.opackCompany}
+          onChange={(v) => setField("opackCompany", v)}
+          creatable={false}
+          persistOptions={false}
+          renderOption={opackOptionRenderer}
+        />
       </FormSection>
 
       <FormSection title="Punching">
@@ -448,6 +601,18 @@ export default forwardRef(function FlexoJobCostForm(
           totalQty={totalMaterialQty}
           price={form.items.punching.price}
           onPriceChange={(v) => setProcessingPrice("punching", v)}
+        />
+        <SelectField
+          label="Company"
+          placeholder="Select company"
+          inline
+          width="w-48"
+          defaultOptions={companyOptions}
+          value={form.punchingCompany}
+          onChange={(v) => setField("punchingCompany", v)}
+          creatable={false}
+          persistOptions={false}
+          renderOption={punchingOptionRenderer}
         />
       </FormSection>
 
