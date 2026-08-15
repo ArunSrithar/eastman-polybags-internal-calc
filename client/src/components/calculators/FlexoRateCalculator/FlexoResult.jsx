@@ -42,6 +42,7 @@ export default function FlexoResult({ result, form, status, date }) {
     servicePercent,
     serviceAmount,
     totalRate,
+    selectedCompanies,
   } = result;
 
   const materialSubtotal = materialPrice + conversionRate + rollSizeRate;
@@ -114,6 +115,9 @@ export default function FlexoResult({ result, form, status, date }) {
                 <span className="text-label-3 italic">
                   {" "}
                   · {coverSize} × {printingColors} clr
+                  {selectedCompanies?.printing
+                    ? ` · ${selectedCompanies.printing}`
+                    : ""}
                 </span>
               </>
             }
@@ -135,7 +139,13 @@ export default function FlexoResult({ result, form, status, date }) {
               label={
                 <>
                   Gusset
-                  <span className="text-label-3 italic"> · {coverSize}</span>
+                  <span className="text-label-3 italic">
+                    {" "}
+                    · {coverSize}
+                    {selectedCompanies?.gusset
+                      ? ` · ${selectedCompanies.gusset}`
+                      : ""}
+                  </span>
                 </>
               }
               amount={gussetRate}
@@ -146,16 +156,50 @@ export default function FlexoResult({ result, form, status, date }) {
               label={
                 <>
                   Cutting
-                  <span className="text-label-3 italic"> · {coverSize}</span>
+                  <span className="text-label-3 italic">
+                    {" "}
+                    · {coverSize}
+                    {selectedCompanies?.cutting
+                      ? ` · ${selectedCompanies.cutting}`
+                      : ""}
+                  </span>
                 </>
               }
               amount={cuttingSizeRate}
             />
           ) : null}
           {punchingRate > 0 ? (
-            <ItemRow label="Punching" amount={punchingRate} />
+            <ItemRow
+              label={
+                <>
+                  Punching
+                  {selectedCompanies?.punching ? (
+                    <span className="text-label-3 italic">
+                      {" "}
+                      · {selectedCompanies.punching}
+                    </span>
+                  ) : null}
+                </>
+              }
+              amount={punchingRate}
+            />
           ) : null}
-          {opackRate > 0 ? <ItemRow label="Opack" amount={opackRate} /> : null}
+          {opackRate > 0 ? (
+            <ItemRow
+              label={
+                <>
+                  Opack
+                  {selectedCompanies?.opack ? (
+                    <span className="text-label-3 italic">
+                      {" "}
+                      · {selectedCompanies.opack}
+                    </span>
+                  ) : null}
+                </>
+              }
+              amount={opackRate}
+            />
+          ) : null}
           <SectionSubtotal
             label="Additional subtotal"
             amount={additionalTotal}

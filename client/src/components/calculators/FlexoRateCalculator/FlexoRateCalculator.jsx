@@ -20,7 +20,8 @@ const buildPayload = (name, form, calc) => ({
 });
 
 export default function FlexoRateCalculator() {
-  const { settings, loading } = useFlexoSettings();
+  const { settings, loading, companies, companyCoverSizes } =
+    useFlexoSettings();
   const rates = settings ? buildFlexoRatesFromSettings(settings) : undefined;
   const { canSaveQuote } = useAuth();
 
@@ -36,7 +37,8 @@ export default function FlexoRateCalculator() {
     handlePrint,
   } = useCalculator({
     calcKey: "flexo-rate-calc",
-    calculateFn: (f) => calculateFlexoRate(f, rates),
+    calculateFn: (f) =>
+      calculateFlexoRate(f, rates, companies, companyCoverSizes),
     makeInitialForm,
     buildPayload,
     toastMessage: "Saved the flexo calculation successfully",

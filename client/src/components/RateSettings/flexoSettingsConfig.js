@@ -57,13 +57,23 @@ export const LOOKUP_TABS = [
 ];
 
 export const CHARGE_TABS = [
-  { id: "punchingRate", label: "Punching", type: "charge" },
-  { id: "opackRate", label: "Opack", type: "charge" },
+  { id: "punchingRate", label: "Punching", type: "charge", chargeKey: "punching" },
+  { id: "opackRate", label: "Opack", type: "charge", chargeKey: "opack" },
 ];
+
+export const COMPANIES_TAB = {
+  id: "companies",
+  label: "Companies",
+  type: "companies",
+};
+
+// Tab types whose data is scoped per-company rather than global
+export const COMPANY_SCOPED_TAB_TYPES = ["coverSizes", "matrix", "lookup", "charge"];
 
 export const FLEXO_TABS = [
   ...CONVERSION_TABS,
   ...ROLL_SIZE_TABS,
+  COMPANIES_TAB,
   COVER_SIZES_TAB,
   PRINTING_TAB,
   ...LOOKUP_TABS,

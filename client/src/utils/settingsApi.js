@@ -220,3 +220,77 @@ export function toggleFlexoRollSizeEnabled(material, rollSize, enabled) {
     { method: "PUT", body: JSON.stringify({ enabled }) },
   );
 }
+
+// ── Flexo Companies ──────────────────────────────────────────────────────
+export function fetchFlexoCompanies() {
+  return request(`${FLEXO_API_BASE}/companies`);
+}
+
+export function createFlexoCompany(name) {
+  return request(`${FLEXO_API_BASE}/companies`, {
+    method: "POST",
+    body: JSON.stringify({ name }),
+  });
+}
+
+export function updateFlexoCompanyCharge(
+  companyId,
+  chargeKey,
+  { price, isAvailable },
+) {
+  return request(
+    `${FLEXO_API_BASE}/companies/${companyId}/charge/${chargeKey}`,
+    { method: "PUT", body: JSON.stringify({ price, isAvailable }) },
+  );
+}
+
+export function deleteFlexoCompany(companyId) {
+  return request(`${FLEXO_API_BASE}/companies/${companyId}`, {
+    method: "DELETE",
+  });
+}
+
+export function restoreFlexoCompany(companyId) {
+  return request(`${FLEXO_API_BASE}/companies/${companyId}/restore`, {
+    method: "PATCH",
+  });
+}
+
+export function permanentDeleteFlexoCompany(companyId) {
+  return request(`${FLEXO_API_BASE}/companies/${companyId}/permanent`, {
+    method: "DELETE",
+  });
+}
+
+// ── Flexo Company Cover Sizes ────────────────────────────────────────────
+export function fetchFlexoCompanyCoverSizes(companyId) {
+  return request(`${FLEXO_API_BASE}/companies/${companyId}/cover-sizes`);
+}
+
+export function addFlexoCompanyCoverSize(companyId, coverSize) {
+  return request(`${FLEXO_API_BASE}/companies/${companyId}/cover-sizes`, {
+    method: "POST",
+    body: JSON.stringify({ coverSize }),
+  });
+}
+
+export function deleteFlexoCompanyCoverSize(companyId, id) {
+  return request(
+    `${FLEXO_API_BASE}/companies/${companyId}/cover-sizes/${id}`,
+    { method: "DELETE" },
+  );
+}
+
+export function toggleFlexoCompanyCoverSize(companyId, id, enabled) {
+  return request(
+    `${FLEXO_API_BASE}/companies/${companyId}/cover-sizes/${id}/enabled`,
+    { method: "PUT", body: JSON.stringify({ enabled }) },
+  );
+}
+
+export function updateFlexoCompanyCoverSizeRate(companyId, id, fields) {
+  return request(
+    `${FLEXO_API_BASE}/companies/${companyId}/cover-sizes/${id}/rate`,
+    { method: "PUT", body: JSON.stringify(fields) },
+  );
+}

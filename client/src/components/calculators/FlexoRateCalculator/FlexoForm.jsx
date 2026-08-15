@@ -1,10 +1,10 @@
-import { useState, useImperativeHandle, forwardRef } from "react";
+import { useState, useEffect, useImperativeHandle, forwardRef } from "react";
 import FormStack from "../../form/FormStack";
 import FormSection from "../../form/FormSection";
 import TextField from "../../form/TextField";
-import ToggleField from "../../form/ToggleField";
 import RadioField from "../../form/RadioField";
 import SelectField from "../../form/SelectField";
+import ToggleCompanyRow from "./formRows/ToggleCompanyRow";
 import {
   makeInitialForm,
   WASTAGE_OPTIONS,
@@ -14,6 +14,12 @@ import {
 import { useFlexoSettings } from "../../../context/FlexoSettingsContext";
 import { useAuth } from "../../../context/AuthContext";
 import { compareDimensions } from "../../../utils/dimensionUtils";
+import {
+  getFlexoCompanyOptions,
+  makeFlexoChargeOptionRenderer,
+  findFlexoCompanyByName,
+  getCompanyCoverSizeOptions,
+} from "./processCompanyOptions";
 
 const MATERIAL_TYPE_OPTIONS = CONVERSION_MATERIAL_TYPES.map((t) => ({
   value: t,
@@ -32,9 +38,49 @@ export default forwardRef(function FlexoForm(
 ) {
   const [form, setForm] = useState(() => makeInitialForm());
   const [savingPriceByMaterial, setSavingPriceByMaterial] = useState({});
-  const { settings, updateMaterialPrice } = useFlexoSettings();
+  const {
+    settings,
+    updateMaterialPrice,
+    companies,
+    companyCoverSizes,
+    fetchCompanyCoverSizes,
+  } = useFlexoSettings();
   const { canEditPrices } = useAuth();
   const canEditMaterialPrice = canEditPrices("flexo-rate-calc");
+
+  const companyOptions = getFlexoCompanyOptions(companies);
+  const punchingOptionRenderer = makeFlexoChargeOptionRenderer(
+    companies,
+    "punching",
+  );
+  const opackOptionRenderer = makeFlexoChargeOptionRenderer(companies, "opack");
+
+  const printingCompanyObj = findFlexoCompanyByName(
+    companies,
+    form.printingCompany,
+  );
+
+  // Fetch cover sizes for any company selected across the printing/gusset/cutting rows
+  useEffect(() => {
+    for (const companyName of [
+      form.printingCompany,
+      form.gussetCompany,
+      form.cuttingCompany,
+    ]) {
+      if (!companyName) continue;
+      const company = findFlexoCompanyByName(companies, companyName);
+      if (company && !companyCoverSizes[company.id]) {
+        fetchCompanyCoverSizes(company.id);
+      }
+    }
+  }, [
+    form.printingCompany,
+    form.gussetCompany,
+    form.cuttingCompany,
+    companies,
+    companyCoverSizes,
+    fetchCompanyCoverSizes,
+  ]);
 
   // Derive roll size options from live enabled rollSizeRates for selected material, sorted numerically
   const liveRollSizeOptions = Object.entries(
@@ -45,10 +91,15 @@ export default forwardRef(function FlexoForm(
     .sort((a, b) => parseFloat(a) - parseFloat(b));
 
   // Derive cover size options from live printingRates (sorted W then H), filtered to enabled only
-  const liveCoverSizeOptions = Object.entries(settings?.printingRates ?? {})
+  const globalCoverSizeOptions = Object.entries(settings?.printingRates ?? {})
     .filter(([, entry]) => entry.enabled !== false)
     .map(([key]) => key)
     .sort(compareDimensions);
+
+  // When a printing company is selected, scope cover sizes to that company
+  const liveCoverSizeOptions = printingCompanyObj
+    ? getCompanyCoverSizeOptions(companyCoverSizes, printingCompanyObj.id)
+    : globalCoverSizeOptions;
 
   function getLiveMaterialPrice(materialKey) {
     if (!materialKey) return 0;
@@ -155,6 +206,15 @@ export default forwardRef(function FlexoForm(
       {/* ── Size & Printing ── */}
       <FormSection title="Size &amp; Printing">
         <SelectField
+          label="Printing Company"
+          placeholder="Search company…"
+          defaultOptions={companyOptions}
+          value={form.printingCompany}
+          onChange={(v) => setField("printingCompany", v)}
+          creatable={false}
+          persistOptions={false}
+        />
+        <SelectField
           label="Cover Size"
           placeholder="Search cover size…"
           storageKey="flexo-cover-sizes"
@@ -176,27 +236,39 @@ export default forwardRef(function FlexoForm(
 
       {/* ── Additional Charges ── */}
       <FormSection title="Additional Charges">
-        <ToggleField
+        <ToggleCompanyRow
           label="Gusset"
           on={form.gusset}
           onToggle={() => setField("gusset", !form.gusset)}
-          disabled={!form.coverSize}
+          companyValue={form.gussetCompany}
+          onCompanyChange={(v) => setField("gussetCompany", v)}
+          companyOptions={companyOptions}
         />
-        <ToggleField
+        <ToggleCompanyRow
           label="Cutting"
           on={form.cutting}
           onToggle={() => setField("cutting", !form.cutting)}
-          disabled={!form.coverSize}
+          companyValue={form.cuttingCompany}
+          onCompanyChange={(v) => setField("cuttingCompany", v)}
+          companyOptions={companyOptions}
         />
-        <ToggleField
+        <ToggleCompanyRow
           label="Punching"
           on={form.punching}
           onToggle={() => setField("punching", !form.punching)}
+          companyValue={form.punchingCompany}
+          onCompanyChange={(v) => setField("punchingCompany", v)}
+          companyOptions={companyOptions}
+          renderCompanyOption={punchingOptionRenderer}
         />
-        <ToggleField
+        <ToggleCompanyRow
           label="Opack"
           on={form.opack}
           onToggle={() => setField("opack", !form.opack)}
+          companyValue={form.opackCompany}
+          onCompanyChange={(v) => setField("opackCompany", v)}
+          companyOptions={companyOptions}
+          renderCompanyOption={opackOptionRenderer}
         />
       </FormSection>
 

@@ -20,6 +20,17 @@ import {
   addFlexoRollSizeRow as apiAddRollSizeRow,
   deleteFlexoRollSizeRow as apiDeleteRollSizeRow,
   toggleFlexoRollSizeEnabled as apiToggleRollSizeEnabled,
+  fetchFlexoCompanies as apiFetchFlexoCompanies,
+  createFlexoCompany as apiCreateFlexoCompany,
+  updateFlexoCompanyCharge as apiUpdateFlexoCompanyCharge,
+  deleteFlexoCompany as apiDeleteFlexoCompany,
+  restoreFlexoCompany as apiRestoreFlexoCompany,
+  permanentDeleteFlexoCompany as apiPermanentDeleteFlexoCompany,
+  fetchFlexoCompanyCoverSizes as apiFetchCompanyCoverSizes,
+  addFlexoCompanyCoverSize as apiAddCompanyCoverSize,
+  deleteFlexoCompanyCoverSize as apiDeleteCompanyCoverSize,
+  toggleFlexoCompanyCoverSize as apiToggleCompanyCoverSize,
+  updateFlexoCompanyCoverSizeRate as apiUpdateCompanyCoverSizeRate,
 } from "../utils/settingsApi";
 import {
   CONVERSION_RATES,
@@ -143,6 +154,9 @@ export function FlexoSettingsProvider({ children, skip = false }) {
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(!skip);
   const [error, setError] = useState(null);
+  const [companies, setCompanies] = useState([]);
+  const [companiesLoading, setCompaniesLoading] = useState(!skip);
+  const [companyCoverSizes, setCompanyCoverSizes] = useState({});
 
   const refresh = useCallback(async () => {
     if (skip) return;
@@ -159,9 +173,32 @@ export function FlexoSettingsProvider({ children, skip = false }) {
     }
   }, [skip]);
 
+  const fetchCompanies = useCallback(async () => {
+    if (skip) return;
+    try {
+      const data = await apiFetchFlexoCompanies();
+      setCompanies(data);
+    } catch (err) {
+      console.error("Failed to fetch flexo companies:", err);
+    } finally {
+      setCompaniesLoading(false);
+    }
+  }, [skip]);
+
   useEffect(() => {
     if (!skip) refresh();
   }, [refresh, skip]);
+
+  useEffect(() => {
+    if (!skip) fetchCompanies();
+  }, [fetchCompanies, skip]);
+
+  useEffect(() => {
+    const handleUpdate = () => fetchCompanies();
+    window.addEventListener("flexo-companies-updated", handleUpdate);
+    return () =>
+      window.removeEventListener("flexo-companies-updated", handleUpdate);
+  }, [fetchCompanies]);
 
   const updateMaterialPrice = useCallback(async (material, price) => {
     const updated = await apiUpdateMaterialPrice(material, price);
@@ -274,6 +311,103 @@ export function FlexoSettingsProvider({ children, skip = false }) {
     [],
   );
 
+  const createCompany = useCallback(async (name) => {
+    const created = await apiCreateFlexoCompany(name);
+    setCompanies((prev) => [...prev, created]);
+    window.dispatchEvent(new CustomEvent("flexo-companies-updated"));
+    return created;
+  }, []);
+
+  const updateCompanyCharge = useCallback(
+    async (companyId, chargeKey, { price, isAvailable }) => {
+      const updated = await apiUpdateFlexoCompanyCharge(companyId, chargeKey, {
+        price,
+        isAvailable,
+      });
+      setCompanies((prev) =>
+        prev.map((c) => (c.id === companyId ? updated : c)),
+      );
+      window.dispatchEvent(new CustomEvent("flexo-companies-updated"));
+      return updated;
+    },
+    [],
+  );
+
+  const deleteCompany = useCallback(async (companyId) => {
+    const deleted = await apiDeleteFlexoCompany(companyId);
+    setCompanies((prev) =>
+      prev.map((c) => (c.id === companyId ? deleted : c)),
+    );
+    window.dispatchEvent(new CustomEvent("flexo-companies-updated"));
+    return deleted;
+  }, []);
+
+  const restoreCompany = useCallback(async (companyId) => {
+    const restored = await apiRestoreFlexoCompany(companyId);
+    setCompanies((prev) =>
+      prev.map((c) => (c.id === companyId ? restored : c)),
+    );
+    window.dispatchEvent(new CustomEvent("flexo-companies-updated"));
+    return restored;
+  }, []);
+
+  const permanentDeleteCompany = useCallback(async (companyId) => {
+    await apiPermanentDeleteFlexoCompany(companyId);
+    setCompanies((prev) => prev.filter((c) => c.id !== companyId));
+    setCompanyCoverSizes((prev) => {
+      const next = { ...prev };
+      delete next[companyId];
+      return next;
+    });
+    window.dispatchEvent(new CustomEvent("flexo-companies-updated"));
+  }, []);
+
+  const fetchCompanyCoverSizes = useCallback(async (companyId) => {
+    if (!companyId) return [];
+    const data = await apiFetchCompanyCoverSizes(companyId);
+    setCompanyCoverSizes((prev) => ({ ...prev, [companyId]: data }));
+    return data;
+  }, []);
+
+  const addCompanyCoverSize = useCallback(async (companyId, coverSize) => {
+    const updated = await apiAddCompanyCoverSize(companyId, coverSize);
+    setCompanyCoverSizes((prev) => ({ ...prev, [companyId]: updated }));
+    return updated;
+  }, []);
+
+  const deleteCompanyCoverSize = useCallback(async (companyId, id) => {
+    const updated = await apiDeleteCompanyCoverSize(companyId, id);
+    setCompanyCoverSizes((prev) => ({ ...prev, [companyId]: updated }));
+    return updated;
+  }, []);
+
+  const toggleCompanyCoverSize = useCallback(
+    async (companyId, id, enabled) => {
+      const updated = await apiToggleCompanyCoverSize(companyId, id, enabled);
+      setCompanyCoverSizes((prev) => ({ ...prev, [companyId]: updated }));
+      return updated;
+    },
+    [],
+  );
+
+  const updateCompanyCoverSizeRate = useCallback(
+    async (companyId, id, fields) => {
+      const updated = await apiUpdateCompanyCoverSizeRate(
+        companyId,
+        id,
+        fields,
+      );
+      setCompanyCoverSizes((prev) => ({
+        ...prev,
+        [companyId]: (prev[companyId] ?? []).map((cs) =>
+          cs.id === id ? updated : cs,
+        ),
+      }));
+      return updated;
+    },
+    [],
+  );
+
   const value = {
     settings,
     loading,
@@ -292,6 +426,20 @@ export function FlexoSettingsProvider({ children, skip = false }) {
     addRollSizeRow,
     deleteRollSizeRow,
     toggleRollSizeEnabled,
+    companies,
+    companiesLoading,
+    fetchCompanies,
+    createCompany,
+    updateCompanyCharge,
+    deleteCompany,
+    restoreCompany,
+    permanentDeleteCompany,
+    companyCoverSizes,
+    fetchCompanyCoverSizes,
+    addCompanyCoverSize,
+    deleteCompanyCoverSize,
+    toggleCompanyCoverSize,
+    updateCompanyCoverSizeRate,
   };
 
   return (

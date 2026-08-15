@@ -1,5 +1,6 @@
 import { Router } from "express";
 import * as ctrl from "../controllers/flexoSettings.js";
+import * as companyCtrl from "../controllers/flexoCompanySettings.js";
 import {
   validateFlexoMaterial,
   validateConversionMaterial,
@@ -121,6 +122,68 @@ router.put(
   needEditPrices,
   validateConversionMaterial,
   ctrl.toggleRollSizeEnabled,
+);
+
+// Companies
+router.get("/companies", needCalculate, companyCtrl.getCompanies);
+
+router.post(
+  "/companies",
+  needEditPrices,
+  validateString("name"),
+  companyCtrl.createCompanyHandler,
+);
+
+router.put(
+  "/companies/:id/charge/:chargeKey",
+  needEditPrices,
+  companyCtrl.updateCompanyChargeHandler,
+);
+
+router.delete("/companies/:id", needEditPrices, companyCtrl.deleteCompanyHandler);
+
+router.patch(
+  "/companies/:id/restore",
+  needEditPrices,
+  companyCtrl.restoreCompanyHandler,
+);
+
+router.delete(
+  "/companies/:id/permanent",
+  needEditPrices,
+  companyCtrl.permanentDeleteCompanyHandler,
+);
+
+// Company-scoped cover sizes
+router.get(
+  "/companies/:companyId/cover-sizes",
+  needCalculate,
+  companyCtrl.listCompanyCoverSizes,
+);
+
+router.post(
+  "/companies/:companyId/cover-sizes",
+  needEditPrices,
+  validateString("coverSize"),
+  companyCtrl.addCompanyCoverSize,
+);
+
+router.delete(
+  "/companies/:companyId/cover-sizes/:id",
+  needEditPrices,
+  companyCtrl.deleteCompanyCoverSize,
+);
+
+router.put(
+  "/companies/:companyId/cover-sizes/:id/enabled",
+  needEditPrices,
+  companyCtrl.toggleCompanyCoverSize,
+);
+
+router.put(
+  "/companies/:companyId/cover-sizes/:id/rate",
+  needEditPrices,
+  companyCtrl.updateCompanyCoverSizeRate,
 );
 
 export default router;

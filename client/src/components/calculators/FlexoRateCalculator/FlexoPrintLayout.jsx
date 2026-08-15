@@ -29,6 +29,7 @@ export default function FlexoPrintLayout({ result, form }) {
     servicePercent,
     serviceAmount,
     totalRate,
+    selectedCompanies,
   } = result;
 
   const roundedTotalAmount = Math.round(totalRate || 0);
@@ -76,7 +77,7 @@ export default function FlexoPrintLayout({ result, form }) {
     printingRate > 0
       ? {
           key: "printing",
-          label: `Printing — ${printingColors} Colour${parseInt(printingColors) !== 1 ? "s" : ""}${coverSize ? ` (${coverSize})` : ""}`,
+          label: `Printing — ${printingColors} Colour${parseInt(printingColors) !== 1 ? "s" : ""}${coverSize ? ` (${coverSize})` : ""}${selectedCompanies?.printing ? ` · ${selectedCompanies.printing}` : ""}`,
           qty: null,
           price: null,
           amount: printingRate,
@@ -87,7 +88,7 @@ export default function FlexoPrintLayout({ result, form }) {
     gussetRate > 0
       ? {
           key: "gusset",
-          label: "Gusset",
+          label: `Gusset${selectedCompanies?.gusset ? ` · ${selectedCompanies.gusset}` : ""}`,
           qty: null,
           price: null,
           amount: gussetRate,
@@ -98,7 +99,7 @@ export default function FlexoPrintLayout({ result, form }) {
     punchingRate > 0
       ? {
           key: "punching",
-          label: "Punching",
+          label: `Punching${selectedCompanies?.punching ? ` · ${selectedCompanies.punching}` : ""}`,
           qty: null,
           price: null,
           amount: punchingRate,
@@ -109,7 +110,7 @@ export default function FlexoPrintLayout({ result, form }) {
     opackRate > 0
       ? {
           key: "opack",
-          label: "O-Pack",
+          label: `O-Pack${selectedCompanies?.opack ? ` · ${selectedCompanies.opack}` : ""}`,
           qty: null,
           price: null,
           amount: opackRate,
@@ -120,7 +121,7 @@ export default function FlexoPrintLayout({ result, form }) {
     cuttingSizeRate > 0
       ? {
           key: "cutting",
-          label: `Cutting${coverSize ? ` (${coverSize})` : ""}`,
+          label: `Cutting${coverSize ? ` (${coverSize})` : ""}${selectedCompanies?.cutting ? ` · ${selectedCompanies.cutting}` : ""}`,
           qty: null,
           price: null,
           amount: cuttingSizeRate,
