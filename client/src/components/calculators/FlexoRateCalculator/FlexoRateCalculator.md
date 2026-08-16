@@ -290,26 +290,33 @@ FlexoRateCalculator/
 ├── FlexoPrintLayout.jsx       Print mapping wrapper to PrintInvoice
 ├── FlexoSavedQuotes.jsx       Saved quotes list view (wraps SavedQuotesView)
 ├── formConfig.js              Option arrays, makeInitialForm()
-├── formRows/                  Reusable form row components
-│   ├── MaterialPriceQuantityRow.jsx  Material price + qty row
-│   ├── OptionalChargeRow.jsx         Optional toggle + charge price row
-│   └── CoverSizeRadioRow.jsx         Cover size radio selection row
+├── formRows/                  Dead files — not imported anywhere
+│   ├── MaterialPriceQuantityRow.jsx
+│   ├── OptionalChargeRow.jsx
+│   └── CoverSizeRadioRow.jsx
 └── FlexoRateCalculator.md     This file
 ```
+
+Every charge row (Roll Size, Printing, Printing Colors, Cover Size, Gusset, Cutting, Opack,
+Punching) now renders through `calculators/formRows/ProcessTableRow.jsx` — the same "Processing
+Charges" table used by the Flexo Job Cost calculator — with column labels from `ChargeColumnHeader`
+and the shared `PROCESS_TABLE_GRID_NO_RATE` track. There's no Rate column here: this calculator
+resolves every rate itself at calc time rather than storing an editable price in form state, so the
+₹ badge inside each company dropdown option (from `makeFlexoChargeOptionRenderer`) is the only place
+a rate shows. Roll Size / Printing / Cover Size have no on/off concept in this calculator, so their
+rows render a locked, always-on disabled toggle purely to keep every row's label at the same
+x-position.
 
 ### File responsibilities
 
 | File                       | Role                                                                                                                                                                                    | LOC  |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
 | `FlexoRateCalculator.jsx`  | Container — `useState` (form, result, saveError), `useRef` (formRef), save/print/reset handlers. Renders 2-column grid: form left, result right.                                       | ~100 |
-| `FlexoForm.jsx`            | Controlled form orchestrator via `forwardRef`. Uses compound form components + reusable row components. 6 sections: Customer, Material, Size & Printing, Additional Charges, Cutting, Wastage. | ~155 |
+| `FlexoForm.jsx`            | Controlled form orchestrator via `forwardRef`. Sections: Customer, Material (type + price only), Processing Charges (one merged table — see above), Wastage & Service. | ~230 |
 | `FlexoResult.jsx`          | Stateless invoice breakdown. Sections: Material & Conversion, Printing, Additional Charges, Adjustments. Uses invoice primitives + `WastageRow`.                                        | ~170 |
 | `FlexoPrintLayout.jsx`     | Print mapping wrapper. Builds printable items/adjustments/meta rows and composes `PrintInvoice`.                                                                                        | ~90  |
 | `FlexoSavedQuotes.jsx`     | Thin wrapper around `SavedQuotesView` with Flexo config + `formatFlexoPrice` (shows `₹X` not `₹X/kg`).                                                                                | ~20  |
 | `formConfig.js`            | `makeInitialForm()`, derived option arrays (`ROLL_SIZE_OPTIONS`, `CUTTING_SIZE_OPTIONS`), re-exports from constants.                                                                    | ~35  |
-| `formRows/MaterialPriceQuantityRow.jsx` | Reusable material price + quantity row with linked storage keys.                                                                                                      | ~30  |
-| `formRows/OptionalChargeRow.jsx`       | Reusable optional charge toggle + conditional price row.                                                                                                                           | ~35  |
-| `formRows/CoverSizeRadioRow.jsx`       | Reusable cover size radio selection row.                                                                                                                                             | ~20  |
 
 ---
 

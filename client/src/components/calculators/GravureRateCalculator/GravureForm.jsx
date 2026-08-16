@@ -11,9 +11,16 @@ import TextField from "../../form/TextField";
 import SelectField from "../../form/SelectField";
 import CreatableSelect from "../../ui/CreatableSelect";
 import MaterialRow from "./MaterialRow";
-import ProcessCountCompanyRow from "./formRows/ProcessCountCompanyRow";
-import ToggleCompanyRow from "./formRows/ToggleCompanyRow";
-import LaminationCompanyRow from "./formRows/LaminationCompanyRow";
+import ProcessCountCompanyRow from "../formRows/ProcessCountCompanyRow";
+import ToggleCompanyRow from "../formRows/ToggleCompanyRow";
+import LaminationPillRow from "../formRows/LaminationPillRow";
+import ChargeColumnHeader from "../formRows/ChargeColumnHeader";
+import {
+  PrinterIcon,
+  LayersIcon,
+  ScissorsIcon,
+  PouchIcon,
+} from "../../ui/Icons";
 import {
   getProcessCompanyOptions,
   makeCompanyOptionRenderer,
@@ -35,12 +42,6 @@ import {
   POUCH_TYPE_OPTIONS,
   getPouchTypeLabel,
 } from "../../../constants/pouchTypes";
-
-const LAMINATION_OPTIONS = [
-  { value: "none", label: "No Lamination" },
-  { value: "single", label: "Single Lamination" },
-  { value: "double", label: "Double Lamination" },
-];
 
 /* ─── GravureForm ────────────────────────────────────────────────────────── */
 export default forwardRef(function GravureForm(
@@ -114,17 +115,12 @@ export default forwardRef(function GravureForm(
     );
   }
 
-  const allSizeOptions = Array.from(
-    new Set(allPouchEntries.map((entry) => toSize(entry))),
-  ).sort((a, b) => a.localeCompare(b));
-
+  // Company is chosen first; size (and in turn type) options are scoped to
+  // that company and reset whenever the company changes.
   const filteredCompanyOptions = activeCompanies
-    .filter((company) => {
-      const provided = allPouchEntries.filter((entry) => entry.companyId === company.id);
-      if (provided.length === 0) return false;
-      if (!form.pouchSize) return true;
-      return provided.some((entry) => toSize(entry) === form.pouchSize);
-    })
+    .filter((company) =>
+      allPouchEntries.some((entry) => entry.companyId === company.id),
+    )
     .map((company) => ({ value: company.name, label: company.name }));
 
   const filteredSizeOptions = form.pouchCompany
@@ -139,7 +135,7 @@ export default forwardRef(function GravureForm(
             .map((entry) => toSize(entry)),
         ),
       ).sort((a, b) => a.localeCompare(b))
-    : allSizeOptions;
+    : [];
 
   const selectedPouchEntry = findPouchEntry(form.pouchCompany, form.pouchSize);
 
@@ -150,45 +146,24 @@ export default forwardRef(function GravureForm(
     : [];
 
   function handlePouchCompanyChange(nextCompany) {
-    let nextSize = form.pouchSize;
-    if (nextSize && !findPouchEntry(nextCompany, nextSize)) {
-      nextSize = "";
-    }
-
-    let nextType = form.pouchType;
-    const nextEntry = findPouchEntry(nextCompany, nextSize);
-    if (!nextEntry || nextEntry?.types?.[nextType]?.isAvailable === false) {
-      nextType = "";
-    }
-
     const next = {
       ...form,
       pouchCompany: nextCompany,
-      pouchSize: nextSize,
-      pouchType: nextType,
+      pouchSize: "",
+      pouchType: "",
     };
     setForm(next);
     onProceed?.(next);
   }
 
   function handlePouchSizeChange(nextSize) {
-    let nextCompany = form.pouchCompany;
-    if (nextCompany && !findPouchEntry(nextCompany, nextSize)) {
-      nextCompany = "";
-    }
-
     let nextType = form.pouchType;
-    const nextEntry = findPouchEntry(nextCompany, nextSize);
+    const nextEntry = findPouchEntry(form.pouchCompany, nextSize);
     if (!nextEntry || nextEntry?.types?.[nextType]?.isAvailable === false) {
       nextType = "";
     }
 
-    const next = {
-      ...form,
-      pouchCompany: nextCompany,
-      pouchSize: nextSize,
-      pouchType: nextType,
-    };
+    const next = { ...form, pouchSize: nextSize, pouchType: nextType };
     setForm(next);
     onProceed?.(next);
   }
@@ -356,9 +331,17 @@ export default forwardRef(function GravureForm(
         })}
       </FormSection>
 
-      <FormSection title="Printing Charges">
+      {/* Rates are resolved from the selected company's price list at calculation
+          time, so these rows show suppliers only — the ₹ badge inside each
+          dropdown option is where the rate surfaces. */}
+      <FormSection
+        title="Printing Charges"
+        icon={<PrinterIcon className="size-3.5" />}
+      >
+        <ChargeColumnHeader columns={["Component", "Supplier"]} />
         <ProcessCountCompanyRow
           label="Normal Colors"
+          connector={null}
           value={form.normalColors}
           onValueChange={(v) => setField("normalColors", v)}
           companyValue={form.normalColorCompany}
@@ -369,6 +352,7 @@ export default forwardRef(function GravureForm(
         />
         <ToggleCompanyRow
           label="Metallic Colors"
+          connector={null}
           on={form.metallicColorsEnabled}
           onToggle={() =>
             setField("metallicColorsEnabled", !form.metallicColorsEnabled)
@@ -380,6 +364,7 @@ export default forwardRef(function GravureForm(
         />
         <ToggleCompanyRow
           label="Matt Finish"
+          connector={null}
           on={form.mattFinish}
           onToggle={() => setField("mattFinish", !form.mattFinish)}
           companyValue={form.mattFinishCompany}
@@ -389,11 +374,13 @@ export default forwardRef(function GravureForm(
         />
       </FormSection>
 
-      <FormSection title="Lamination">
-        <LaminationCompanyRow
-          lamination={form.lamination}
-          onLaminationChange={(v) => setField("lamination", v)}
-          laminationOptions={LAMINATION_OPTIONS}
+      {/* Single and double lamination keep their company in separate fields, so
+          the parent picks which one the row reads and writes. */}
+      <FormSection title="Lamination" icon={<LayersIcon className="size-3.5" />}>
+        <ChargeColumnHeader columns={["Type", "Supplier"]} />
+        <LaminationPillRow
+          value={form.lamination}
+          onChange={(v) => setField("lamination", v)}
           companyValue={
             form.lamination === "single"
               ? form.singleLaminationCompany
@@ -423,9 +410,10 @@ export default forwardRef(function GravureForm(
         />
       </FormSection>
 
-      <FormSection>
+      <FormSection title="Slitting" icon={<ScissorsIcon className="size-3.5" />}>
         <ToggleCompanyRow
-          label="Slitting"
+          label="Slitting Charges"
+          connector={null}
           on={form.slitting}
           onToggle={() => setField("slitting", !form.slitting)}
           companyValue={form.slittingCompany}
@@ -435,37 +423,42 @@ export default forwardRef(function GravureForm(
         />
       </FormSection>
 
-      <FormSection>
-        <SelectField
-          label="Pouch Company"
-          placeholder="Select company"
-          value={form.pouchCompany}
-          onChange={handlePouchCompanyChange}
-          options={filteredCompanyOptions}
-          creatable={false}
-          emptyMessage="No companies found"
-        />
-        <div className="card-section pt-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
+      {/* Company → Size → Type, gated in that order: each one sources the next. */}
+      <FormSection title="Pouch Making" icon={<PouchIcon className="size-3.5" />}>
+        <div className="card-section">
+          <div className="grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr] gap-3">
+            <div className="min-w-0">
+              <p className="field-label mb-1.5">Pouch Company</p>
+              <CreatableSelect
+                defaultOptions={filteredCompanyOptions}
+                value={form.pouchCompany}
+                onChange={handlePouchCompanyChange}
+                placeholder="Select company"
+                creatable={false}
+                persistOptions={false}
+                emptyMessage="No companies found"
+              />
+            </div>
+            <div className="min-w-0">
               <p className="field-label mb-1.5">Pouch Size</p>
               <CreatableSelect
                 defaultOptions={filteredSizeOptions}
                 value={form.pouchSize}
                 onChange={handlePouchSizeChange}
-                placeholder="Search pouch size..."
+                placeholder="Search size..."
                 creatable={false}
                 persistOptions={false}
                 emptyMessage="No pouch sizes found"
+                disabled={!form.pouchCompany}
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="field-label mb-1.5">Pouch Type</p>
               <CreatableSelect
                 defaultOptions={filteredTypeOptions}
                 value={form.pouchType}
                 onChange={handlePouchTypeChange}
-                placeholder="Select pouch type..."
+                placeholder="Select type..."
                 creatable={false}
                 persistOptions={false}
                 emptyMessage="No pouch types found"
@@ -490,7 +483,7 @@ export default forwardRef(function GravureForm(
         </div>
       </FormSection>
 
-      <FormSection>
+      <FormSection title="Wastage &amp; Service">
         <SelectField
           label="Wastage"
           placeholder="0"

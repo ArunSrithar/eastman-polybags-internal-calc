@@ -593,3 +593,92 @@ export function CalendarIcon({ className = "size-4" }) {
     </svg>
   );
 }
+
+export function PrinterIcon({ className = "size-4" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M6 9V3h12v6" />
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+      <rect x="6" y="14" width="12" height="8" rx="1" />
+    </svg>
+  );
+}
+
+export function LayersIcon({ className = "size-4" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M12 2 2 7l10 5 10-5-10-5Z" />
+      <path d="M2 12l10 5 10-5" />
+      <path d="M2 17l10 5 10-5" />
+    </svg>
+  );
+}
+
+export function ScissorsIcon({ className = "size-4" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <circle cx="6" cy="6" r="3" />
+      <circle cx="6" cy="18" r="3" />
+      <path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12" />
+    </svg>
+  );
+}
+
+export function PouchIcon({ className = "size-4" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M6 2h12l-1 5H7L6 2Z" />
+      <path d="M7 7h10l1.5 13a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1L7 7Z" />
+    </svg>
+  );
+}
+
+export function ProcessIcon({ className = "size-4" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <circle cx="7" cy="7" r="3" />
+      <circle cx="17" cy="17" r="3" />
+      <path d="M20 7h-9M14 17H5" />
+    </svg>
+  );
+}

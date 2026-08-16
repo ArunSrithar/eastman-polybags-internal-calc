@@ -8,9 +8,16 @@ import DateField from "../../form/DateField";
 import ItemRow from "../ItemRow";
 import IOSToggle from "../../ui/IOSToggle";
 import CreatableSelect from "../../ui/CreatableSelect";
-import ProcessCountCompanyRow from "../GravureRateCalculator/formRows/ProcessCountCompanyRow";
-import ToggleCompanyRow from "../GravureRateCalculator/formRows/ToggleCompanyRow";
-import LaminationCompanyRow from "../GravureRateCalculator/formRows/LaminationCompanyRow";
+import ProcessCountCompanyRow from "../formRows/ProcessCountCompanyRow";
+import ToggleCompanyRow from "../formRows/ToggleCompanyRow";
+import LaminationPillRow from "../formRows/LaminationPillRow";
+import ChargeColumnHeader from "../formRows/ChargeColumnHeader";
+import {
+  PrinterIcon,
+  LayersIcon,
+  ScissorsIcon,
+  PouchIcon,
+} from "../../ui/Icons";
 import {
   getProcessCompanyOptions,
   makeCompanyOptionRenderer,
@@ -72,19 +79,22 @@ function resolveProcessRate(processKey, companyName, companies, rates) {
   return (rateKey ? rates?.[rateKey] : undefined) ?? PROCESS_FALLBACK[processKey] ?? 0;
 }
 
-function computePrintingPrice(printItem, companies, rates) {
+// Combines the three per-row prices (each independently editable/auto-filled
+// from the row's own company) into the single rate the total-cost calc uses.
+function computePrintingPrice(printItem) {
   const normalColors = parseInt(printItem.normalColors) || 0;
-  const normalRate = resolveProcessRate("normalColor", printItem.normalColorCompany, companies, rates);
+  const normalRate = parseFloat(printItem.normalColorPrice) || 0;
   const metallicRate = printItem.metallicEnabled
-    ? resolveProcessRate("metallicColor", printItem.metallicColorCompany, companies, rates)
+    ? parseFloat(printItem.metallicColorPrice) || 0
     : 0;
   const mattRate = printItem.mattFinish
-    ? resolveProcessRate("mattFinish", printItem.mattFinishCompany, companies, rates)
+    ? parseFloat(printItem.mattFinishPrice) || 0
     : 0;
   return normalColors * normalRate + metallicRate + mattRate;
 }
 
 function computeLaminationPrice(lamItem, companies, rates) {
+  if (lamItem.laminationType === "none") return 0;
   const processKey =
     lamItem.laminationType === "double" ? "doubleLamination" : "singleLamination";
   return resolveProcessRate(processKey, lamItem.laminationCompany, companies, rates);
@@ -141,11 +151,6 @@ function ChargeHeaderRow({ label, on, onToggle, totalQty, price, onPriceChange }
     </div>
   );
 }
-
-const LAMINATION_OPTIONS = [
-  { value: "single", label: "Single Lamination" },
-  { value: "double", label: "Double Lamination" },
-];
 
 /* ─── JobCostForm ────────────────────────────────────────────────────────── */
 export default forwardRef(function JobCostForm(
@@ -259,8 +264,25 @@ export default forwardRef(function JobCostForm(
     const merged = { ...form.items[itemKey], ...fields };
     let price = merged.price;
 
-    if (itemKey === "printingCharges" && !("price" in fields)) {
-      price = String(computePrintingPrice(merged, companies, rates));
+    if (itemKey === "printingCharges") {
+      // Picking a company auto-fills that row's price from its rate — unless
+      // this same call is a manual edit of the price field itself.
+      if ("normalColorCompany" in fields && !("normalColorPrice" in fields)) {
+        merged.normalColorPrice = String(
+          resolveProcessRate("normalColor", merged.normalColorCompany, companies, rates),
+        );
+      }
+      if ("metallicColorCompany" in fields && !("metallicColorPrice" in fields)) {
+        merged.metallicColorPrice = String(
+          resolveProcessRate("metallicColor", merged.metallicColorCompany, companies, rates),
+        );
+      }
+      if ("mattFinishCompany" in fields && !("mattFinishPrice" in fields)) {
+        merged.mattFinishPrice = String(
+          resolveProcessRate("mattFinish", merged.mattFinishCompany, companies, rates),
+        );
+      }
+      price = String(computePrintingPrice(merged));
     } else if (itemKey === "laminationCharges" && !("price" in fields)) {
       price = String(computeLaminationPrice(merged, companies, rates));
     } else if (itemKey === "slittingCharges" && !("price" in fields)) {
@@ -314,13 +336,10 @@ export default forwardRef(function JobCostForm(
   const pouchCompanyByName = new Map(activeCompanies.map((c) => [c.name, c]));
   const pouchItem = form.items.pouchMakingCharges;
 
+  // Company is chosen first; size options are scoped to that company and
+  // reset whenever the company changes.
   const filteredPouchCompanyOptions = activeCompanies
-    .filter((c) => {
-      const entries = allPouchEntries.filter((e) => e.companyId === c.id);
-      if (entries.length === 0) return false;
-      if (!pouchItem.pouchSize) return true;
-      return entries.some((e) => pouchEntrySize(e) === pouchItem.pouchSize);
-    })
+    .filter((c) => allPouchEntries.some((e) => e.companyId === c.id))
     .map((c) => ({ value: c.name, label: c.name }));
 
   const filteredPouchSizeOptions = pouchItem.pouchCompany
@@ -332,38 +351,26 @@ export default forwardRef(function JobCostForm(
           })
           .map(pouchEntrySize),
       )).sort((a, b) => a.localeCompare(b))
-    : Array.from(new Set(allPouchEntries.map(pouchEntrySize))).sort((a, b) =>
-        a.localeCompare(b),
-      );
+    : [];
 
   function handlePouchCompanyChange(nextCompany) {
-    const company = pouchCompanyByName.get(nextCompany);
-    let nextSize = pouchItem.pouchSize;
-    if (nextSize && company) {
-      const hasSize = allPouchEntries.some(
-        (e) => e.companyId === company.id && pouchEntrySize(e) === nextSize,
-      );
-      if (!hasSize) nextSize = "";
-    }
-    setChargeItemFields("pouchMakingCharges", { pouchCompany: nextCompany, pouchSize: nextSize });
+    setChargeItemFields("pouchMakingCharges", { pouchCompany: nextCompany, pouchSize: "" });
   }
 
   function handlePouchSizeChange(nextSize) {
-    let nextCompany = pouchItem.pouchCompany;
-    if (nextCompany) {
-      const company = pouchCompanyByName.get(nextCompany);
-      if (company) {
-        const hasSize = allPouchEntries.some(
-          (e) => e.companyId === company.id && pouchEntrySize(e) === nextSize,
-        );
-        if (!hasSize) nextCompany = "";
-      }
-    }
-    setChargeItemFields("pouchMakingCharges", { pouchSize: nextSize, pouchCompany: nextCompany });
+    setChargeItemFields("pouchMakingCharges", { pouchSize: nextSize });
   }
 
   /* ── Lamination type change ── */
   function handleLaminationTypeChange(newType) {
+    if (newType === "none") {
+      setChargeItemFields("laminationCharges", {
+        laminationType: "none",
+        enabled: false,
+      });
+      return;
+    }
+
     const newProcessKey = newType === "double" ? "doubleLamination" : "singleLamination";
     const available = getProcessCompanyOptions(companies, newProcessKey);
     const companyStillValid = available.some(
@@ -371,6 +378,7 @@ export default forwardRef(function JobCostForm(
     );
     setChargeItemFields("laminationCharges", {
       laminationType: newType,
+      enabled: true,
       laminationCompany: companyStillValid ? form.items.laminationCharges.laminationCompany : "",
     });
   }
@@ -499,17 +507,14 @@ export default forwardRef(function JobCostForm(
       </FormSection>
 
       {/* ── Printing Charges ── */}
-      <FormSection title="Printing Charges">
-        <ChargeHeaderRow
-          label="Printing Charges"
-          on={printItem.enabled}
-          onToggle={() => toggleItem("printingCharges")}
-          totalQty={totalMaterialQty}
-          price={printItem.price}
-          onPriceChange={(v) => setChargeItemFields("printingCharges", { price: v })}
-        />
+      {/* No section-level toggle/total here — printing always contributes
+          whatever its three rows resolve to (0 if none are active), and each
+          row prices itself instead of rolling up into one combined rate. */}
+      <FormSection title="Printing Charges" icon={<PrinterIcon className="size-3.5" />}>
+        <ChargeColumnHeader columns={["Component", "Supplier", "Rate"]} />
         <ProcessCountCompanyRow
           label="Normal Colors"
+          connector={null}
           value={printItem.normalColors}
           onValueChange={(v) => setChargeItemFields("printingCharges", { normalColors: v })}
           companyValue={printItem.normalColorCompany}
@@ -517,71 +522,73 @@ export default forwardRef(function JobCostForm(
           companyOptions={normalColorOptions}
           renderCompanyOption={renderNormalColor}
           companyDisabled={Number(printItem.normalColors || 0) <= 0}
+          price={printItem.normalColorPrice}
+          onPriceChange={(v) => setChargeItemFields("printingCharges", { normalColorPrice: v })}
+          priceUnit="/color"
         />
         <ToggleCompanyRow
           label="Metallic Colors"
+          connector={null}
           on={printItem.metallicEnabled}
           onToggle={() => setChargeItemFields("printingCharges", { metallicEnabled: !printItem.metallicEnabled })}
           companyValue={printItem.metallicColorCompany}
           onCompanyChange={(v) => setChargeItemFields("printingCharges", { metallicColorCompany: v })}
           companyOptions={metallicColorOptions}
           renderCompanyOption={renderMetallicColor}
+          price={printItem.metallicColorPrice}
+          onPriceChange={(v) => setChargeItemFields("printingCharges", { metallicColorPrice: v })}
         />
         <ToggleCompanyRow
           label="Matt Finish"
+          connector={null}
           on={printItem.mattFinish}
           onToggle={() => setChargeItemFields("printingCharges", { mattFinish: !printItem.mattFinish })}
           companyValue={printItem.mattFinishCompany}
           onCompanyChange={(v) => setChargeItemFields("printingCharges", { mattFinishCompany: v })}
           companyOptions={mattFinishOptions}
           renderCompanyOption={renderMattFinish}
+          price={printItem.mattFinishPrice}
+          onPriceChange={(v) => setChargeItemFields("printingCharges", { mattFinishPrice: v })}
+          priceUnit="/kg"
         />
       </FormSection>
 
       {/* ── Lamination ── */}
-      <FormSection title="Lamination">
-        <ChargeHeaderRow
-          label="Lamination Charges"
-          on={lamItem.enabled}
-          onToggle={() => toggleItem("laminationCharges")}
-          totalQty={totalMaterialQty}
-          price={lamItem.price}
-          onPriceChange={(v) => setChargeItemFields("laminationCharges", { price: v })}
-        />
-        <LaminationCompanyRow
-          lamination={lamItem.laminationType}
-          onLaminationChange={handleLaminationTypeChange}
-          laminationOptions={LAMINATION_OPTIONS}
+      <FormSection title="Lamination" icon={<LayersIcon className="size-3.5" />}>
+        <ChargeColumnHeader columns={["Type", "Supplier", "Rate"]} />
+        <LaminationPillRow
+          value={lamItem.laminationType}
+          onChange={handleLaminationTypeChange}
           companyValue={lamItem.laminationCompany}
           onCompanyChange={(v) => setChargeItemFields("laminationCharges", { laminationCompany: v })}
           companyOptions={lamIsDouble ? doubleLamOptions : singleLamOptions}
           renderCompanyOption={lamIsDouble ? renderDoubleLam : renderSingleLam}
+          price={lamItem.price}
+          onPriceChange={(v) => setChargeItemFields("laminationCharges", { price: v })}
         />
       </FormSection>
 
       {/* ── Slitting ── */}
-      <FormSection>
-        <ChargeHeaderRow
-          label="Slitting Charges"
-          on={slitItem.enabled}
-          onToggle={() => toggleItem("slittingCharges")}
-          totalQty={totalMaterialQty}
-          price={slitItem.price}
-          onPriceChange={(v) => setChargeItemFields("slittingCharges", { price: v })}
-        />
+      {/* One toggle, not two — the old header row and the company row below it
+          drove the same enabled flag. */}
+      <FormSection title="Slitting" icon={<ScissorsIcon className="size-3.5" />}>
         <ToggleCompanyRow
-          label="Slitting"
+          label="Slitting Charges"
+          connector={null}
           on={slitItem.enabled}
           onToggle={() => toggleItem("slittingCharges")}
           companyValue={slitItem.slittingCompany}
           onCompanyChange={(v) => setChargeItemFields("slittingCharges", { slittingCompany: v })}
           companyOptions={slittingOptions}
           renderCompanyOption={renderSlitting}
+          price={slitItem.price}
+          onPriceChange={(v) => setChargeItemFields("slittingCharges", { price: v })}
+          priceUnit="/kg"
         />
       </FormSection>
 
       {/* ── Pouch Making ── */}
-      <FormSection title="Pouch Making">
+      <FormSection title="Pouch Making" icon={<PouchIcon className="size-3.5" />}>
         <ChargeHeaderRow
           label="Pouch Making Charges"
           on={pouchItem.enabled}
@@ -590,17 +597,19 @@ export default forwardRef(function JobCostForm(
           price={pouchItem.price}
           onPriceChange={(v) => setChargeItemFields("pouchMakingCharges", { price: v })}
         />
-        <SelectField
-          label="Pouch Company"
-          placeholder="Select company"
-          value={pouchItem.pouchCompany}
-          onChange={handlePouchCompanyChange}
-          options={filteredPouchCompanyOptions}
-          creatable={false}
-          emptyMessage="No companies found"
-        />
-        <div className="card-section pt-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="card-section">
+          <div className="grid grid-cols-[3fr_1fr] gap-3">
+            <div>
+              <p className="field-label mb-1.5">Pouch Company</p>
+              <CreatableSelect
+                defaultOptions={filteredPouchCompanyOptions}
+                value={pouchItem.pouchCompany}
+                onChange={handlePouchCompanyChange}
+                placeholder="Select company"
+                creatable={false}
+                emptyMessage="No companies found"
+              />
+            </div>
             <div>
               <p className="field-label mb-1.5">Pouch Size</p>
               <CreatableSelect

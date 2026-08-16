@@ -4,14 +4,21 @@ import FormSection from "../../form/FormSection";
 import TextField from "../../form/TextField";
 import RadioField from "../../form/RadioField";
 import SelectField from "../../form/SelectField";
-import ToggleCompanyRow from "./formRows/ToggleCompanyRow";
+import CreatableSelect from "../../ui/CreatableSelect";
+import ProcessTableRow from "../formRows/ProcessTableRow";
+import ChargeColumnHeader from "../formRows/ChargeColumnHeader";
+import { PROCESS_TABLE_GRID_NO_RATE } from "../formRows/chargeRowGrid";
+import { ProcessIcon } from "../../ui/Icons";
 import {
   makeInitialForm,
   WASTAGE_OPTIONS,
   CONVERSION_MATERIAL_TYPES,
   PRINTING_COLORS_OPTIONS,
 } from "./formConfig";
-import { useFlexoSettings } from "../../../context/FlexoSettingsContext";
+import {
+  useFlexoSettings,
+  getLiveRollSizeOptions,
+} from "../../../context/FlexoSettingsContext";
 import { useAuth } from "../../../context/AuthContext";
 import {
   getFlexoCompanyOptions,
@@ -25,10 +32,8 @@ const MATERIAL_TYPE_OPTIONS = CONVERSION_MATERIAL_TYPES.map((t) => ({
   label: t,
 }));
 
-const COLOR_OPTIONS = PRINTING_COLORS_OPTIONS.map((c) => ({
-  value: c,
-  label: c,
-}));
+// Values stay bare "1".."8" to match the printingColors keys the calc reads.
+const formatPrintColours = (v) => `${v} Colour`;
 
 /* ─── FlexoForm ──────────────────────────────────────────────────────────── */
 export default forwardRef(function FlexoForm(
@@ -82,12 +87,10 @@ export default forwardRef(function FlexoForm(
   ]);
 
   // Derive roll size options from live enabled rollSizeRates for selected material, sorted numerically
-  const liveRollSizeOptions = Object.entries(
-    settings?.rollSizeRates?.[form.conversionMaterial] ?? {},
-  )
-    .filter(([, entry]) => entry.enabled !== false)
-    .map(([key]) => key)
-    .sort((a, b) => parseFloat(a) - parseFloat(b));
+  const liveRollSizeOptions = getLiveRollSizeOptions(
+    settings,
+    form.conversionMaterial,
+  );
 
   // Cover sizes are company-scoped only — nothing to fall back to until a
   // printing company is selected (the global rate tables this used to read
@@ -186,90 +189,162 @@ export default forwardRef(function FlexoForm(
           disabled={!canEditMaterialPrice || !form.conversionMaterial || Boolean(savingPriceByMaterial[form.conversionMaterial])}
           persistOptions={false}
         />
-        <SelectField
+      </FormSection>
+
+      {/* ── Processing Charges — one table, six rows ── */}
+      {/* Rates are resolved calc-side from the selected company (or global
+          settings), never stored as an editable price here, so there's no
+          Rate column — showRate={false} on every row. Roll Size, Printing and
+          Cover Size have no on/off concept in this calculator (unlike Gusset/
+          Cutting/Opack/Punching, which are real toggles), so they render a
+          locked always-on toggle purely so their labels line up with the
+          rows that do toggle. Printing Colors is its own row (Cover Size
+          sources the company for it, so it comes second), using the same
+          "N Colour" select Flexo Job Cost uses rather than pill buttons. */}
+      <FormSection
+        title="Processing Charges"
+        icon={<ProcessIcon className="size-3.5" />}
+      >
+        <ChargeColumnHeader
+          columns={["Process", "Detail", "Supplier"]}
+          grid={PROCESS_TABLE_GRID_NO_RATE}
+        />
+        <ProcessTableRow
           label="Roll Size"
-          placeholder="Search roll size…"
-          inline
-          width="w-48"
-          storageKey="flexo-roll-sizes"
-          defaultOptions={liveRollSizeOptions}
-          value={form.rollSize}
-          onChange={(v) => setField("rollSize", v)}
-          creatable={false}
-        />
-      </FormSection>
-
-      {/* ── Size & Printing ── */}
-      <FormSection title="Size &amp; Printing">
-        <SelectField
-          label="Printing Company"
-          placeholder="Search company…"
-          defaultOptions={companyOptions}
-          value={form.printingCompany}
-          onChange={(v) => setField("printingCompany", v)}
-          creatable={false}
-          persistOptions={false}
-        />
-        <SelectField
-          label="Cover Size"
-          placeholder={
-            printingCompanyObj
-              ? "Search cover size…"
-              : "Select a company first"
+          showRate={false}
+          detail={
+            <CreatableSelect
+              value={form.rollSize}
+              onChange={(v) => setField("rollSize", v)}
+              defaultOptions={liveRollSizeOptions}
+              placeholder="Select size"
+              creatable={false}
+              persistOptions={false}
+            />
           }
-          storageKey="flexo-cover-sizes"
-          defaultOptions={liveCoverSizeOptions}
-          value={form.coverSize}
-          onChange={(v) => setField("coverSize", v)}
-          formatLabel={(v) => v.replace(/\s*[xX×]\s*/, " x ")}
-          creatable={false}
-          disabled={!printingCompanyObj}
         />
-        <RadioField
-          name="printingColors"
+        <ProcessTableRow
+          label="Printing"
+          showRate={false}
+          supplier={
+            <CreatableSelect
+              value={form.printingCompany}
+              onChange={(v) => setField("printingCompany", v)}
+              defaultOptions={companyOptions}
+              placeholder="Select company"
+              creatable={false}
+              persistOptions={false}
+              emptyMessage="No companies found"
+            />
+          }
+        />
+        <ProcessTableRow
+          label="Cover Size"
+          showRate={false}
+          supplier={
+            <CreatableSelect
+              value={form.coverSize}
+              onChange={(v) => setField("coverSize", v)}
+              defaultOptions={liveCoverSizeOptions}
+              placeholder={
+                printingCompanyObj ? "Select cover size" : "Select a company first"
+              }
+              formatLabel={(v) => v.replace(/\s*[xX×]\s*/, " x ")}
+              creatable={false}
+              persistOptions={false}
+              disabled={!printingCompanyObj}
+            />
+          }
+        />
+        <ProcessTableRow
           label="Printing Colors"
-          options={COLOR_OPTIONS}
-          value={form.printingColors}
-          onChange={(v) => setField("printingColors", v)}
-          disabled={!form.coverSize}
+          showRate={false}
+          supplier={
+            <CreatableSelect
+              value={form.printingColors}
+              onChange={(v) => setField("printingColors", v)}
+              defaultOptions={PRINTING_COLORS_OPTIONS}
+              formatLabel={formatPrintColours}
+              placeholder="Select colours"
+              creatable={false}
+              persistOptions={false}
+              disabled={!form.coverSize}
+            />
+          }
         />
-      </FormSection>
-
-      {/* ── Additional Charges ── */}
-      <FormSection title="Additional Charges">
-        <ToggleCompanyRow
+        <ProcessTableRow
           label="Gusset"
+          showRate={false}
           on={form.gusset}
           onToggle={() => setField("gusset", !form.gusset)}
-          companyValue={form.gussetCompany}
-          onCompanyChange={(v) => setField("gussetCompany", v)}
-          companyOptions={companyOptions}
+          supplier={
+            <CreatableSelect
+              value={form.gussetCompany}
+              onChange={(v) => setField("gussetCompany", v)}
+              defaultOptions={companyOptions}
+              placeholder="Select company"
+              creatable={false}
+              disabled={!form.gusset}
+              persistOptions={false}
+              emptyMessage="No companies found"
+            />
+          }
         />
-        <ToggleCompanyRow
+        <ProcessTableRow
           label="Cutting"
+          showRate={false}
           on={form.cutting}
           onToggle={() => setField("cutting", !form.cutting)}
-          companyValue={form.cuttingCompany}
-          onCompanyChange={(v) => setField("cuttingCompany", v)}
-          companyOptions={companyOptions}
+          supplier={
+            <CreatableSelect
+              value={form.cuttingCompany}
+              onChange={(v) => setField("cuttingCompany", v)}
+              defaultOptions={companyOptions}
+              placeholder="Select company"
+              creatable={false}
+              disabled={!form.cutting}
+              persistOptions={false}
+              emptyMessage="No companies found"
+            />
+          }
         />
-        <ToggleCompanyRow
-          label="Punching"
-          on={form.punching}
-          onToggle={() => setField("punching", !form.punching)}
-          companyValue={form.punchingCompany}
-          onCompanyChange={(v) => setField("punchingCompany", v)}
-          companyOptions={companyOptions}
-          renderCompanyOption={punchingOptionRenderer}
-        />
-        <ToggleCompanyRow
+        <ProcessTableRow
           label="Opack"
+          showRate={false}
           on={form.opack}
           onToggle={() => setField("opack", !form.opack)}
-          companyValue={form.opackCompany}
-          onCompanyChange={(v) => setField("opackCompany", v)}
-          companyOptions={companyOptions}
-          renderCompanyOption={opackOptionRenderer}
+          supplier={
+            <CreatableSelect
+              value={form.opackCompany}
+              onChange={(v) => setField("opackCompany", v)}
+              defaultOptions={companyOptions}
+              renderOption={opackOptionRenderer}
+              placeholder="Select company"
+              creatable={false}
+              disabled={!form.opack}
+              persistOptions={false}
+              emptyMessage="No companies found"
+            />
+          }
+        />
+        <ProcessTableRow
+          label="Punching"
+          showRate={false}
+          on={form.punching}
+          onToggle={() => setField("punching", !form.punching)}
+          supplier={
+            <CreatableSelect
+              value={form.punchingCompany}
+              onChange={(v) => setField("punchingCompany", v)}
+              defaultOptions={companyOptions}
+              renderOption={punchingOptionRenderer}
+              placeholder="Select company"
+              creatable={false}
+              disabled={!form.punching}
+              persistOptions={false}
+              emptyMessage="No companies found"
+            />
+          }
         />
       </FormSection>
 

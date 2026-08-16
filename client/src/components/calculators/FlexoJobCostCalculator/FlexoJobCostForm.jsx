@@ -6,7 +6,11 @@ import NumberField from "../../form/NumberField";
 import SelectField from "../../form/SelectField";
 import RadioField from "../../form/RadioField";
 import DateField from "../../form/DateField";
-import IOSToggle from "../../ui/IOSToggle";
+import CreatableSelect from "../../ui/CreatableSelect";
+import ProcessTableRow from "../formRows/ProcessTableRow";
+import ChargeColumnHeader from "../formRows/ChargeColumnHeader";
+import { PROCESS_TABLE_GRID } from "../formRows/chargeRowGrid";
+import { ProcessIcon } from "../../ui/Icons";
 import {
   makeInitialForm,
   FLAT_ITEMS,
@@ -16,8 +20,9 @@ import {
 import {
   useFlexoSettings,
   getCurrentRate,
+  getLiveRollSizeOptions,
 } from "../../../context/FlexoSettingsContext";
-import { fmt } from "../../../utils/format";
+import { PRINTING_COLORS_OPTIONS } from "../../../constants/flexoRateCalc";
 import ItemRow from "../ItemRow";
 import {
   getFlexoCompanyOptions,
@@ -95,42 +100,14 @@ function computePunchingPrice(settings, company) {
   return getCurrentRate(settings?.punchingRate);
 }
 
-/* ─── Charge section header row ──────────────────────────────────────────── */
-function ChargeHeaderRow({ label, on, onToggle, totalQty, price, onPriceChange }) {
-  return (
-    <div className="card-section">
-      <div className={`flex items-center gap-3 ${on ? "" : "opacity-50"}`}>
-        <IOSToggle on={on} onToggle={onToggle} />
-        <span className={`flex-1 text-sm font-semibold ${on ? "text-label" : "text-label-3"}`}>
-          {label}
-        </span>
-        {totalQty > 0 && (
-          <span className="text-sm text-label-3 tabular-nums shrink-0">
-            {fmt(totalQty)} kg
-          </span>
-        )}
-        <div className={`flex items-center input-base p-0 overflow-hidden w-44 shrink-0 ${on ? "" : "pointer-events-none"}`}>
-          <span className="px-3 text-label-3 text-sm border-r border-separator shrink-0">₹</span>
-          <input
-            type="number"
-            min="0"
-            value={price}
-            onChange={(e) => onPriceChange(e.target.value)}
-            placeholder="0.00"
-            className="flex-1 min-w-0 bg-transparent px-3 py-2 text-sm outline-none input-no-spinner"
-          />
-          <span className="px-2 text-label-3 text-xs shrink-0">per kg</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 const MATERIAL_TYPE_OPTIONS = [
   { value: "PP", label: "PP" },
   { value: "HM", label: "HM" },
   { value: "LD", label: "LD" },
 ];
+
+// Values stay bare "1".."8" to match the printingColors keys in price settings.
+const formatPrintColours = (v) => `${v} Colour`;
 
 const PROCESSING_CHARGE_KEYS = [
   "rollSize",
@@ -180,6 +157,8 @@ export default forwardRef(function FlexoJobCostForm(
   const liveCoverSizeOptions = printingCompanyObj
     ? getCompanyCoverSizeOptions(companyCoverSizes, printingCompanyObj.id)
     : [];
+
+  const liveRollSizeOptions = getLiveRollSizeOptions(settings, form.materialType);
 
   // Fetch cover sizes for any company selected across printing/gusset/cutting
   useEffect(() => {
@@ -461,16 +440,6 @@ export default forwardRef(function FlexoJobCostForm(
           min={0}
           placeholder="0.00"
         />
-        <SelectField
-          label="Roll Size"
-          placeholder="Select"
-          inline
-          width="w-40"
-          storageKey="flexo-job-cost-roll-sizes"
-          defaultOptions={DROPDOWN_SEEDS.rollSizes}
-          value={form.rollSizeSpec}
-          onChange={(v) => setField("rollSizeSpec", v)}
-        />
         <NumberField
           label="Micron"
           width="w-40"
@@ -479,150 +448,163 @@ export default forwardRef(function FlexoJobCostForm(
           min={0}
           placeholder="0"
         />
-        <SelectField
-          label="Print Colours"
-          placeholder="Select"
-          inline
-          width="w-48"
-          storageKey="flexo-job-cost-print-colors"
-          defaultOptions={DROPDOWN_SEEDS.printColors}
-          value={form.printColors}
-          onChange={(v) => setField("printColors", v)}
-        />
-        <SelectField
-          label="Printing Company"
-          placeholder="Select company"
-          inline
-          width="w-48"
-          defaultOptions={companyOptions}
-          value={form.printingCompany}
-          onChange={(v) => setField("printingCompany", v)}
-          creatable={false}
-          persistOptions={false}
-        />
-        <SelectField
-          label="Cover Size"
-          placeholder={printingCompanyObj ? "Select" : "Select a company first"}
-          inline
-          width="w-40"
-          storageKey="flexo-job-cost-cover-sizes"
-          defaultOptions={liveCoverSizeOptions}
-          value={form.coverSize}
-          onChange={(v) => setField("coverSize", v)}
-          disabled={!printingCompanyObj}
-        />
       </FormSection>
 
-      {/* ── Processing Charges — one card per type ── */}
-      <FormSection title="Roll Size">
-        <ChargeHeaderRow
-          label="Roll Size Charges"
+      {/* ── Processing Charges — one table, six rows ── */}
+      {/* Roll Size and Printing carry an extra "Detail" control; the other
+          four are identical toggle+supplier+rate rows. Cover Size is its own
+          sub-row under Printing since it's sourced from that row's company
+          but also feeds Gusset's and Cutting's rates — it isn't itself a
+          charge, so it gets no toggle and no rate. */}
+      <FormSection
+        title="Processing Charges"
+        icon={<ProcessIcon className="size-3.5" />}
+      >
+        <ChargeColumnHeader
+          columns={["Process", "Detail", "Supplier", "Rate ₹/kg"]}
+          grid={PROCESS_TABLE_GRID}
+        />
+        <ProcessTableRow
+          label="Roll Size"
           on={form.items.rollSize.enabled}
           onToggle={() => toggleItem("rollSize")}
-          totalQty={totalMaterialQty}
           price={form.items.rollSize.price}
           onPriceChange={(v) => setProcessingPrice("rollSize", v)}
+          detail={
+            <CreatableSelect
+              value={form.rollSizeSpec}
+              onChange={(v) => setField("rollSizeSpec", v)}
+              defaultOptions={liveRollSizeOptions}
+              placeholder="Select size"
+              creatable={false}
+              persistOptions={false}
+              emptyMessage="No roll sizes configured"
+            />
+          }
         />
-      </FormSection>
-
-      <FormSection title="Printing">
-        <ChargeHeaderRow
-          label="Printing Charges"
+        <ProcessTableRow
+          label="Printing"
           on={form.items.printing.enabled}
           onToggle={() => toggleItem("printing")}
-          totalQty={totalMaterialQty}
           price={form.items.printing.price}
           onPriceChange={(v) => setProcessingPrice("printing", v)}
+          detail={
+            <CreatableSelect
+              value={form.printColors}
+              onChange={(v) => setField("printColors", v)}
+              defaultOptions={PRINTING_COLORS_OPTIONS}
+              formatLabel={formatPrintColours}
+              placeholder="Colours"
+              creatable={false}
+              persistOptions={false}
+            />
+          }
+          supplier={
+            <CreatableSelect
+              value={form.printingCompany}
+              onChange={(v) => setField("printingCompany", v)}
+              defaultOptions={companyOptions}
+              placeholder="Select company"
+              creatable={false}
+              persistOptions={false}
+              emptyMessage="No companies found"
+            />
+          }
         />
-      </FormSection>
-
-      <FormSection title="Gusset">
-        <ChargeHeaderRow
-          label="Gusset Charges"
+        <ProcessTableRow
+          label="Cover Size"
+          supplier={
+            <CreatableSelect
+              value={form.coverSize}
+              onChange={(v) => setField("coverSize", v)}
+              defaultOptions={liveCoverSizeOptions}
+              placeholder={
+                printingCompanyObj ? "Select cover size" : "Select a company first"
+              }
+              creatable={false}
+              persistOptions={false}
+              emptyMessage="No cover sizes for this company"
+              disabled={!printingCompanyObj}
+            />
+          }
+        />
+        <ProcessTableRow
+          label="Gusset"
           on={form.items.gusset.enabled}
           onToggle={() => toggleItem("gusset")}
-          totalQty={totalMaterialQty}
           price={form.items.gusset.price}
           onPriceChange={(v) => setProcessingPrice("gusset", v)}
+          supplier={
+            <CreatableSelect
+              value={form.gussetCompany}
+              onChange={(v) => setField("gussetCompany", v)}
+              defaultOptions={companyOptions}
+              placeholder="Select company"
+              creatable={false}
+              disabled={!form.items.gusset.enabled}
+              persistOptions={false}
+              emptyMessage="No companies found"
+            />
+          }
         />
-        <SelectField
-          label="Company"
-          placeholder="Select company"
-          inline
-          width="w-48"
-          defaultOptions={companyOptions}
-          value={form.gussetCompany}
-          onChange={(v) => setField("gussetCompany", v)}
-          creatable={false}
-          persistOptions={false}
-        />
-      </FormSection>
-
-      <FormSection title="Cutting">
-        <ChargeHeaderRow
-          label="Cutting Charges"
+        <ProcessTableRow
+          label="Cutting"
           on={form.items.cutting.enabled}
           onToggle={() => toggleItem("cutting")}
-          totalQty={totalMaterialQty}
           price={form.items.cutting.price}
           onPriceChange={(v) => setProcessingPrice("cutting", v)}
+          supplier={
+            <CreatableSelect
+              value={form.cuttingCompany}
+              onChange={(v) => setField("cuttingCompany", v)}
+              defaultOptions={companyOptions}
+              placeholder="Select company"
+              creatable={false}
+              disabled={!form.items.cutting.enabled}
+              persistOptions={false}
+              emptyMessage="No companies found"
+            />
+          }
         />
-        <SelectField
-          label="Company"
-          placeholder="Select company"
-          inline
-          width="w-48"
-          defaultOptions={companyOptions}
-          value={form.cuttingCompany}
-          onChange={(v) => setField("cuttingCompany", v)}
-          creatable={false}
-          persistOptions={false}
-        />
-      </FormSection>
-
-      <FormSection title="Opaque">
-        <ChargeHeaderRow
-          label="Opaque Charges"
+        <ProcessTableRow
+          label="Opack"
           on={form.items.opaque.enabled}
           onToggle={() => toggleItem("opaque")}
-          totalQty={totalMaterialQty}
           price={form.items.opaque.price}
           onPriceChange={(v) => setProcessingPrice("opaque", v)}
+          supplier={
+            <CreatableSelect
+              value={form.opackCompany}
+              onChange={(v) => setField("opackCompany", v)}
+              defaultOptions={companyOptions}
+              renderOption={opackOptionRenderer}
+              placeholder="Select company"
+              creatable={false}
+              disabled={!form.items.opaque.enabled}
+              persistOptions={false}
+              emptyMessage="No companies found"
+            />
+          }
         />
-        <SelectField
-          label="Company"
-          placeholder="Select company"
-          inline
-          width="w-48"
-          defaultOptions={companyOptions}
-          value={form.opackCompany}
-          onChange={(v) => setField("opackCompany", v)}
-          creatable={false}
-          persistOptions={false}
-          renderOption={opackOptionRenderer}
-        />
-      </FormSection>
-
-      <FormSection title="Punching">
-        <ChargeHeaderRow
-          label="Punching Charges"
+        <ProcessTableRow
+          label="Punching"
           on={form.items.punching.enabled}
           onToggle={() => toggleItem("punching")}
-          totalQty={totalMaterialQty}
           price={form.items.punching.price}
           onPriceChange={(v) => setProcessingPrice("punching", v)}
-        />
-        <SelectField
-          label="Company"
-          placeholder="Select company"
-          inline
-          width="w-48"
-          defaultOptions={companyOptions}
-          value={form.punchingCompany}
-          onChange={(v) => setField("punchingCompany", v)}
-          creatable={false}
-          persistOptions={false}
-          renderOption={punchingOptionRenderer}
+          supplier={
+            <CreatableSelect
+              value={form.punchingCompany}
+              onChange={(v) => setField("punchingCompany", v)}
+              defaultOptions={companyOptions}
+              renderOption={punchingOptionRenderer}
+              placeholder="Select company"
+              creatable={false}
+              disabled={!form.items.punching.enabled}
+              persistOptions={false}
+              emptyMessage="No companies found"
+            />
+          }
         />
       </FormSection>
 

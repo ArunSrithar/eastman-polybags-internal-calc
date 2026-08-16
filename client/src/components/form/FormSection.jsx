@@ -6,9 +6,10 @@ import { Children } from "react";
  *
  * Props:
  *   title     string|null   optional section header text (e.g. "Materials")
+ *   icon      ReactNode     optional glyph shown before the title
  *   children  ReactNode     field components to render inside the card
  */
-export default function FormSection({ title, children }) {
+export default function FormSection({ title, icon, children }) {
   const items = Children.toArray(children);
 
   return (
@@ -16,7 +17,10 @@ export default function FormSection({ title, children }) {
       {title ? (
         <>
           <div className="card-section pb-2">
-            <p className="section-header">{title}</p>
+            <p className="section-header flex items-center gap-1.5">
+              {icon ? <span className="text-label-3 shrink-0">{icon}</span> : null}
+              {title}
+            </p>
           </div>
           <div className="divider mx-3" />
         </>

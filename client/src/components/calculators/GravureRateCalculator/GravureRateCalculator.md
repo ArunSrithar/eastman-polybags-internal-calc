@@ -274,11 +274,20 @@ GravureRateCalculator/
 ├── formConfig.js                      MATERIALS config, localStorage helpers, makeInitialForm()
 ├── companyDisplay.js                  Shared helpers for own-company visibility rules
 ├── processCompanyOptions.jsx          Shared process-company option + rate-render helpers
-├── formRows/
-│   ├── ProcessCountCompanyRow.jsx     Reusable row (count input + from + company select)
-│   ├── ToggleCompanyRow.jsx           Reusable row (toggle + from + company select)
-│   └── LaminationCompanyRow.jsx       Reusable row (lamination type + from + company select)
 └── GravureRateCalculator.md           This file
+```
+
+All charge rows now live in `calculators/formRows/`, one level up, because the
+Job Cost calculator renders the same sections:
+
+```
+calculators/formRows/
+├── ProcessCountCompanyRow.jsx     Row: count input + company select + optional rate
+├── ToggleCompanyRow.jsx           Row: toggle + company select + optional rate
+├── LaminationPillRow.jsx          Row: None/Single/Double pills + company + optional rate
+├── ChargeColumnHeader.jsx         One-off column labels for a charge card
+├── LabeledSelectRow.jsx           Row: label + company select (Flexo Job Cost)
+└── chargeRowGrid.js               Single source of the shared column track
 ```
 
 ### File responsibilities
@@ -294,9 +303,16 @@ GravureRateCalculator/
 | `formConfig.js`                  | `MATERIALS` list, `storeMaterialField()`, `makeInitialForm()` with localStorage hydration.                                                                                                                                                                                           | ~85  |
 | `companyDisplay.js`              | Shared Gravure helpers: own-company detection and visible company-name normalization for breakdown/print consistency.                                                                                                                                                                   | ~15  |
 | `processCompanyOptions.jsx`      | Shared process-company option builder + dropdown option renderer with inline process rates.                                                                                                                                                                                             | ~40  |
-| `formRows/ProcessCountCompanyRow.jsx` | Reusable process row (count input + from + company select).                                                                                                                                                                                                                          | ~45  |
-| `formRows/ToggleCompanyRow.jsx`  | Reusable process row (toggle + from + company select).                                                                                                                                                                                                                               | ~40  |
-| `formRows/LaminationCompanyRow.jsx` | Reusable lamination row (native lamination type select + from + company select).                                                                                                                                                                                                  | ~55  |
+
+All rows below live in `calculators/formRows/` and are **shared with the Job Cost calculator**.
+
+| File                        | Role                                                                                                                                                                                                                                                                                              | LOC  |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| `ProcessCountCompanyRow.jsx` | Process row: count input + company select + optional rate column. `connector` defaults to `"from"`; pass `null` where the card labels its columns instead.                                                                                                                            | ~90  |
+| `ToggleCompanyRow.jsx`       | Process row: toggle + company select + optional rate column. Same `connector` / `price` opt-ins.                                                                                                                                                                                      | ~85  |
+| `LaminationPillRow.jsx`      | Lamination as a None/Single/Double pill group — "None" is the off state, so there is no separate enable toggle. Rate column renders only when `onPriceChange` is passed (Job Cost does; the Rate Calculator resolves rates from the price list instead).                               | ~85  |
+| `ChargeColumnHeader.jsx`     | One-off column labels for a charge card; picks its grid track from the label count.                                                                                                                                                                                                   | ~25  |
+| `chargeRowGrid.js`           | Single source of the charge-row column track, so header labels line up with the rows beneath them.                                                                                                                                                                                    | ~18  |
 
 ---
 

@@ -123,11 +123,18 @@ export default function CreatableSelect({
     const available = openAbove ? spaceAbove : spaceBelow;
     const maxHeight = Math.max(minHeight, Math.min(maxH, available));
 
+    // The menu can be wider than a narrow trigger so option labels (company
+    // names + price badges) aren't clipped — but never wider than the
+    // viewport it's anchored in.
+    const minMenuWidth = 300;
+    const maxMenuWidth = window.innerWidth - r.left - 8;
+    const width = Math.min(Math.max(r.width, minMenuWidth), maxMenuWidth);
+
     setDropPos({
       top: openAbove ? undefined : r.bottom + 4,
       bottom: openAbove ? window.innerHeight - r.top + 4 : undefined,
       left: r.left,
-      width: r.width,
+      width,
       openAbove,
       maxHeight,
     });

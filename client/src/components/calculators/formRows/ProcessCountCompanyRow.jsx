@@ -1,4 +1,5 @@
-import CreatableSelect from "../../../ui/CreatableSelect";
+import CreatableSelect from "../../ui/CreatableSelect";
+import { chargeRowGrid } from "./chargeRowGrid";
 
 export default function ProcessCountCompanyRow({
   label,
@@ -9,7 +10,13 @@ export default function ProcessCountCompanyRow({
   companyOptions,
   renderCompanyOption,
   companyDisabled,
+  price,
+  onPriceChange,
+  priceUnit,
+  connector = "from",
 }) {
+  const hasPrice = typeof onPriceChange === "function";
+
   function handleCountChange(rawValue) {
     if (rawValue === "") {
       onValueChange("");
@@ -28,7 +35,9 @@ export default function ProcessCountCompanyRow({
 
   return (
     <div className="card-section">
-      <div className="grid grid-cols-[16rem_4.5rem_minmax(0,1fr)] items-center gap-2 min-w-0">
+      <div
+        className={`grid items-center gap-2 min-w-0 ${chargeRowGrid(Boolean(connector), hasPrice)}`}
+      >
         <div className="flex items-center justify-between gap-2 min-w-0">
           <span className="text-sm font-medium text-label shrink-0">{label}</span>
           <input
@@ -41,7 +50,9 @@ export default function ProcessCountCompanyRow({
             className="input-base w-24 text-center input-no-spinner"
           />
         </div>
-        <span className="text-xs text-label-3 text-center">from</span>
+        {connector ? (
+          <span className="text-xs text-label-3 text-center">{connector}</span>
+        ) : null}
         <div className={`flex-1 min-w-0 ${companyDisabled ? "opacity-60" : ""}`}>
           <CreatableSelect
             value={companyValue}
@@ -55,6 +66,24 @@ export default function ProcessCountCompanyRow({
             emptyMessage="No companies found"
           />
         </div>
+        {hasPrice ? (
+          <div className="flex items-center input-base p-0 overflow-hidden shrink-0">
+            <span className="px-2 text-label-3 text-sm border-r border-separator shrink-0">
+              ₹
+            </span>
+            <input
+              type="number"
+              min="0"
+              value={price}
+              onChange={(e) => onPriceChange(e.target.value)}
+              placeholder="0.00"
+              className="w-full min-w-0 bg-transparent px-2 py-2 text-sm outline-none input-no-spinner"
+            />
+            {priceUnit ? (
+              <span className="px-2 text-label-3 text-xs shrink-0">{priceUnit}</span>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </div>
   );

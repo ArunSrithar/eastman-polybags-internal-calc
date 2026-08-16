@@ -48,6 +48,15 @@ export function getCurrentRate(rateObj) {
   return rateObj?.history?.[0]?.rate ?? 0;
 }
 
+// Roll size options for a material, straight from the live rate table so the
+// dropdown can only ever offer sizes that have a rate behind them.
+export function getLiveRollSizeOptions(settings, materialType) {
+  return Object.entries(settings?.rollSizeRates?.[materialType] ?? {})
+    .filter(([, entry]) => entry.enabled !== false)
+    .map(([key]) => key)
+    .sort((a, b) => parseFloat(a) - parseFloat(b));
+}
+
 // ── Fallback settings from constants (used when API unreachable) ───────────
 function buildFallbackSettings() {
   const now = new Date().toISOString();

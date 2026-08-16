@@ -4,6 +4,12 @@ import PrintInvoice from "../../print/PrintInvoice";
 
 const FLAT_KEYS = new Set(["packingCharges", "transportCharges"]);
 
+// Roll size and print colours are stored bare ("6", "3") to match the price
+// settings keys. Quotes saved before that change already carry their own suffix
+// ('6"', "3 Colour"), so only decorate values that are still bare digits.
+const displayRollSize = (v) => (/^\d+(\.\d+)?$/.test(v ?? "") ? `${v}"` : v);
+const displayPrintColours = (v) => (/^\d+$/.test(v ?? "") ? `${v} Colour` : v);
+
 const COMPANY_FIELD = {
   printing: "printingCompany",
   gusset: "gussetCompany",
@@ -92,13 +98,13 @@ export default function FlexoJobCostPrintLayout({ result, form }) {
       label: "Material",
       value: form.materialType,
       label2: "Roll Size",
-      value2: form.rollSizeSpec,
+      value2: displayRollSize(form.rollSizeSpec),
     },
     {
       label: "Micron",
       value: form.micron ? `${form.micron}μ` : "",
       label2: "Print Colours",
-      value2: form.printColors,
+      value2: displayPrintColours(form.printColors),
     },
     {
       label: "Cover Size",

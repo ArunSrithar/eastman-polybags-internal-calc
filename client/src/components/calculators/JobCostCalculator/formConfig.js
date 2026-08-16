@@ -1,7 +1,8 @@
 import { LINE_ITEMS, DROPDOWN_SEEDS } from "../../../constants/jobCost";
 import {
   NORMAL_COLOR_RATE,
-  SINGLE_LAM_RATE,
+  METALLIC_COLOR_RATE,
+  MATT_FINISH_RATE,
   SLITTING_RATE,
   DEFAULT_POUCH_RATE,
 } from "../../../constants/gravureRates";
@@ -76,27 +77,35 @@ export function makeInitialForm(rates = null, settings = null) {
 
     if (def.key === "printingCharges") {
       const normalColorRate = rates?.normalColorRate ?? NORMAL_COLOR_RATE;
+      const metallicColorRate = rates?.metallicColorRate ?? METALLIC_COLOR_RATE;
+      const mattFinishRate = rates?.mattFinishRate ?? MATT_FINISH_RATE;
       items[def.key] = {
         enabled: true,
         qty: "",
+        // Aggregate rate used by the total-cost calc — derived from the three
+        // per-row prices below, never edited directly.
         price: String(normalColorRate),
         normalColors: "1",
         normalColorCompany: "",
+        normalColorPrice: String(normalColorRate),
         metallicEnabled: false,
         metallicColorCompany: "",
+        metallicColorPrice: String(metallicColorRate),
         mattFinish: false,
         mattFinishCompany: "",
+        mattFinishPrice: String(mattFinishRate),
       };
       continue;
     }
 
     if (def.key === "laminationCharges") {
-      const rate = rates?.singleLamRate ?? SINGLE_LAM_RATE;
+      // "none" is the off state — see LAMINATION_OPTIONS — so a fresh quote
+      // starts with no lamination charge until the user picks single/double.
       items[def.key] = {
         enabled: true,
         qty: "",
-        price: String(rate),
-        laminationType: "single",
+        price: "0",
+        laminationType: "none",
         laminationCompany: "",
       };
       continue;
