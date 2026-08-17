@@ -30,11 +30,11 @@ export default function LaminationPillRow({
   return (
     <div className="card-section">
       <div className={`grid items-center gap-2 min-w-0 ${chargeRowGrid(false, hasPrice)}`}>
-        <div className="flex items-center gap-1.5 min-w-0">
+        <div className="radio-track min-w-0">
           {options.map((opt) => (
             <label
               key={opt.value}
-              className={`radio-pill !flex-none px-3 ${
+              className={`radio-pill ${
                 value === opt.value ? "radio-pill-active" : "radio-pill-inactive"
               }`}
             >

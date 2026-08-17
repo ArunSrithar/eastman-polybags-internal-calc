@@ -129,6 +129,7 @@ export function makeInitialForm(rates = null, settings = null) {
         price: String(DEFAULT_POUCH_RATE),
         pouchCompany: "",
         pouchSize: "",
+        pouchType: "",
       };
       continue;
     }
@@ -145,6 +146,7 @@ export function makeInitialForm(rates = null, settings = null) {
     jobCardNo: "",
     jobCardDate: "",
     dispatchDate: "",
+    finalSize: "",
     jobWorkCompany: "",
     billingNo: "",
     billingDate: "",

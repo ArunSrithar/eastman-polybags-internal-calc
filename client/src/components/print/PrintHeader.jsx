@@ -13,11 +13,15 @@ import { P } from "./printTokens";
  *   documentTitle  — e.g. "Job Cost Sheet" | "Gravure Quote" | "Flexo Quote"
  *   documentNo     — invoice / quote number string
  *   documentDate   — pre-formatted date string (use formatPrintDate before passing)
+ *   noteLabel      — optional; label for an extra line below Date & Time
+ *   noteValue      — optional; value for that extra line. Omit/empty hides it.
  */
 export default function PrintHeader({
   documentTitle,
   documentNo,
   documentDate,
+  noteLabel,
+  noteValue,
 }) {
   return (
     <div style={{ marginBottom: "14px" }}>
@@ -127,6 +131,30 @@ export default function PrintHeader({
                 Date & Time
               </span>{" "}
               {documentDate}
+            </div>
+          ) : null}
+          {noteValue ? (
+            <div
+              style={{
+                fontSize: "11px",
+                color: P.text,
+                marginTop: "8px",
+                fontWeight: "500",
+                lineHeight: "1",
+              }}
+            >
+              <span
+                style={{
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                  fontSize: "8px",
+                  color: P.muted,
+                  marginRight: "6px",
+                }}
+              >
+                {noteLabel}
+              </span>{" "}
+              {noteValue}
             </div>
           ) : null}
         </div>

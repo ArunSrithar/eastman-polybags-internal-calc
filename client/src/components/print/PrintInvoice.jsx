@@ -21,6 +21,8 @@ import PrintFooter from "./PrintFooter";
  *   documentTitle  — e.g. "Job Cost Sheet"
  *   documentNo     — invoice / quote number string
  *   documentDate   — pre-formatted date string (DD-Mon-YY)
+ *   noteLabel      — optional; label for an extra header line below Date & Time (Job Cost only)
+ *   noteValue      — optional; value for that extra header line. Omit/empty hides it.
  *   customer       — customer / quote name
  *   metaRows       — Array<{ label, value, label2?, value2? }>
  *   items          — Array<{ key, label, qty, price, per, amount }>
@@ -57,6 +59,8 @@ export default function PrintInvoice({
   documentTitle,
   documentNo,
   documentDate,
+  noteLabel,
+  noteValue,
   customer,
   metaRows,
   items,
@@ -102,6 +106,8 @@ export default function PrintInvoice({
         documentTitle={documentTitle}
         documentNo={documentNo}
         documentDate={documentDate}
+        noteLabel={noteLabel}
+        noteValue={noteValue}
       />
       <PrintParties
         customer={customer}

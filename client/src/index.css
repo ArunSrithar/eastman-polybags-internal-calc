@@ -129,7 +129,7 @@ body {
   /* Radio pill (lamination none/single/double) */
   .radio-pill {
     @apply flex-1 flex items-center justify-center gap-2 px-3 py-2.5
-           rounded-xl text-sm font-medium cursor-pointer transition-colors;
+           rounded-full text-sm font-medium cursor-pointer transition-colors;
   }
 
   .radio-pill-active {
@@ -137,7 +137,12 @@ body {
   }
 
   .radio-pill-inactive {
-    @apply bg-fill-3 text-label-2 hover:text-label;
+    @apply text-label-2 hover:text-label;
+  }
+
+  /* Capsule track wrapping a set of radio pills */
+  .radio-track {
+    @apply flex flex-wrap items-center gap-1 bg-fill-3 rounded-full p-1;
   }
 
   /* Navigation */

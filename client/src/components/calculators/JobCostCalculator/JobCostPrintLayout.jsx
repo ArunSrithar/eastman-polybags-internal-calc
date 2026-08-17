@@ -1,6 +1,7 @@
 import { fmt, amountInWords } from "../../../utils/format";
 import { formatPrintDate } from "../../print/printTokens";
 import PrintInvoice from "../../print/PrintInvoice";
+import { getPouchTypeLabel } from "../../../constants/pouchTypes";
 
 const FLAT_KEYS = new Set(["packingCharges", "transportCharge"]);
 
@@ -31,7 +32,10 @@ function slittingSubtitle(s) {
 
 function pouchSubtitle(p) {
   if (!p) return undefined;
-  return [p.pouchCompany, p.pouchSize ? `Size: ${p.pouchSize}` : ""].filter(Boolean).join(" — ") || undefined;
+  const typeLabel = p.pouchType ? getPouchTypeLabel(p.pouchType) : "";
+  return [p.pouchCompany, p.pouchSize ? `Size: ${p.pouchSize}` : "", typeLabel]
+    .filter(Boolean)
+    .join(" — ") || undefined;
 }
 
 const SUBTITLE_BUILDERS = {
@@ -112,8 +116,8 @@ export default function JobCostPrintLayout({ result, form }) {
     {
       label: "Total Bundles",
       value: form.noOfBundles,
-      label2: "Dispatch Date",
-      value2: formatPrintDate(form.dispatchDate),
+      label2: "Final Size",
+      value2: form.finalSize,
     },
     {
       label: "Film",
@@ -137,9 +141,11 @@ export default function JobCostPrintLayout({ result, form }) {
 
   return (
     <PrintInvoice
-      documentTitle="Job Cost Sheet"
+      documentTitle="Gravure Job Cost Sheet"
       documentNo={form.billingNo}
       documentDate={formatPrintDate(form.billingDate)}
+      noteLabel="Dispatch Date"
+      noteValue={formatPrintDate(form.dispatchDate)}
       customer={form.quoteName?.trim()}
       partyPrimaryLabel="Customer"
       partyPrimaryValue={form.quoteName?.trim()}

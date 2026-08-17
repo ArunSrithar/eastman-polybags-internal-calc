@@ -43,6 +43,7 @@ import {
   SLITTING_RATE,
   DEFAULT_POUCH_RATE,
 } from "../../../constants/gravureRates";
+import { POUCH_TYPE_OPTIONS, getPouchTypeLabel } from "../../../constants/pouchTypes";
 import { fmt } from "../../../utils/format";
 
 /* ─── Rate resolution helpers ────────────────────────────────────────────── */
@@ -105,16 +106,18 @@ function computeSlittingPrice(slitItem, companies, rates) {
 }
 
 function computePouchPrice(pouchItem, settings, companies) {
-  if (!pouchItem.pouchCompany || !pouchItem.pouchSize) return DEFAULT_POUCH_RATE;
+  if (!pouchItem.pouchCompany || !pouchItem.pouchSize || !pouchItem.pouchType) return 0;
   const activeCompanies = (companies ?? []).filter((c) => c.isActive !== false);
   const company = activeCompanies.find((c) => c.name === pouchItem.pouchCompany);
-  if (!company) return DEFAULT_POUCH_RATE;
+  if (!company) return 0;
   const entry = (settings?.pouches ?? []).find(
     (p) =>
       p.companyId === company.id &&
       `${p.length} x ${p.breadth}` === pouchItem.pouchSize,
   );
-  return entry?.types?.normalPouch?.price ?? DEFAULT_POUCH_RATE;
+  const typeConfig = entry?.types?.[pouchItem.pouchType];
+  if (typeConfig?.isAvailable === false) return 0;
+  return typeConfig?.price ?? DEFAULT_POUCH_RATE;
 }
 
 function pouchEntrySize(entry) {
@@ -353,12 +356,45 @@ export default forwardRef(function JobCostForm(
       )).sort((a, b) => a.localeCompare(b))
     : [];
 
+  function findPouchEntry(companyName, size) {
+    if (!companyName || !size) return null;
+    const company = pouchCompanyByName.get(companyName);
+    if (!company) return null;
+    return (
+      allPouchEntries.find(
+        (e) => e.companyId === company.id && pouchEntrySize(e) === size,
+      ) ?? null
+    );
+  }
+
+  const selectedPouchEntry = findPouchEntry(pouchItem.pouchCompany, pouchItem.pouchSize);
+
+  const filteredPouchTypeOptions = selectedPouchEntry
+    ? POUCH_TYPE_OPTIONS.filter(
+        (type) => selectedPouchEntry?.types?.[type.value]?.isAvailable !== false,
+      )
+    : [];
+
   function handlePouchCompanyChange(nextCompany) {
-    setChargeItemFields("pouchMakingCharges", { pouchCompany: nextCompany, pouchSize: "" });
+    setChargeItemFields("pouchMakingCharges", {
+      pouchCompany: nextCompany,
+      pouchSize: "",
+      pouchType: "",
+    });
   }
 
   function handlePouchSizeChange(nextSize) {
-    setChargeItemFields("pouchMakingCharges", { pouchSize: nextSize });
+    const nextEntry = findPouchEntry(pouchItem.pouchCompany, nextSize);
+    const currentType = pouchItem.pouchType;
+    const nextType =
+      nextEntry && nextEntry?.types?.[currentType]?.isAvailable !== false
+        ? currentType
+        : "";
+    setChargeItemFields("pouchMakingCharges", { pouchSize: nextSize, pouchType: nextType });
+  }
+
+  function handlePouchTypeChange(nextType) {
+    setChargeItemFields("pouchMakingCharges", { pouchType: nextType });
   }
 
   /* ── Lamination type change ── */
@@ -442,6 +478,13 @@ export default forwardRef(function JobCostForm(
           label="Dispatch Date"
           value={form.dispatchDate}
           onChange={(v) => setField("dispatchDate", v)}
+        />
+        <TextField
+          label="Final Size"
+          placeholder="e.g. 10 x 12"
+          inline
+          value={form.finalSize}
+          onChange={(v) => setField("finalSize", v)}
         />
         <NumberField
           label="Billing Rate"
@@ -598,8 +641,8 @@ export default forwardRef(function JobCostForm(
           onPriceChange={(v) => setChargeItemFields("pouchMakingCharges", { price: v })}
         />
         <div className="card-section">
-          <div className="grid grid-cols-[3fr_1fr] gap-3">
-            <div>
+          <div className="grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr] gap-3">
+            <div className="min-w-0">
               <p className="field-label mb-1.5">Pouch Company</p>
               <CreatableSelect
                 defaultOptions={filteredPouchCompanyOptions}
@@ -610,7 +653,7 @@ export default forwardRef(function JobCostForm(
                 emptyMessage="No companies found"
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="field-label mb-1.5">Pouch Size</p>
               <CreatableSelect
                 defaultOptions={filteredPouchSizeOptions}
@@ -621,6 +664,33 @@ export default forwardRef(function JobCostForm(
                 persistOptions={false}
                 emptyMessage="No pouch sizes found"
                 disabled={!pouchItem.pouchCompany}
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="field-label mb-1.5">Pouch Type</p>
+              <CreatableSelect
+                defaultOptions={filteredPouchTypeOptions}
+                value={pouchItem.pouchType}
+                onChange={handlePouchTypeChange}
+                placeholder="Select type..."
+                creatable={false}
+                persistOptions={false}
+                emptyMessage="No pouch types found"
+                disabled={!pouchItem.pouchCompany || !pouchItem.pouchSize}
+                formatLabel={getPouchTypeLabel}
+                renderOption={(opt) => {
+                  const typeKey = typeof opt === "string" ? opt : opt?.value;
+                  const label = typeof opt === "string" ? opt : opt?.label ?? typeKey;
+                  const price = selectedPouchEntry?.types?.[typeKey]?.price;
+                  return (
+                    <span className="flex items-center justify-between gap-4">
+                      <span>{label}</span>
+                      <span className="text-xs text-label-3 tabular-nums">
+                        {Number.isFinite(price) ? `₹${fmt(price)}/kg` : "-"}
+                      </span>
+                    </span>
+                  );
+                }}
               />
             </div>
           </div>

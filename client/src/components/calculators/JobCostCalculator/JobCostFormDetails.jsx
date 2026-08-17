@@ -1,4 +1,5 @@
 import { fmt } from "../../../utils/format";
+import { getPouchTypeLabel } from "../../../constants/pouchTypes";
 
 /* ─── Helpers ─────────────────────────────────────────────────────────────── */
 
@@ -64,7 +65,13 @@ export default function JobCostFormDetails({ form }) {
   const laminationDetail = lc?.enabled ? buildLaminationDetail(lc) : null;
   const slittingDetail = sc?.enabled ? sc.slittingCompany || null : null;
   const pouchDetail = pm?.enabled
-    ? [pm.pouchCompany, pm.pouchSize ? `Size: ${pm.pouchSize}` : ""].filter(Boolean).join(" — ") || null
+    ? [
+        pm.pouchCompany,
+        pm.pouchSize ? `Size: ${pm.pouchSize}` : "",
+        pm.pouchType ? getPouchTypeLabel(pm.pouchType) : "",
+      ]
+        .filter(Boolean)
+        .join(" — ") || null
     : null;
 
   const hasChargeDetails = printingDetail || laminationDetail || slittingDetail || pouchDetail;
@@ -83,6 +90,7 @@ export default function JobCostFormDetails({ form }) {
           <Row label="Job Card No." value={form.jobCardNo} />
           <Row label="Job Card Date" value={formatDate(form.jobCardDate)} />
           <Row label="Dispatch Date" value={formatDate(form.dispatchDate)} />
+          <Row label="Final Size" value={form.finalSize} />
           <Row label="Billing Date" value={formatDate(form.billingDate)} />
           <Row label="Billing Rate" value={form.billingRate ? `₹ ${fmt(form.billingRate)}` : null} />
           <Row label="No. of Bundles" value={form.noOfBundles} />

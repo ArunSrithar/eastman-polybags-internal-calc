@@ -20,7 +20,7 @@ export default function RadioField({
       className={`card-section ${disabled ? "opacity-50 pointer-events-none" : ""}`}
     >
       {label ? <p className="field-label mb-2">{label}</p> : null}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="radio-track">
         {options.map((opt) => (
           <label
             key={opt.value}
