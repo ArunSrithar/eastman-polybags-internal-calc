@@ -35,6 +35,9 @@ export default function GravurePrintLayout({ result, form }) {
     serviceAmount,
     adjustedTotal,
     pricePerKg,
+    taxPercent,
+    taxAmountPerKg,
+    pricePerKgExclTax,
     selectedCompanies,
     selectedRates,
   } = result;
@@ -80,6 +83,8 @@ export default function GravurePrintLayout({ result, form }) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
+  const roundedTaxAmountPerKg = Math.round(taxAmountPerKg || 0);
+  const roundedPricePerKgExclTax = Math.round(pricePerKgExclTax || 0);
   const generatedBy = user?.username?.trim() || "System";
   const documentDateTime = new Date().toLocaleString("en-IN", {
     day: "2-digit",
@@ -282,6 +287,10 @@ export default function GravurePrintLayout({ result, form }) {
       pricePerKg={roundedPricePerKg}
       pricePerKgDisplay={roundedPriceDisplay}
       pricePerKgWords={amountInWords(roundedPricePerKg)}
+      taxPercent={taxPercent}
+      taxAmount={roundedTaxAmountPerKg}
+      exclusiveAmount={roundedPricePerKgExclTax}
+      exclusiveLabel="Exclusive of Tax (/Kg)"
       footerShowBoxes={false}
     />
   );

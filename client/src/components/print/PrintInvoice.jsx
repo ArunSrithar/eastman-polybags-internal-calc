@@ -39,6 +39,10 @@ import PrintFooter from "./PrintFooter";
  *   pricePerKgLabelIndent — optional; left indent for per-kg label
  *   pricePerKgWords — optional; renders per-kg amount in words in PrintTotals (Gravure/Flexo only)
  *   pricePerKgWordsProminent — optional; stronger typography for per-kg words block
+ *   taxPercent          — optional; tax rate backed out of the total (Gravure/Flexo only). Omit/0 hides the strip.
+ *   taxAmount           — optional; tax portion (₹)
+ *   exclusiveAmount     — optional; total with tax excluded (₹)
+ *   exclusiveLabel      — optional; label override for the exclusive-of-tax line
  *   footerShowBoxes     — optional; toggles footer 3-box panel
  *   footerShowCaption   — optional; toggles bottom caption
  *   totalAmountDisplay — optional; value string override for TOTAL row amount
@@ -71,6 +75,10 @@ export default function PrintInvoice({
   pricePerKgLabelIndent,
   pricePerKgWords,
   pricePerKgWordsProminent = false,
+  taxPercent,
+  taxAmount,
+  exclusiveAmount,
+  exclusiveLabel,
   totalAmountDisplay,
   partyPrimaryLabel,
   partyPrimaryValue,
@@ -123,6 +131,10 @@ export default function PrintInvoice({
         pricePerKgLabelIndent={pricePerKgLabelIndent}
         pricePerKgWords={pricePerKgWords}
         pricePerKgWordsProminent={pricePerKgWordsProminent}
+        taxPercent={taxPercent}
+        taxAmount={taxAmount}
+        exclusiveAmount={exclusiveAmount}
+        exclusiveLabel={exclusiveLabel}
       />
       <PrintFooter
         showBoxes={footerShowBoxes}

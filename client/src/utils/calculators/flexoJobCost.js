@@ -63,8 +63,8 @@ export function calculateFlexoJobCost(form) {
     costOfJob,
     selectedCompanies: {
       printing: form.printingCompany || null,
-      gusset: form.gussetCompany || null,
-      cutting: form.cuttingCompany || null,
+      gusset: form.printingCompany || null,
+      cutting: form.printingCompany || null,
       opaque: form.opackCompany || null,
       punching: form.punchingCompany || null,
     },

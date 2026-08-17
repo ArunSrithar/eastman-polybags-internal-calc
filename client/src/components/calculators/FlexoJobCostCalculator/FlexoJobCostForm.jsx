@@ -140,11 +140,6 @@ export default forwardRef(function FlexoJobCostForm(
     companies,
     form.printingCompany,
   );
-  const gussetCompanyObj = findFlexoCompanyByName(companies, form.gussetCompany);
-  const cuttingCompanyObj = findFlexoCompanyByName(
-    companies,
-    form.cuttingCompany,
-  );
   const opackCompanyObj = findFlexoCompanyByName(companies, form.opackCompany);
   const punchingCompanyObj = findFlexoCompanyByName(
     companies,
@@ -160,27 +155,15 @@ export default forwardRef(function FlexoJobCostForm(
 
   const liveRollSizeOptions = getLiveRollSizeOptions(settings, form.materialType);
 
-  // Fetch cover sizes for any company selected across printing/gusset/cutting
+  // Fetch cover sizes for the printing company — also the source for Gusset
+  // and Cutting rates, which are cover-size-scoped to that same company.
   useEffect(() => {
-    for (const companyName of [
-      form.printingCompany,
-      form.gussetCompany,
-      form.cuttingCompany,
-    ]) {
-      if (!companyName) continue;
-      const company = findFlexoCompanyByName(companies, companyName);
-      if (company && !companyCoverSizes[company.id]) {
-        fetchCompanyCoverSizes(company.id);
-      }
+    if (!form.printingCompany) return;
+    const company = findFlexoCompanyByName(companies, form.printingCompany);
+    if (company && !companyCoverSizes[company.id]) {
+      fetchCompanyCoverSizes(company.id);
     }
-  }, [
-    form.printingCompany,
-    form.gussetCompany,
-    form.cuttingCompany,
-    companies,
-    companyCoverSizes,
-    fetchCompanyCoverSizes,
-  ]);
+  }, [form.printingCompany, companies, companyCoverSizes, fetchCompanyCoverSizes]);
 
   // Auto-fill material price when materialType changes or settings load
   useEffect(() => {
@@ -217,10 +200,10 @@ export default forwardRef(function FlexoJobCostForm(
         ),
       ),
       gusset: String(
-        computeGussetPrice(form.coverSize, settings, gussetCompanyObj, companyCoverSizes),
+        computeGussetPrice(form.coverSize, settings, printingCompanyObj, companyCoverSizes),
       ),
       cutting: String(
-        computeCuttingPrice(form.coverSize, settings, cuttingCompanyObj, companyCoverSizes),
+        computeCuttingPrice(form.coverSize, settings, printingCompanyObj, companyCoverSizes),
       ),
       opaque: String(computeOpaquePrice(settings, opackCompanyObj)),
       punching: String(computePunchingPrice(settings, punchingCompanyObj)),
@@ -246,8 +229,6 @@ export default forwardRef(function FlexoJobCostForm(
     form.printColors,
     settings,
     printingCompanyObj,
-    gussetCompanyObj,
-    cuttingCompanyObj,
     opackCompanyObj,
     punchingCompanyObj,
     companyCoverSizes,
@@ -450,12 +431,13 @@ export default forwardRef(function FlexoJobCostForm(
         />
       </FormSection>
 
-      {/* ── Processing Charges — one table, six rows ── */}
-      {/* Roll Size and Printing carry an extra "Detail" control; the other
-          four are identical toggle+supplier+rate rows. Cover Size is its own
-          sub-row under Printing since it's sourced from that row's company
-          but also feeds Gusset's and Cutting's rates — it isn't itself a
-          charge, so it gets no toggle and no rate. */}
+      {/* ── Processing Charges — one table, seven rows ── */}
+      {/* Cover Size carries the company selector (Detail: cover size, Supplier:
+          company) since that company also drives Printing/Gusset/Cutting's
+          rates — it isn't itself a charge, so it gets no toggle and no rate.
+          Printing only needs its own colour count now that company lives on
+          the Cover Size row above it. Gusset and Cutting have no Detail/
+          Supplier of their own; Opack/Punching keep independent suppliers. */}
       <FormSection
         title="Processing Charges"
         icon={<ProcessIcon className="size-3.5" />}
@@ -483,6 +465,34 @@ export default forwardRef(function FlexoJobCostForm(
           }
         />
         <ProcessTableRow
+          label="Cover Size"
+          detail={
+            <CreatableSelect
+              value={form.coverSize}
+              onChange={(v) => setField("coverSize", v)}
+              defaultOptions={liveCoverSizeOptions}
+              placeholder={
+                printingCompanyObj ? "Select cover size" : "Select a company first"
+              }
+              creatable={false}
+              persistOptions={false}
+              emptyMessage="No cover sizes for this company"
+              disabled={!printingCompanyObj}
+            />
+          }
+          supplier={
+            <CreatableSelect
+              value={form.printingCompany}
+              onChange={(v) => setField("printingCompany", v)}
+              defaultOptions={companyOptions}
+              placeholder="Select company"
+              creatable={false}
+              persistOptions={false}
+              emptyMessage="No companies found"
+            />
+          }
+        />
+        <ProcessTableRow
           label="Printing"
           on={form.items.printing.enabled}
           onToggle={() => toggleItem("printing")}
@@ -499,34 +509,6 @@ export default forwardRef(function FlexoJobCostForm(
               persistOptions={false}
             />
           }
-          supplier={
-            <CreatableSelect
-              value={form.printingCompany}
-              onChange={(v) => setField("printingCompany", v)}
-              defaultOptions={companyOptions}
-              placeholder="Select company"
-              creatable={false}
-              persistOptions={false}
-              emptyMessage="No companies found"
-            />
-          }
-        />
-        <ProcessTableRow
-          label="Cover Size"
-          supplier={
-            <CreatableSelect
-              value={form.coverSize}
-              onChange={(v) => setField("coverSize", v)}
-              defaultOptions={liveCoverSizeOptions}
-              placeholder={
-                printingCompanyObj ? "Select cover size" : "Select a company first"
-              }
-              creatable={false}
-              persistOptions={false}
-              emptyMessage="No cover sizes for this company"
-              disabled={!printingCompanyObj}
-            />
-          }
         />
         <ProcessTableRow
           label="Gusset"
@@ -534,18 +516,6 @@ export default forwardRef(function FlexoJobCostForm(
           onToggle={() => toggleItem("gusset")}
           price={form.items.gusset.price}
           onPriceChange={(v) => setProcessingPrice("gusset", v)}
-          supplier={
-            <CreatableSelect
-              value={form.gussetCompany}
-              onChange={(v) => setField("gussetCompany", v)}
-              defaultOptions={companyOptions}
-              placeholder="Select company"
-              creatable={false}
-              disabled={!form.items.gusset.enabled}
-              persistOptions={false}
-              emptyMessage="No companies found"
-            />
-          }
         />
         <ProcessTableRow
           label="Cutting"
@@ -553,18 +523,6 @@ export default forwardRef(function FlexoJobCostForm(
           onToggle={() => toggleItem("cutting")}
           price={form.items.cutting.price}
           onPriceChange={(v) => setProcessingPrice("cutting", v)}
-          supplier={
-            <CreatableSelect
-              value={form.cuttingCompany}
-              onChange={(v) => setField("cuttingCompany", v)}
-              defaultOptions={companyOptions}
-              placeholder="Select company"
-              creatable={false}
-              disabled={!form.items.cutting.enabled}
-              persistOptions={false}
-              emptyMessage="No companies found"
-            />
-          }
         />
         <ProcessTableRow
           label="Opack"

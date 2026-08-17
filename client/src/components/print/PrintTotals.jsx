@@ -21,6 +21,10 @@ import { P } from "./printTokens";
  *   pricePerKgLabelIndent — optional; left indent for per-kg label
  *   pricePerKgWords  — optional words string for per-kg amount (Gravure / Flexo only)
  *   pricePerKgWordsProminent — optional; stronger typography for per-kg words block
+ *   taxPercent       — optional; tax rate backed out of the total (Gravure / Flexo only). Omit/0 hides the strip.
+ *   taxAmount        — optional; tax portion (₹)
+ *   exclusiveAmount  — optional; total with tax excluded (₹)
+ *   exclusiveLabel   — optional; label override for the exclusive-of-tax line
  */
 export default function PrintTotals({
   amountWords,
@@ -33,7 +37,13 @@ export default function PrintTotals({
   pricePerKgLabelIndent = 0,
   pricePerKgWords,
   pricePerKgWordsProminent = false,
+  taxPercent,
+  taxAmount,
+  exclusiveAmount,
+  exclusiveLabel = "Exclusive of Tax",
 }) {
+  const hasTax = taxPercent > 0;
+
   return (
     <>
       {/* ── Rate per Kg strip (Gravure / Flexo only) ── */}
@@ -74,6 +84,48 @@ export default function PrintTotals({
             }}
           >
             ₹ {pricePerKgDisplay ?? fmt(pricePerKg)}{pricePerKgUnitSuffix}
+          </div>
+        </div>
+      ) : null}
+
+      {/* ── Exclusive of Tax strip ── */}
+      {hasTax ? (
+        <div
+          style={{
+            border: `1px solid ${P.rule}`,
+            borderTop: "none",
+            padding: "6px 12px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            backgroundColor: P.white,
+          }}
+        >
+          <div
+            style={{
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              color: P.muted,
+              fontWeight: "600",
+              fontSize: "9.5px",
+              paddingLeft: "56px",
+            }}
+          >
+            Tax @ {taxPercent}%
+            <span style={{ marginLeft: "8px", color: P.text, fontWeight: "700" }}>
+              ₹ {fmt(taxAmount)}
+            </span>
+          </div>
+          <div
+            style={{
+              fontWeight: "700",
+              fontSize: "12px",
+              color: P.text,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {exclusiveLabel}
+            <span style={{ marginLeft: "8px" }}>₹ {fmt(exclusiveAmount)}</span>
           </div>
         </div>
       ) : null}

@@ -370,6 +370,16 @@ export default forwardRef(function FlexoForm(
           value={form.service}
           onChange={(v) => setField("service", v)}
         />
+        <SelectField
+          label="Tax"
+          placeholder="18"
+          inline
+          unit="%"
+          storageKey="flexo-tax"
+          defaultOptions={["0", "5", "12", "18", "28"]}
+          value={form.tax}
+          onChange={(v) => setField("tax", v)}
+        />
       </FormSection>
     </FormStack>
   );

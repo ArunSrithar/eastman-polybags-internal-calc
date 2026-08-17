@@ -5,6 +5,7 @@ import {
   CONVERSION_MATERIAL_TYPES,
   PRINTING_COLORS_OPTIONS,
 } from "../../../constants/flexoRateCalc";
+import { DEFAULT_FLEXO_COMPANY_NAME } from "./companyDisplay";
 
 /* ─── Option arrays derived from constant keys ───────────────────────────── */
 export const ROLL_SIZE_OPTIONS = Object.keys(CONVERSION_RATES.PP);
@@ -26,16 +27,17 @@ export function makeInitialForm() {
     coverSize: "",
     rollSize: "",
     printingColors: "1",
-    printingCompany: "",
+    printingCompany: DEFAULT_FLEXO_COMPANY_NAME,
     gusset: false,
-    gussetCompany: "",
+    gussetCompany: DEFAULT_FLEXO_COMPANY_NAME,
     cutting: false,
-    cuttingCompany: "",
+    cuttingCompany: DEFAULT_FLEXO_COMPANY_NAME,
     punching: false,
-    punchingCompany: "",
+    punchingCompany: DEFAULT_FLEXO_COMPANY_NAME,
     opack: false,
-    opackCompany: "",
+    opackCompany: DEFAULT_FLEXO_COMPANY_NAME,
     wastage: "0",
     service: "0",
+    tax: "18",
   };
 }

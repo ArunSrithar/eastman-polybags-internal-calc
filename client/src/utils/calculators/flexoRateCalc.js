@@ -130,6 +130,13 @@ export function calculateFlexoRate(form, rates, companies, companyCoverSizes) {
   const serviceAmount = preServiceTotal * (servicePercent / 100);
   const totalRate = preServiceTotal + serviceAmount;
 
+  // Entered prices already include tax, so the exclusive figure is backed out
+  // of the final rate rather than subtracted from it.
+  const taxPercent = parseFloat(form.tax) || 0;
+  const taxDivisor = 1 + taxPercent / 100;
+  const totalRateExclTax = totalRate / taxDivisor;
+  const taxAmount = totalRate - totalRateExclTax;
+
   return {
     materialPrice,
     conversionMaterial: form.conversionMaterial,
@@ -150,6 +157,9 @@ export function calculateFlexoRate(form, rates, companies, companyCoverSizes) {
     servicePercent,
     serviceAmount,
     totalRate,
+    taxPercent,
+    taxAmount,
+    totalRateExclTax,
     selectedCompanies: {
       printing: printingCompany?.name ?? null,
       gusset: gussetCompany?.name ?? null,

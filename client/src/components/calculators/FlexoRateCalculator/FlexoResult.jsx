@@ -9,6 +9,7 @@ import SectionLabel from "../../invoice/SectionLabel";
 import SectionSubtotal from "../../invoice/SectionSubtotal";
 import WastageRow from "../../invoice/WastageRow";
 import { SECTION_COLORS } from "../../../constants/invoiceColors";
+import { visibleFlexoCompanyName } from "./companyDisplay";
 
 /* ─── Main component ─────────────────────────────────────────────────────── */
 
@@ -42,6 +43,9 @@ export default function FlexoResult({ result, form, status, date }) {
     servicePercent,
     serviceAmount,
     totalRate,
+    taxPercent,
+    taxAmount,
+    totalRateExclTax,
     selectedCompanies,
   } = result;
 
@@ -52,6 +56,12 @@ export default function FlexoResult({ result, form, status, date }) {
   const hasAdditional = additionalTotal > 0;
   const hasWastage = wastagePercent > 0;
   const hasService = servicePercent > 0;
+
+  const printingCompanyName = visibleFlexoCompanyName(selectedCompanies?.printing);
+  const gussetCompanyName = visibleFlexoCompanyName(selectedCompanies?.gusset);
+  const cuttingCompanyName = visibleFlexoCompanyName(selectedCompanies?.cutting);
+  const punchingCompanyName = visibleFlexoCompanyName(selectedCompanies?.punching);
+  const opackCompanyName = visibleFlexoCompanyName(selectedCompanies?.opack);
 
   return (
     <div className="card flex flex-col overflow-hidden">
@@ -115,9 +125,7 @@ export default function FlexoResult({ result, form, status, date }) {
                 <span className="text-label-3 italic">
                   {" "}
                   · {coverSize} × {printingColors} clr
-                  {selectedCompanies?.printing
-                    ? ` · ${selectedCompanies.printing}`
-                    : ""}
+                  {printingCompanyName ? ` · ${printingCompanyName}` : ""}
                 </span>
               </>
             }
@@ -142,9 +150,7 @@ export default function FlexoResult({ result, form, status, date }) {
                   <span className="text-label-3 italic">
                     {" "}
                     · {coverSize}
-                    {selectedCompanies?.gusset
-                      ? ` · ${selectedCompanies.gusset}`
-                      : ""}
+                    {gussetCompanyName ? ` · ${gussetCompanyName}` : ""}
                   </span>
                 </>
               }
@@ -159,9 +165,7 @@ export default function FlexoResult({ result, form, status, date }) {
                   <span className="text-label-3 italic">
                     {" "}
                     · {coverSize}
-                    {selectedCompanies?.cutting
-                      ? ` · ${selectedCompanies.cutting}`
-                      : ""}
+                    {cuttingCompanyName ? ` · ${cuttingCompanyName}` : ""}
                   </span>
                 </>
               }
@@ -173,10 +177,10 @@ export default function FlexoResult({ result, form, status, date }) {
               label={
                 <>
                   Punching
-                  {selectedCompanies?.punching ? (
+                  {punchingCompanyName ? (
                     <span className="text-label-3 italic">
                       {" "}
-                      · {selectedCompanies.punching}
+                      · {punchingCompanyName}
                     </span>
                   ) : null}
                 </>
@@ -189,10 +193,10 @@ export default function FlexoResult({ result, form, status, date }) {
               label={
                 <>
                   Opack
-                  {selectedCompanies?.opack ? (
+                  {opackCompanyName ? (
                     <span className="text-label-3 italic">
                       {" "}
-                      · {selectedCompanies.opack}
+                      · {opackCompanyName}
                     </span>
                   ) : null}
                 </>
@@ -233,6 +237,9 @@ export default function FlexoResult({ result, form, status, date }) {
         highlightLabel="Total Rate"
         highlightUnit=""
         annotation={`₹${fmt(subtotal)} subtotal + ₹${fmt(wastageAmount)} wastage`}
+        taxPercent={taxPercent}
+        taxAmount={taxAmount}
+        exclusiveAmount={totalRateExclTax}
       />
     </div>
   );

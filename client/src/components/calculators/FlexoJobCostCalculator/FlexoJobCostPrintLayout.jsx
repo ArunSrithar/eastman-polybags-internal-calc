@@ -1,6 +1,7 @@
 import { fmt, amountInWords } from "../../../utils/format";
 import { formatPrintDate } from "../../print/printTokens";
 import PrintInvoice from "../../print/PrintInvoice";
+import { visibleFlexoCompanyName } from "../FlexoRateCalculator/companyDisplay";
 
 const FLAT_KEYS = new Set(["packingCharges", "transportCharges"]);
 
@@ -12,8 +13,8 @@ const displayPrintColours = (v) => (/^\d+$/.test(v ?? "") ? `${v} Colour` : v);
 
 const COMPANY_FIELD = {
   printing: "printingCompany",
-  gusset: "gussetCompany",
-  cutting: "cuttingCompany",
+  gusset: "printingCompany",
+  cutting: "printingCompany",
   opaque: "opackCompany",
   punching: "punchingCompany",
 };
@@ -49,7 +50,7 @@ export default function FlexoJobCostPrintLayout({ result, form }) {
   const items = enabledItems
     .filter((item) => !FLAT_KEYS.has(item.key))
     .map((item) => {
-      const companyName = form[COMPANY_FIELD[item.key]];
+      const companyName = visibleFlexoCompanyName(form[COMPANY_FIELD[item.key]]);
       return {
         key: item.key,
         label: companyName ? `${item.label} · ${companyName}` : item.label,

@@ -36,6 +36,9 @@ export default function GravureResult({ result, form, status, date }) {
     servicePercent,
     serviceAmount,
     pricePerKg,
+    taxPercent,
+    taxAmountPerKg,
+    pricePerKgExclTax,
     selectedRates,
     selectedCompanies,
     selectedPouchType,
@@ -246,6 +249,10 @@ export default function GravureResult({ result, form, status, date }) {
         highlightUnit="/kg"
         annotation={`Base ₹${fmt(basePricePerKg)}/kg + Service ₹${fmt(serviceAmount)}/kg`}
         showTotal={false}
+        taxPercent={taxPercent}
+        taxAmount={taxAmountPerKg}
+        exclusiveAmount={pricePerKgExclTax}
+        exclusiveLabel="Exclusive of Tax (/kg)"
       />
     </div>
   );

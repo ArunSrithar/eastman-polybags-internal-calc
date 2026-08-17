@@ -1,5 +1,6 @@
 import { amountInWords } from "../../../utils/format";
 import PrintInvoice from "../../print/PrintInvoice";
+import { visibleFlexoCompanyName } from "./companyDisplay";
 
 /**
  * FlexoPrintLayout — thin wrapper that maps Flexo result + form data
@@ -29,6 +30,9 @@ export default function FlexoPrintLayout({ result, form }) {
     servicePercent,
     serviceAmount,
     totalRate,
+    taxPercent,
+    taxAmount,
+    totalRateExclTax,
     selectedCompanies,
   } = result;
 
@@ -37,6 +41,14 @@ export default function FlexoPrintLayout({ result, form }) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
+  const roundedTaxAmount = Math.round(taxAmount || 0);
+  const roundedTotalRateExclTax = Math.round(totalRateExclTax || 0);
+
+  const printingCompanyName = visibleFlexoCompanyName(selectedCompanies?.printing);
+  const gussetCompanyName = visibleFlexoCompanyName(selectedCompanies?.gusset);
+  const cuttingCompanyName = visibleFlexoCompanyName(selectedCompanies?.cutting);
+  const punchingCompanyName = visibleFlexoCompanyName(selectedCompanies?.punching);
+  const opackCompanyName = visibleFlexoCompanyName(selectedCompanies?.opack);
 
   /* ── Numbered line items ── */
   const items = [
@@ -77,7 +89,7 @@ export default function FlexoPrintLayout({ result, form }) {
     printingRate > 0
       ? {
           key: "printing",
-          label: `Printing — ${printingColors} Colour${parseInt(printingColors) !== 1 ? "s" : ""}${coverSize ? ` (${coverSize})` : ""}${selectedCompanies?.printing ? ` · ${selectedCompanies.printing}` : ""}`,
+          label: `Printing — ${printingColors} Colour${parseInt(printingColors) !== 1 ? "s" : ""}${coverSize ? ` (${coverSize})` : ""}${printingCompanyName ? ` · ${printingCompanyName}` : ""}`,
           qty: null,
           price: null,
           amount: printingRate,
@@ -88,7 +100,7 @@ export default function FlexoPrintLayout({ result, form }) {
     gussetRate > 0
       ? {
           key: "gusset",
-          label: `Gusset${selectedCompanies?.gusset ? ` · ${selectedCompanies.gusset}` : ""}`,
+          label: `Gusset${gussetCompanyName ? ` · ${gussetCompanyName}` : ""}`,
           qty: null,
           price: null,
           amount: gussetRate,
@@ -99,7 +111,7 @@ export default function FlexoPrintLayout({ result, form }) {
     punchingRate > 0
       ? {
           key: "punching",
-          label: `Punching${selectedCompanies?.punching ? ` · ${selectedCompanies.punching}` : ""}`,
+          label: `Punching${punchingCompanyName ? ` · ${punchingCompanyName}` : ""}`,
           qty: null,
           price: null,
           amount: punchingRate,
@@ -110,7 +122,7 @@ export default function FlexoPrintLayout({ result, form }) {
     opackRate > 0
       ? {
           key: "opack",
-          label: `O-Pack${selectedCompanies?.opack ? ` · ${selectedCompanies.opack}` : ""}`,
+          label: `O-Pack${opackCompanyName ? ` · ${opackCompanyName}` : ""}`,
           qty: null,
           price: null,
           amount: opackRate,
@@ -121,7 +133,7 @@ export default function FlexoPrintLayout({ result, form }) {
     cuttingSizeRate > 0
       ? {
           key: "cutting",
-          label: `Cutting${coverSize ? ` (${coverSize})` : ""}${selectedCompanies?.cutting ? ` · ${selectedCompanies.cutting}` : ""}`,
+          label: `Cutting${coverSize ? ` (${coverSize})` : ""}${cuttingCompanyName ? ` · ${cuttingCompanyName}` : ""}`,
           qty: null,
           price: null,
           amount: cuttingSizeRate,
@@ -188,6 +200,9 @@ export default function FlexoPrintLayout({ result, form }) {
       totalAmount={roundedTotalAmount}
       totalAmountDisplay={roundedTotalDisplay}
       amountWords={amountInWords(roundedTotalAmount)}
+      taxPercent={taxPercent}
+      taxAmount={roundedTaxAmount}
+      exclusiveAmount={roundedTotalRateExclTax}
       footerShowBoxes={false}
     />
   );

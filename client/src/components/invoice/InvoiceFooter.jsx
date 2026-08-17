@@ -8,6 +8,10 @@ import { fmt } from "../../utils/format";
  * @param {string} highlightLabel — label for the hero number
  * @param {string} highlightUnit  — unit suffix (e.g. "/kg")
  * @param {string} [annotation]   — small text below hero (e.g. "₹625.90 total / 40.00 kg")
+ * @param {number} [taxPercent]      — tax rate applied to the highlight (e.g. 18). Omit/0 hides the tax rows.
+ * @param {number} [taxAmount]       — tax portion backed out of the highlight (₹)
+ * @param {number} [exclusiveAmount] — highlight value with tax excluded (₹)
+ * @param {string} [exclusiveLabel]  — label for the exclusive-of-tax row
  */
 export default function InvoiceFooter({
   total,
@@ -16,7 +20,12 @@ export default function InvoiceFooter({
   highlightUnit = "",
   annotation,
   showTotal = true,
+  taxPercent,
+  taxAmount,
+  exclusiveAmount,
+  exclusiveLabel = "Exclusive of Tax",
 }) {
+  const hasTax = taxPercent > 0;
   return (
     <>
       {/* ── Total row ──────────────────────────────────────────────────── */}
@@ -50,6 +59,27 @@ export default function InvoiceFooter({
           <p className="text-[11px] text-label-3 mt-1 text-right">
             {annotation}
           </p>
+        ) : null}
+        {hasTax ? (
+          <>
+            <div className="divider mt-2" />
+            <div className="flex items-baseline justify-between mt-2">
+              <span className="text-sm text-label-2">
+                Tax ({fmt(taxPercent)}%)
+              </span>
+              <span className="text-sm text-label-2 tabular-nums">
+                ₹{fmt(taxAmount)}
+              </span>
+            </div>
+            <div className="flex items-baseline justify-between mt-1">
+              <span className="text-sm font-semibold text-label">
+                {exclusiveLabel}
+              </span>
+              <span className="text-sm font-semibold text-label tabular-nums">
+                ₹{fmt(exclusiveAmount)}
+              </span>
+            </div>
+          </>
         ) : null}
       </div>
     </>

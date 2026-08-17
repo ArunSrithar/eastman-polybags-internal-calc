@@ -243,6 +243,13 @@ export function calculateGravureRate(form, rates, companies) {
   const pricePerKg = basePricePerKg + serviceAmount;
   const adjustedTotal = preServiceTotal + serviceAmount * totalMaterialQty;
 
+  // Entered prices already include tax, so the exclusive figure is backed out
+  // of the final rate rather than subtracted from it.
+  const taxPercent = parseFloat(form.tax) || 0;
+  const taxDivisor = 1 + taxPercent / 100;
+  const pricePerKgExclTax = pricePerKg / taxDivisor;
+  const taxAmountPerKg = pricePerKg - pricePerKgExclTax;
+
   return {
     materialLines,
     totalMaterialQty,
@@ -264,6 +271,9 @@ export function calculateGravureRate(form, rates, companies) {
     serviceAmount,
     adjustedTotal,
     pricePerKg,
+    taxPercent,
+    taxAmountPerKg,
+    pricePerKgExclTax,
     selectedRates: companyPricingSnapshot.rates,
     selectedCompanies: companyPricingSnapshot.companies,
     selectedPouchType: form.pouchType || "normalPouch",

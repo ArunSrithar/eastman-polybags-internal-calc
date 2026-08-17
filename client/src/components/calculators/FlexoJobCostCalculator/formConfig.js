@@ -1,4 +1,5 @@
 import { LINE_ITEMS, DROPDOWN_SEEDS } from "../../../constants/flexoJobCost";
+import { DEFAULT_FLEXO_COMPANY_NAME } from "../FlexoRateCalculator/companyDisplay";
 
 /* ─── Re-exports ──────────────────────────────────────────────────────────── */
 export { LINE_ITEMS, DROPDOWN_SEEDS };
@@ -79,11 +80,9 @@ export function makeInitialForm(settings = null) {
     micron: "",
     printColors: "",
     coverSize: "",
-    printingCompany: "",
-    gussetCompany: "",
-    cuttingCompany: "",
-    punchingCompany: "",
-    opackCompany: "",
+    printingCompany: DEFAULT_FLEXO_COMPANY_NAME,
+    punchingCompany: DEFAULT_FLEXO_COMPANY_NAME,
+    opackCompany: DEFAULT_FLEXO_COMPANY_NAME,
     items,
     finishedWeight: "",
     dispatchWeight: "",

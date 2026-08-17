@@ -97,5 +97,6 @@ export function makeInitialForm() {
     slitting: false,
     wastage: "0",
     service: "0",
+    tax: "18",
   };
 }

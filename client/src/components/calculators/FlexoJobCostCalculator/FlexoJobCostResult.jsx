@@ -8,6 +8,7 @@ import ItemRow from "../../invoice/ItemRow";
 import SectionLabel from "../../invoice/SectionLabel";
 import SectionSubtotal from "../../invoice/SectionSubtotal";
 import { SECTION_COLORS } from "../../../constants/invoiceColors";
+import { visibleFlexoCompanyName } from "../FlexoRateCalculator/companyDisplay";
 
 /* ─── Helpers ─────────────────────────────────────────────────────────────── */
 
@@ -22,8 +23,8 @@ const PROCESSING_KEYS = new Set([
 
 const COMPANY_FIELD = {
   printing: "printingCompany",
-  gusset: "gussetCompany",
-  cutting: "cuttingCompany",
+  gusset: "printingCompany",
+  cutting: "printingCompany",
   opaque: "opackCompany",
   punching: "punchingCompany",
 };
@@ -33,7 +34,7 @@ function sumSection(items) {
 }
 
 function processingLabel(item, form) {
-  const companyName = form[COMPANY_FIELD[item.key]];
+  const companyName = visibleFlexoCompanyName(form[COMPANY_FIELD[item.key]]);
   if (!companyName) return item.label;
   return (
     <>
