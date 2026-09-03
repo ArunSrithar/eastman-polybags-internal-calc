@@ -66,6 +66,9 @@ export default function JobCostResult({ result, form, status, date }) {
     totalAmount,
     finishedWeight,
     dispatchWeight,
+    taxPercent,
+    taxAmountPerKg,
+    costOfJobExclTax,
   } = result;
 
   const roundedTotalAmount = Math.round(totalAmount);
@@ -175,6 +178,10 @@ export default function JobCostResult({ result, form, status, date }) {
             ? `₹${fmt(roundedTotalAmount)} total ÷ ${fmt(dispatchWeight)} kg dispatch${finishedWeight > 0 ? ` · ${fmt(finishedWeight)} kg finished` : ""}`
             : "Enter dispatch weight to see cost per kg"
         }
+        taxPercent={taxPercent}
+        taxAmount={taxAmountPerKg}
+        exclusiveAmount={costOfJobExclTax}
+        exclusiveLabel="Exclusive of Tax (/kg)"
       />
     </div>
   );

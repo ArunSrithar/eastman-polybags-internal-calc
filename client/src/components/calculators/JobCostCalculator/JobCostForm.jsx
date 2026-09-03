@@ -12,6 +12,7 @@ import ProcessCountCompanyRow from "../formRows/ProcessCountCompanyRow";
 import ToggleCompanyRow from "../formRows/ToggleCompanyRow";
 import LaminationPillRow from "../formRows/LaminationPillRow";
 import ChargeColumnHeader from "../formRows/ChargeColumnHeader";
+import ChargeQtyInput from "../formRows/ChargeQtyInput";
 import {
   PrinterIcon,
   LayersIcon,
@@ -80,20 +81,6 @@ function resolveProcessRate(processKey, companyName, companies, rates) {
   return (rateKey ? rates?.[rateKey] : undefined) ?? PROCESS_FALLBACK[processKey] ?? 0;
 }
 
-// Combines the three per-row prices (each independently editable/auto-filled
-// from the row's own company) into the single rate the total-cost calc uses.
-function computePrintingPrice(printItem) {
-  const normalColors = parseInt(printItem.normalColors) || 0;
-  const normalRate = parseFloat(printItem.normalColorPrice) || 0;
-  const metallicRate = printItem.metallicEnabled
-    ? parseFloat(printItem.metallicColorPrice) || 0
-    : 0;
-  const mattRate = printItem.mattFinish
-    ? parseFloat(printItem.mattFinishPrice) || 0
-    : 0;
-  return normalColors * normalRate + metallicRate + mattRate;
-}
-
 function computeLaminationPrice(lamItem, companies, rates) {
   if (lamItem.laminationType === "none") return 0;
   const processKey =
@@ -122,37 +109,6 @@ function computePouchPrice(pouchItem, settings, companies) {
 
 function pouchEntrySize(entry) {
   return `${entry.length} x ${entry.breadth}`;
-}
-
-/* ─── Charge section header row ──────────────────────────────────────────── */
-function ChargeHeaderRow({ label, on, onToggle, totalQty, price, onPriceChange }) {
-  return (
-    <div className="card-section">
-      <div className={`flex items-center gap-3 ${on ? "" : "opacity-50"}`}>
-        <IOSToggle on={on} onToggle={onToggle} />
-        <span className={`flex-1 text-sm font-semibold ${on ? "text-label" : "text-label-3"}`}>
-          {label}
-        </span>
-        {totalQty > 0 && (
-          <span className="text-sm text-label-3 tabular-nums shrink-0">
-            {fmt(totalQty)} kg
-          </span>
-        )}
-        <div className={`flex items-center input-base p-0 overflow-hidden w-44 shrink-0 ${on ? "" : "pointer-events-none"}`}>
-          <span className="px-3 text-label-3 text-sm border-r border-separator shrink-0">₹</span>
-          <input
-            type="number"
-            min="0"
-            value={price}
-            onChange={(e) => onPriceChange(e.target.value)}
-            placeholder="0.00"
-            className="flex-1 min-w-0 bg-transparent px-3 py-2 text-sm outline-none input-no-spinner"
-          />
-          <span className="px-2 text-label-3 text-xs shrink-0">per kg</span>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 /* ─── JobCostForm ────────────────────────────────────────────────────────── */
@@ -202,26 +158,6 @@ export default forwardRef(function JobCostForm(
     return sum + (parseFloat(item.qty) || 0);
   }, 0);
 
-  // Sync charge item qty fields when total material qty changes (read-only auto-derive)
-  useEffect(() => {
-    const qty = String(totalMaterialQty);
-    const chargeKeys = ["printingCharges", "laminationCharges", "slittingCharges", "pouchMakingCharges"];
-    setForm((prev) => {
-      const nextItems = { ...prev.items };
-      let changed = false;
-      for (const key of chargeKeys) {
-        if (nextItems[key]?.qty !== qty) {
-          nextItems[key] = { ...nextItems[key], qty };
-          changed = true;
-        }
-      }
-      if (!changed) return prev;
-      const next = { ...prev, items: nextItems };
-      pendingSyncRef.current = next;
-      return next;
-    });
-  }, [totalMaterialQty]);
-
   // Fire any pending onProceed callbacks after render
   useEffect(() => {
     if (pendingSyncRef.current) {
@@ -268,8 +204,10 @@ export default forwardRef(function JobCostForm(
     let price = merged.price;
 
     if (itemKey === "printingCharges") {
-      // Picking a company auto-fills that row's price from its rate — unless
-      // this same call is a manual edit of the price field itself.
+      // Picking a company auto-fills that row's rate — unless this same call
+      // is a manual edit of the rate field itself. Each row's own rate and qty
+      // feed the per-component total-cost calc directly; there's no combined
+      // rate to derive here.
       if ("normalColorCompany" in fields && !("normalColorPrice" in fields)) {
         merged.normalColorPrice = String(
           resolveProcessRate("normalColor", merged.normalColorCompany, companies, rates),
@@ -285,7 +223,6 @@ export default forwardRef(function JobCostForm(
           resolveProcessRate("mattFinish", merged.mattFinishCompany, companies, rates),
         );
       }
-      price = String(computePrintingPrice(merged));
     } else if (itemKey === "laminationCharges" && !("price" in fields)) {
       price = String(computeLaminationPrice(merged, companies, rates));
     } else if (itemKey === "slittingCharges" && !("price" in fields)) {
@@ -549,17 +486,25 @@ export default forwardRef(function JobCostForm(
         ))}
       </FormSection>
 
+      {/* ── Material total hint ── */}
+      {totalMaterialQty > 0 && (
+        <div className="px-1 -mb-2">
+          <span className="text-xs text-label-3">
+            Material total: <span className="font-medium tabular-nums">{fmt(totalMaterialQty)} kg</span>
+          </span>
+        </div>
+      )}
+
       {/* ── Printing Charges ── */}
-      {/* No section-level toggle/total here — printing always contributes
-          whatever its three rows resolve to (0 if none are active), and each
-          row prices itself instead of rolling up into one combined rate. */}
       <FormSection title="Printing Charges" icon={<PrinterIcon className="size-3.5" />}>
-        <ChargeColumnHeader columns={["Component", "Supplier", "Rate"]} />
+        <ChargeColumnHeader columns={["Component", "Qty", "Supplier", "Rate"]} hasQty />
         <ProcessCountCompanyRow
           label="Normal Colors"
           connector={null}
           value={printItem.normalColors}
           onValueChange={(v) => setChargeItemFields("printingCharges", { normalColors: v })}
+          qty={printItem.normalColorQty}
+          onQtyChange={(v) => setChargeItemFields("printingCharges", { normalColorQty: v })}
           companyValue={printItem.normalColorCompany}
           onCompanyChange={(v) => setChargeItemFields("printingCharges", { normalColorCompany: v })}
           companyOptions={normalColorOptions}
@@ -574,6 +519,8 @@ export default forwardRef(function JobCostForm(
           connector={null}
           on={printItem.metallicEnabled}
           onToggle={() => setChargeItemFields("printingCharges", { metallicEnabled: !printItem.metallicEnabled })}
+          qty={printItem.metallicColorQty}
+          onQtyChange={(v) => setChargeItemFields("printingCharges", { metallicColorQty: v })}
           companyValue={printItem.metallicColorCompany}
           onCompanyChange={(v) => setChargeItemFields("printingCharges", { metallicColorCompany: v })}
           companyOptions={metallicColorOptions}
@@ -586,6 +533,8 @@ export default forwardRef(function JobCostForm(
           connector={null}
           on={printItem.mattFinish}
           onToggle={() => setChargeItemFields("printingCharges", { mattFinish: !printItem.mattFinish })}
+          qty={printItem.mattFinishQty}
+          onQtyChange={(v) => setChargeItemFields("printingCharges", { mattFinishQty: v })}
           companyValue={printItem.mattFinishCompany}
           onCompanyChange={(v) => setChargeItemFields("printingCharges", { mattFinishCompany: v })}
           companyOptions={mattFinishOptions}
@@ -598,10 +547,12 @@ export default forwardRef(function JobCostForm(
 
       {/* ── Lamination ── */}
       <FormSection title="Lamination" icon={<LayersIcon className="size-3.5" />}>
-        <ChargeColumnHeader columns={["Type", "Supplier", "Rate"]} />
+        <ChargeColumnHeader columns={["Type", "Qty", "Supplier", "Rate"]} hasQty />
         <LaminationPillRow
           value={lamItem.laminationType}
           onChange={handleLaminationTypeChange}
+          qty={lamItem.qty}
+          onQtyChange={(v) => setChargeItemFields("laminationCharges", { qty: v })}
           companyValue={lamItem.laminationCompany}
           onCompanyChange={(v) => setChargeItemFields("laminationCharges", { laminationCompany: v })}
           companyOptions={lamIsDouble ? doubleLamOptions : singleLamOptions}
@@ -612,14 +563,14 @@ export default forwardRef(function JobCostForm(
       </FormSection>
 
       {/* ── Slitting ── */}
-      {/* One toggle, not two — the old header row and the company row below it
-          drove the same enabled flag. */}
       <FormSection title="Slitting" icon={<ScissorsIcon className="size-3.5" />}>
         <ToggleCompanyRow
           label="Slitting Charges"
           connector={null}
           on={slitItem.enabled}
           onToggle={() => toggleItem("slittingCharges")}
+          qty={slitItem.qty}
+          onQtyChange={(v) => setChargeItemFields("slittingCharges", { qty: v })}
           companyValue={slitItem.slittingCompany}
           onCompanyChange={(v) => setChargeItemFields("slittingCharges", { slittingCompany: v })}
           companyOptions={slittingOptions}
@@ -632,27 +583,29 @@ export default forwardRef(function JobCostForm(
 
       {/* ── Pouch Making ── */}
       <FormSection title="Pouch Making" icon={<PouchIcon className="size-3.5" />}>
-        <ChargeHeaderRow
-          label="Pouch Making Charges"
-          on={pouchItem.enabled}
-          onToggle={() => toggleItem("pouchMakingCharges")}
-          totalQty={totalMaterialQty}
-          price={pouchItem.price}
-          onPriceChange={(v) => setChargeItemFields("pouchMakingCharges", { price: v })}
-        />
         <div className="card-section">
-          <div className="grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr] gap-3">
-            <div className="min-w-0">
-              <p className="field-label mb-1.5">Pouch Company</p>
+          <div className="grid items-center gap-2 min-w-0 grid-cols-[16rem_minmax(0,1fr)]">
+            <div className="flex items-center gap-2 min-w-0">
+              <IOSToggle on={pouchItem.enabled} onToggle={() => toggleItem("pouchMakingCharges")} />
+              <span className={`text-sm font-medium shrink-0 ${pouchItem.enabled ? "text-label" : "text-label-3"}`}>
+                Pouch Making Charges
+              </span>
+            </div>
+            <div className={`min-w-0 ${pouchItem.enabled ? "" : "opacity-60"}`}>
               <CreatableSelect
                 defaultOptions={filteredPouchCompanyOptions}
                 value={pouchItem.pouchCompany}
                 onChange={handlePouchCompanyChange}
                 placeholder="Select company"
                 creatable={false}
+                disabled={!pouchItem.enabled}
                 emptyMessage="No companies found"
               />
             </div>
+          </div>
+        </div>
+        <div className={`card-section ${pouchItem.enabled ? "" : "opacity-60 pointer-events-none"}`}>
+          <div className="grid grid-cols-2 sm:grid-cols-[1fr_1fr_7rem_10rem] gap-3">
             <div className="min-w-0">
               <p className="field-label mb-1.5">Pouch Size</p>
               <CreatableSelect
@@ -693,11 +646,33 @@ export default forwardRef(function JobCostForm(
                 }}
               />
             </div>
+            <div className="min-w-0">
+              <p className="field-label mb-1.5">Qty</p>
+              <ChargeQtyInput
+                qty={pouchItem.qty}
+                onQtyChange={(v) => setChargeItemFields("pouchMakingCharges", { qty: v })}
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="field-label mb-1.5">Rate</p>
+              <div className="flex items-center input-base p-0 overflow-hidden">
+                <span className="px-3 text-label-3 text-sm border-r border-separator shrink-0">₹</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={pouchItem.price}
+                  onChange={(e) => setChargeItemFields("pouchMakingCharges", { price: e.target.value })}
+                  placeholder="0.00"
+                  className="flex-1 min-w-0 bg-transparent px-3 py-2 text-sm outline-none input-no-spinner"
+                />
+                <span className="px-2 text-label-3 text-xs shrink-0">/kg</span>
+              </div>
+            </div>
           </div>
         </div>
       </FormSection>
 
-      {/* ── Wastage ── */}
+      {/* ── Wastage & Tax ── */}
       <FormSection>
         <SelectField
           label="Wastage"
@@ -707,6 +682,16 @@ export default forwardRef(function JobCostForm(
           defaultOptions={["0", "1", "2", "3", "4", "5", "8", "10"]}
           value={form.wastage}
           onChange={(v) => setField("wastage", v)}
+        />
+        <SelectField
+          label="Tax"
+          placeholder="18"
+          inline
+          unit="%"
+          storageKey="job-cost-tax"
+          defaultOptions={["0", "5", "12", "18", "28"]}
+          value={form.tax}
+          onChange={(v) => setField("tax", v)}
         />
       </FormSection>
 

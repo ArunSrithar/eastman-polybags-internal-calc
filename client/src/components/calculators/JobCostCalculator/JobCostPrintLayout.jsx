@@ -55,6 +55,9 @@ export default function JobCostPrintLayout({ result, form }) {
     totalAmount,
     dispatchWeight,
     finishedWeight,
+    taxPercent,
+    taxAmountPerKg,
+    costOfJobExclTax,
   } = result;
 
   const roundedTotalAmount = Math.round(totalAmount || 0);
@@ -71,6 +74,9 @@ export default function JobCostPrintLayout({ result, form }) {
           maximumFractionDigits: 0,
         })
       : null;
+
+  const roundedTaxAmountPerKg = Math.round(taxAmountPerKg || 0);
+  const roundedCostOfJobExclTax = Math.round(costOfJobExclTax || 0);
 
   /* ── Numbered line items (exclude flat-charge keys) ── */
   const items = enabledItems
@@ -94,10 +100,6 @@ export default function JobCostPrintLayout({ result, form }) {
       : null,
     ...flatItems.map((r) => ({ label: r.label, amount: r.amount, bold: true })),
   ].filter(Boolean);
-
-  const totalQty = enabledItems
-    .filter((i) => i.hasQty && i.qty)
-    .reduce((s, i) => s + i.qty, 0);
 
   /* ── Meta rows for the parties panel ── */
   const metaRows = [
@@ -154,7 +156,6 @@ export default function JobCostPrintLayout({ result, form }) {
       metaRows={metaRows}
       items={items}
       adjustments={adjustments}
-      totalQty={totalQty}
       totalAmount={roundedTotalAmount}
       totalAmountDisplay={roundedTotalDisplay}
       amountWords={amountInWords(roundedTotalAmount)}
@@ -170,6 +171,10 @@ export default function JobCostPrintLayout({ result, form }) {
         jobCostPerKg != null ? amountInWords(jobCostPerKg) : undefined
       }
       pricePerKgWordsProminent
+      taxPercent={taxPercent}
+      taxAmount={roundedTaxAmountPerKg}
+      exclusiveAmount={roundedCostOfJobExclTax}
+      exclusiveLabel="Exclusive of Tax (/Kg)"
       footerShowBoxes={false}
       footerShowCaption
     />

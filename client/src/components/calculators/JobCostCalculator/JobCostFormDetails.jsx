@@ -106,6 +106,7 @@ export default function JobCostFormDetails({ form }) {
             value={form.dispatchWeight ? `${fmt(form.dispatchWeight)} kg` : null}
           />
           <Row label="Wastage" value={form.wastage ? `${form.wastage}%` : null} />
+          <Row label="Tax" value={form.tax ? `${form.tax}%` : null} />
         </div>
       </div>
 

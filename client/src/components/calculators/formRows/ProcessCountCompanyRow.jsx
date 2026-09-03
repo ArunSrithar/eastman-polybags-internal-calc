@@ -1,4 +1,5 @@
 import CreatableSelect from "../../ui/CreatableSelect";
+import ChargeQtyInput from "./ChargeQtyInput";
 import { chargeRowGrid } from "./chargeRowGrid";
 
 export default function ProcessCountCompanyRow({
@@ -14,8 +15,11 @@ export default function ProcessCountCompanyRow({
   onPriceChange,
   priceUnit,
   connector = "from",
+  qty,
+  onQtyChange,
 }) {
   const hasPrice = typeof onPriceChange === "function";
+  const hasQty = typeof onQtyChange === "function";
 
   function handleCountChange(rawValue) {
     if (rawValue === "") {
@@ -36,7 +40,7 @@ export default function ProcessCountCompanyRow({
   return (
     <div className="card-section">
       <div
-        className={`grid items-center gap-2 min-w-0 ${chargeRowGrid(Boolean(connector), hasPrice)}`}
+        className={`grid items-center gap-2 min-w-0 ${chargeRowGrid(Boolean(connector), hasPrice, hasQty)}`}
       >
         <div className="flex items-center justify-between gap-2 min-w-0">
           <span className="text-sm font-medium text-label shrink-0">{label}</span>
@@ -53,6 +57,7 @@ export default function ProcessCountCompanyRow({
         {connector ? (
           <span className="text-xs text-label-3 text-center">{connector}</span>
         ) : null}
+        {hasQty ? <ChargeQtyInput qty={qty} onQtyChange={onQtyChange} /> : null}
         <div className={`flex-1 min-w-0 ${companyDisabled ? "opacity-60" : ""}`}>
           <CreatableSelect
             value={companyValue}

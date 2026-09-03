@@ -19,11 +19,16 @@ export const PROCESS_TABLE_GRID =
  */
 export const PROCESS_TABLE_GRID_NO_RATE = "grid-cols-[12.5rem_9rem_minmax(0,1fr)]";
 
-export function chargeRowGrid(hasConnector, hasPrice) {
+export function chargeRowGrid(hasConnector, hasPrice, hasQty = false) {
   if (hasConnector) {
     return hasPrice
       ? "grid-cols-[16rem_4.5rem_minmax(0,1fr)_10rem]"
       : "grid-cols-[16rem_4.5rem_minmax(0,1fr)]";
+  }
+  if (hasQty) {
+    return hasPrice
+      ? "grid-cols-[16rem_7rem_minmax(0,1fr)_10rem]"
+      : "grid-cols-[16rem_7rem_minmax(0,1fr)]";
   }
   return hasPrice
     ? "grid-cols-[16rem_minmax(0,1fr)_10rem]"

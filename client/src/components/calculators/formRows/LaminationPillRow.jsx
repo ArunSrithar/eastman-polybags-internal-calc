@@ -1,4 +1,5 @@
 import CreatableSelect from "../../ui/CreatableSelect";
+import ChargeQtyInput from "./ChargeQtyInput";
 import { chargeRowGrid } from "./chargeRowGrid";
 import { LAMINATION_OPTIONS } from "../../../constants/lamination";
 
@@ -23,13 +24,16 @@ export default function LaminationPillRow({
   renderCompanyOption,
   price,
   onPriceChange,
+  qty,
+  onQtyChange,
 }) {
   const off = value === "none";
   const hasPrice = typeof onPriceChange === "function";
+  const hasQty = typeof onQtyChange === "function";
 
   return (
     <div className="card-section">
-      <div className={`grid items-center gap-2 min-w-0 ${chargeRowGrid(false, hasPrice)}`}>
+      <div className={`grid items-center gap-2 min-w-0 ${chargeRowGrid(false, hasPrice, hasQty)}`}>
         <div className="radio-track min-w-0">
           {options.map((opt) => (
             <label
@@ -50,6 +54,7 @@ export default function LaminationPillRow({
             </label>
           ))}
         </div>
+        {hasQty ? <ChargeQtyInput qty={qty} onQtyChange={onQtyChange} disabled={off} /> : null}
         <div className={`flex-1 min-w-0 ${off ? "opacity-60" : ""}`}>
           <CreatableSelect
             value={companyValue}

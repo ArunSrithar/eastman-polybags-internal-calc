@@ -46,7 +46,6 @@ export { LINE_ITEMS, DROPDOWN_SEEDS };
 
 /* ─── Derived item groups ─────────────────────────────────────────────────── */
 export const MATERIAL_ITEMS = LINE_ITEMS.filter((i) => i.hasQty).slice(0, 4);
-export const CHARGE_ITEMS = LINE_ITEMS.filter((i) => i.hasQty).slice(4, 8);
 export const FLAT_ITEMS = LINE_ITEMS.filter((i) => !i.hasQty);
 
 /**
@@ -81,19 +80,20 @@ export function makeInitialForm(rates = null, settings = null) {
       const mattFinishRate = rates?.mattFinishRate ?? MATT_FINISH_RATE;
       items[def.key] = {
         enabled: true,
-        qty: "",
-        // Aggregate rate used by the total-cost calc — derived from the three
-        // per-row prices below, never edited directly.
-        price: String(normalColorRate),
+        // No top-level qty/price — each component (normal/metallic/matt) has
+        // its own qty and rate below, and the total-cost calc sums them.
         normalColors: "1",
         normalColorCompany: "",
         normalColorPrice: String(normalColorRate),
+        normalColorQty: "",
         metallicEnabled: false,
         metallicColorCompany: "",
         metallicColorPrice: String(metallicColorRate),
+        metallicColorQty: "",
         mattFinish: false,
         mattFinishCompany: "",
         mattFinishPrice: String(mattFinishRate),
+        mattFinishQty: "",
       };
       continue;
     }
@@ -157,6 +157,7 @@ export function makeInitialForm(rates = null, settings = null) {
     noOfColours: "",
     items,
     wastage: "",
+    tax: "18",
     finishedWeight: "",
     dispatchWeight: "",
   };
